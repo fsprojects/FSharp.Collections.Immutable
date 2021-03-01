@@ -8,6 +8,7 @@ type HashSetBuilder<'T> = HashSet<'T>.Builder
 
 type internal HashSetFactory = System.Collections.Immutable.ImmutableHashSet
 
+[<RequireQualifiedAccess; CompiledName((nameof System.Collections.Immutable.ImmutableHashSet) + "Module")>]
 module HashSet =
     let inline empty<'T> = HashSetFactory.Create<'T>()
 
@@ -83,6 +84,7 @@ type SortedSetBuilder<'T> = SortedSet<'T>.Builder
 type internal SortedSetFactory =
     System.Collections.Immutable.ImmutableSortedSet
 
+[<RequireQualifiedAccess; CompiledName((nameof System.Collections.Immutable.ImmutableSortedSet) + "Module")>]
 module SortedSet =
     let inline empty<'T> = SortedSetFactory.Create<'T>()
 

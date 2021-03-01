@@ -11,6 +11,7 @@ type HashMapBuilder<'Key, 'Value> = HashMap<'Key, 'Value>.Builder
 
 type internal HashMapFactory = System.Collections.Immutable.ImmutableDictionary
 
+[<RequireQualifiedAccess; CompiledName((nameof System.Collections.Immutable.ImmutableDictionary) + "Module")>]
 module HashMap =
     let inline empty<'Key, 'Value> = HashMapFactory.Create<'Key, 'Value>()
 
@@ -114,6 +115,7 @@ type SortedMapBuilder<'Key, 'Value> = SortedMap<'Key, 'Value>.Builder
 type internal SortedMapFactory =
     System.Collections.Immutable.ImmutableSortedDictionary
 
+[<RequireQualifiedAccess; CompiledName((nameof System.Collections.Immutable.ImmutableSortedDictionary) + "Module")>]
 module SortedMap =
     let inline empty<'Key, 'Value> = SortedMapFactory.Create<'Key, 'Value>()
 

@@ -4,7 +4,7 @@ type IQueue<'T> = System.Collections.Immutable.IImmutableQueue<'T>
 
 type Queue<'T> = System.Collections.Immutable.ImmutableQueue<'T>
 
-[<RequireQualifiedAccess; CompiledName("ImmutableStackModule")>]
+[<RequireQualifiedAccess; CompiledName((nameof System.Collections.Immutable.ImmutableQueue) + "Module")>]
 module Queue =
 
     type internal QueueFactory = System.Collections.Immutable.ImmutableQueue
@@ -18,6 +18,7 @@ module Queue =
     let inline ofSeq(source : 'T seq) : Queue<'T> = QueueFactory.CreateRange source
 
     let inline toSeq (queue: Queue<_>) = queue :> seq<_>
+
     let isEmpty queue = check queue; queue.IsEmpty
 
     let clear queue : IQueue<_> = check queue; queue.Clear()

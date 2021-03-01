@@ -4,7 +4,7 @@ type IStack<'T> = System.Collections.Immutable.IImmutableStack<'T>
 
 type Stack<'T> = System.Collections.Immutable.ImmutableStack<'T>
 
-[<RequireQualifiedAccess; CompiledName("ImmutableStackModule")>]
+[<RequireQualifiedAccess; CompiledName((nameof System.Collections.Immutable.ImmutableStack) + "Module")>]
 module Stack =
     type internal StackFactory = System.Collections.Immutable.ImmutableStack
 
@@ -17,6 +17,7 @@ module Stack =
     let inline ofArray (array : 'T []) : Stack<'T> = ofSeq array
 
     let inline toSeq (stack: IStack<_>) = stack :> seq<_>
+
     let push head stack : IStack<'T> =
         check stack
         stack.Push head

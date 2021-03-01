@@ -8,7 +8,7 @@ namespace FSharp.Collections.Immutable
 type FlatList<'T> = System.Collections.Immutable.ImmutableArray<'T>
 
 // based on the F# Array module source
-[<RequireQualifiedAccess; CompiledName("ImmutableArrayModule")>]
+[<RequireQualifiedAccess; CompiledName((nameof System.Collections.Immutable.ImmutableArray) + "Module")>]
 module FlatList =
 
     type internal FlatListFactory = System.Collections.Immutable.ImmutableArray
@@ -20,6 +20,7 @@ module FlatList =
     let inline ofSeq source: FlatList<'T> = FlatListFactory.CreateRange source
 
     let inline toSeq (flatList: FlatList<_>) = flatList :> seq<_>
+
     ////////// Building //////////
 
     let moveFromBuilder (builder : FlatList<_>.Builder) : FlatList<_> =
