@@ -15,10 +15,16 @@ module HashMap =
     let inline empty<'Key, 'Value> = HashMapFactory.Create<'Key, 'Value>()
 
     let inline ofSeq items = HashMapFactory.CreateRange(items)
-    let inline ofSeqWith getId items =
+    let inline ofSeqWith getKey items =
         checkNotNull (nameof items) items
         items
-        |> Seq.map (fun i -> KeyValuePair(getId i, i))
+        |> Seq.map (fun i -> KeyValuePair(getKey i, i))
+        |> HashMapFactory.CreateRange
+    let inline ofSeqGroupBy getKey items =
+        checkNotNull (nameof items) items
+        items
+        |> Seq.groupBy getKey
+        |> Seq.map (fun (key,value) -> KeyValuePair(key, value))
         |> HashMapFactory.CreateRange
     let inline ofArray items = HashMapFactory.CreateRange(items)
 
@@ -33,6 +39,7 @@ module HashMap =
         mapBuilder.ToImmutable()
 
     let inline toBuilder map : HashMapBuilder<_,_> = check map; map.ToBuilder()
+    let inline toSeq (map: HashMap<_,_>) = map :> seq<_>
 
     let inline ofKeyComparer<'Key, 'Value> comparer = HashMapFactory.Create<'Key, 'Value>(comparer)
     let inline ofComparers<'Key, 'Value> keyComparer valueComparer = HashMapFactory.Create<'Key, 'Value>(keyComparer, valueComparer)
@@ -68,6 +75,11 @@ module HashMap =
         | Some value -> ValueSome value
         | None -> ValueNone
 
+    let inline iter action (map: HashMap<_,_>) = check map; map |> Seq.iter (fun kvp -> action kvp.Key kvp.Value)
+
+    let inline exists predicate map = check map; map |> Seq.exists (fun kvp -> predicate kvp.Key kvp.Value)
+
+
     let inline add key value map : HashMap<_,_> = check map; map.Add(key, value)
     let inline append map pairs : HashMap<_,_> =
         check map
@@ -86,7 +98,7 @@ module HashMap =
         map |> Seq.forall (fun (kvp:KeyValuePair<_,_>) -> predicate kvp.Key kvp.Value)
 
     let inline map mapping map' =
-        map' |> Seq.map (fun (kvp:KeyValuePair<_,_>) -> mapping kvp.Key kvp.Value)
+        map' |> Seq.map (fun (kvp:KeyValuePair<_,_>) -> mapping kvp.Key kvp.Value)  |> ofSeq
 
     let inline where predicate map =
         map |> Seq.where (fun (kvp:KeyValuePair<_,_>) -> predicate kvp.Key kvp.Value) |> empty.AddRange
@@ -106,10 +118,16 @@ module SortedMap =
     let inline empty<'Key, 'Value> = SortedMapFactory.Create<'Key, 'Value>()
 
     let inline ofSeq items = SortedMapFactory.CreateRange(items)
-    let inline ofSeqWith getId items =
+    let inline ofSeqWith getKey items =
         checkNotNull (nameof items) items
         items
-        |> Seq.map (fun i -> KeyValuePair(getId i, i))
+        |> Seq.map (fun i -> KeyValuePair(getKey i, i))
+        |> SortedMapFactory.CreateRange
+    let inline ofSeqGroupBy getKey items =
+        checkNotNull (nameof items) items
+        items
+        |> Seq.groupBy getKey
+        |> Seq.map (fun (key,value) -> KeyValuePair(key, value))
         |> SortedMapFactory.CreateRange
     let inline ofArray items = SortedMapFactory.CreateRange(items)
 
@@ -124,6 +142,7 @@ module SortedMap =
         sortedMapBuilder.ToImmutable()
 
     let inline toBuilder map : SortedMapBuilder<_,_> = check map; map.ToBuilder()
+    let inline toSeq (map: SortedMap<_,_>) = map :> seq<_>
 
     let inline ofKeyComparer<'Key, 'Value> comparer = SortedMapFactory.Create<'Key, 'Value>(comparer)
     let inline ofComparers<'Key, 'Value> keyComparer valueComparer = SortedMapFactory.Create<'Key, 'Value>(keyComparer, valueComparer)
@@ -159,7 +178,7 @@ module SortedMap =
         | Some value -> ValueSome value
         | None -> ValueNone
 
-    let inline iter action map = check map; map |> Seq.iter (fun kvp -> action kvp.Key kvp.Value)
+    let inline iter action (map: SortedMap<_,_>) = check map; map |> Seq.iter (fun kvp -> action kvp.Key kvp.Value)
 
     let inline exists predicate map = check map; map |> Seq.exists (fun kvp -> predicate kvp.Key kvp.Value)
 
@@ -192,8 +211,8 @@ module SortedMap =
     let inline forall predicate map =
         map |> Seq.forall (fun (kvp:KeyValuePair<_,_>) -> predicate kvp.Key kvp.Value)
 
-    let inline map mapping map' =
-        map' |> Seq.map (fun (kvp:KeyValuePair<_,_>) -> mapping kvp.Key kvp.Value)
+    let inline map mapping (map': SortedMap<_,_>) =
+        map' |> Seq.map (fun (kvp:KeyValuePair<_,_>) -> mapping kvp.Key kvp.Value)  |> ofSeq
 
     let inline where predicate map =
         map |> Seq.where (fun (kvp:KeyValuePair<_,_>) -> predicate kvp.Key kvp.Value) |> empty.AddRange
