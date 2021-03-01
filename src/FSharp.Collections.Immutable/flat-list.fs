@@ -19,6 +19,7 @@ module FlatList =
 
     let inline ofSeq source: FlatList<'T> = FlatListFactory.CreateRange source
 
+    let inline toSeq (flatList: FlatList<_>) = flatList :> seq<_>
     ////////// Building //////////
 
     let moveFromBuilder (builder : FlatList<_>.Builder) : FlatList<_> =

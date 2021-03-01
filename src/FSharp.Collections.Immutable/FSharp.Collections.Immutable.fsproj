@@ -25,6 +25,7 @@
     <Compile Include="indexed-seq.fs" />
     <Compile Include="maps.fs" />
     <Compile Include="sets.fs" />
+    <Compile Include="seq.fs" />
   </ItemGroup>
 
   <ItemGroup>

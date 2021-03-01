@@ -174,6 +174,7 @@ module ImmutableList =
 
     let toBuilder (list: ImmutableList<_>) = check list; list.ToBuilder()
 
+    let inline toSeq (immutableList: ImmutableList<_>) = immutableList :> seq<_>
 
     let inline update f list =
         let builder = toBuilder list

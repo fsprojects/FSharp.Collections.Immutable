@@ -16,6 +16,7 @@ module Stack =
 
     let inline ofArray (array : 'T []) : Stack<'T> = ofSeq array
 
+    let inline toSeq (stack: IStack<_>) = stack :> seq<_>
     let push head stack : IStack<'T> =
         check stack
         stack.Push head

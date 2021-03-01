@@ -17,6 +17,7 @@ module Queue =
 
     let inline ofSeq(source : 'T seq) : Queue<'T> = QueueFactory.CreateRange source
 
+    let inline toSeq (queue: Queue<_>) = queue :> seq<_>
     let isEmpty queue = check queue; queue.IsEmpty
 
     let clear queue : IQueue<_> = check queue; queue.Clear()
