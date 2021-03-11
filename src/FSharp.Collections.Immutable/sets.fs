@@ -3,34 +3,36 @@
 type ISet<'T> = System.Collections.Immutable.IImmutableSet<'T>
 
 type HashSet<'T> = System.Collections.Immutable.ImmutableHashSet<'T>
-
 type HashSetBuilder<'T> = HashSet<'T>.Builder
-
-type internal HashSetFactory = System.Collections.Immutable.ImmutableHashSet
 
 [<RequireQualifiedAccess; CompiledName((nameof System.Collections.Immutable.ImmutableHashSet) + "Module")>]
 module HashSet =
-    let inline empty<'T> = HashSetFactory.Create<'T>()
 
-    let inline ofBuilder (hashSetBuilder: HashSetBuilder<_>) =
-           checkNotNull (nameof hashSetBuilder)  hashSetBuilder
-           hashSetBuilder.ToImmutable()
-    let inline ofComparer<'T> comparer = HashSetFactory.Create<'T>(equalityComparer = comparer)
-    let inline ofSeq items =
-        checkNotNull (nameof items) items
-        HashSetFactory.CreateRange(items)
-    let inline ofSeqWithComparer comparer items = HashSetFactory.Create(comparer, items = (items |> Array.ofSeq))
-    let inline ofArray items = HashSetFactory.CreateRange(items)
+    type internal HashSetFactory = System.Collections.Immutable.ImmutableHashSet
 
     let inline check (set: HashSet<_>) = checkNotNull (nameof set) set
 
+    ////////// Creating //////////
+
+    let inline empty<'T> = HashSetFactory.Create<'T>()
+    let inline singleton<'T> (item : 'T) = HashSetFactory.Create<'T>(item)
+    let inline ofSeq source = HashSetFactory.CreateRange(source)
+    let inline ofSeqWithComparer comparer source = HashSetFactory.Create(comparer, items = (source |> Array.ofSeq))
+    let inline ofArray (source : _ array) = HashSetFactory.CreateRange(source)
+
+    let inline ofBuilder (hashSetBuilder: HashSetBuilder<_>) =
+           checkNotNull (nameof hashSetBuilder) hashSetBuilder
+           hashSetBuilder.ToImmutable()
+    let inline ofComparer<'T> comparer = HashSetFactory.Create<'T>(equalityComparer = comparer)
+
+    ////////// Building //////////
+
     let inline builder() = HashSetFactory.CreateBuilder()
+    let inline builderWith capacity : HashSet<'T>.Builder = HashSetFactory.CreateBuilder(capacity)
     let inline builderWithComparer comparer = HashSetFactory.CreateBuilder(comparer)
 
     let inline toBuilder set : HashSetBuilder<_> = check set; set.ToBuilder()
     let inline toSeq (set: HashSet<_>) = set :> seq<_>
-
-    let inline singleton item = empty.Add(item)
 
     let inline keyComparer set = check set; set.KeyComparer
 
@@ -75,38 +77,37 @@ module HashSet =
 
     let inline iter action (set: HashSet<_>) = check set; set |> Seq.iter action
 
-    let inline count (set:HashSet<_>) = check set; set.Count
-
 type SortedSet<'T> = System.Collections.Immutable.ImmutableSortedSet<'T>
-
 type SortedSetBuilder<'T> = SortedSet<'T>.Builder
-
-type internal SortedSetFactory =
-    System.Collections.Immutable.ImmutableSortedSet
 
 [<RequireQualifiedAccess; CompiledName((nameof System.Collections.Immutable.ImmutableSortedSet) + "Module")>]
 module SortedSet =
-    let inline empty<'T> = SortedSetFactory.Create<'T>()
 
-    let inline ofBuilder (sortedSetBuilder: SortedSetBuilder<_>) =
-           checkNotNull (nameof sortedSetBuilder)  sortedSetBuilder
-           sortedSetBuilder.ToImmutable()
-    let inline ofComparer<'T> comparer = SortedSetFactory.Create<'T>(comparer = comparer)
-    let inline ofSeq items =
-        checkNotNull (nameof items) items
-        SortedSetFactory.CreateRange(items)
-    let inline ofSeqWithComparer comparer items = SortedSetFactory.Create(comparer, items = (items |> Array.ofSeq))
-    let inline ofArray items = SortedSetFactory.CreateRange(items)
+    type internal SortedSetFactory = System.Collections.Immutable.ImmutableSortedSet
 
     let inline check (sortedSet: SortedSet<_>) = checkNotNull (nameof sortedSet) sortedSet
 
+    ////////// Creating //////////
+
+    let inline empty<'T> = SortedSetFactory.Create<'T>()
+    let inline singleton<'T> (item : 'T) = SortedSetFactory.Create<'T>(item)
+    let inline ofSeq source = SortedSetFactory.CreateRange(source)
+    let inline ofSeqWithComparer comparer source = SortedSetFactory.Create(comparer, items = (source |> Array.ofSeq))
+    let inline ofArray (source : _ array) = SortedSetFactory.CreateRange(source)
+
+    let inline ofBuilder (sortedSetBuilder: SortedSetBuilder<_>) =
+           checkNotNull (nameof sortedSetBuilder) sortedSetBuilder
+           sortedSetBuilder.ToImmutable()
+    let inline ofComparer<'T> comparer = SortedSetFactory.Create<'T>(comparer = comparer)
+
+    ////////// Building //////////
+
     let inline builder() = SortedSetFactory.CreateBuilder()
+    let inline builderWith capacity : SortedSet<'T>.Builder = SortedSetFactory.CreateBuilder(capacity)
     let inline builderWithComparer comparer = SortedSetFactory.CreateBuilder(comparer)
 
     let inline toBuilder set : SortedSetBuilder<_> = check set; set.ToBuilder()
     let inline toSeq (set: SortedSet<_>) = set :> seq<_>
-
-    let inline singleton item = empty.Add(item)
 
     let inline keyComparer set = check set; set.KeyComparer
 
@@ -149,5 +150,3 @@ module SortedSet =
     let inline forall predicate set = set |> Seq.forall predicate
 
     let inline iter action (set: SortedSet<_>) = check set; set |> Seq.iter action
-
-    let inline count (set:SortedSet<_>) = check set; set.Count

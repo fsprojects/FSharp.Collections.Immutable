@@ -13,11 +13,17 @@ module FlatList =
 
     type internal FlatListFactory = System.Collections.Immutable.ImmutableArray
 
-    let inline empty<'T> : FlatList<_> = FlatListFactory.Create<'T>()
+    let inline internal checkNotDefault argName (list : FlatList<'T>) =
+        if list.IsDefault then invalidArg argName "Uninstantiated ImmutableArray/FlatList"
+    let inline internal check (list : FlatList<'T>) = checkNotDefault (nameof list) list
 
+    ////////// Creating //////////
+
+    let inline empty<'T> : FlatList<_> = FlatListFactory.Create<'T>()
     let inline singleton<'T> (item : 'T) : FlatList<'T> = FlatListFactory.Create<'T> (item)
 
-    let inline ofSeq source: FlatList<'T> = FlatListFactory.CreateRange source
+    let inline ofSeq source = FlatListFactory.CreateRange source
+    let inline ofArray (source : _ array) = FlatListFactory.CreateRange source
 
     let inline toSeq (flatList: FlatList<_>) = flatList :> seq<_>
 
@@ -30,16 +36,23 @@ module FlatList =
         checkNotNull (nameof builder) builder
         builder.ToImmutable()
 
-    let builder () : FlatList<'T>.Builder = FlatListFactory.CreateBuilder()
+    let inline builder () : FlatList<'T>.Builder = FlatListFactory.CreateBuilder()
+    let inline builderWith capacity : FlatList<'T>.Builder = FlatListFactory.CreateBuilder(capacity)
 
-    let builderWith capacity : FlatList<'T>.Builder = FlatListFactory.CreateBuilder(capacity)
+    let toBuilder list: FlatList<_>.Builder = check list; list.ToBuilder()
 
-    let inline internal checkNotDefault argName (list : FlatList<'T>) =
-        if list.IsDefault then invalidArg argName "Uninstantiated ImmutableArray/FlatList"
+    module Builder =
+        let inline private check (builder: FlatList<'T>.Builder) = checkNotNull (nameof builder) builder
 
-    let inline internal check (list : FlatList<'T>) = checkNotDefault (nameof list) list
+        let add item builder = check builder; builder.Add(item)
 
-    let inline internal indexNotFound() = raise (System.Collections.Generic.KeyNotFoundException())
+    let inline internal indexNotFound() = raise <| System.Collections.Generic.KeyNotFoundException()
+
+    let isEmpty (list: FlatList<_>) = list.IsEmpty
+    let isDefault (list: FlatList<_>) = list.IsDefault
+    let isDefaultOrEmpty (list: FlatList<_>) = list.IsDefaultOrEmpty
+
+    ////////// IReadOnly* //////////
 
     let length list = check list; list.Length
 
@@ -82,12 +95,6 @@ module FlatList =
         lastIndexFromWith comparer (length list - 1) item list
     let lastIndex item list = lastIndexWith HashIdentity.Structural item list
 
-    let isEmpty (list: FlatList<_>) = list.IsEmpty
-
-    let isDefault (list: FlatList<_>) = list.IsDefault
-
-    let isDefaultOrEmpty (list: FlatList<_>) = list.IsDefaultOrEmpty
-
     /// Removes the specified objects from the list with the given comparer.
     let removeAllWith (comparer: System.Collections.Generic.IEqualityComparer<_>) items list: FlatList<_> =
         check list
@@ -110,10 +117,8 @@ module FlatList =
 
     let blit source sourceIndex (destination: 'T[]) destinationIndex count =
         checkNotDefault (nameof source) source
-        try
-            source.CopyTo(sourceIndex, destination, destinationIndex, count)
-        with
-        |exn -> raise exn // throw same exception with the correct stack trace. Update exception code
+        try source.CopyTo(sourceIndex, destination, destinationIndex, count)
+        with exn -> raise exn // throw same exception with the correct stack trace. Update exception code
 
     let sortRangeWithComparer comparer index count list =
         check list
@@ -125,18 +130,9 @@ module FlatList =
     let sortWith comparer list = sortWithComparer (ComparisonIdentity.FromFunction comparer) list
     let sort list = check list; list.Sort()
 
-    ////////// Building //////////
-
-    let toBuilder list: FlatList<_>.Builder = check list; list.ToBuilder()
+    ////////// Loop-based //////////
 
     let inline private builderWithLengthOf list = builderWith <| length list
-
-    module Builder =
-        let inline private check (builder: FlatList<'T>.Builder) = checkNotNull (nameof builder) builder
-
-        let add item builder = check builder; builder.Add(item)
-
-    ////////// Loop-based //////////
 
     let init count initializer =
         if count < 0 then invalidArg (nameof count) ErrorStrings.InputMustBeNonNegative

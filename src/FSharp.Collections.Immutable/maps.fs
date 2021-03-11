@@ -9,27 +9,31 @@ type HashMap<'Key, 'Value> =
 
 type HashMapBuilder<'Key, 'Value> = HashMap<'Key, 'Value>.Builder
 
-type internal HashMapFactory = System.Collections.Immutable.ImmutableDictionary
-
 [<RequireQualifiedAccess; CompiledName((nameof System.Collections.Immutable.ImmutableDictionary) + "Module")>]
 module HashMap =
-    let inline empty<'Key, 'Value> = HashMapFactory.Create<'Key, 'Value>()
 
-    let inline ofSeq items = HashMapFactory.CreateRange(items)
-    let inline ofSeqWith getKey items =
-        checkNotNull (nameof items) items
-        items
+    type internal HashMapFactory = System.Collections.Immutable.ImmutableDictionary
+
+    let inline check (map: HashMap<_, _>) = checkNotNull (nameof map) map
+
+    ////////// Creating //////////
+
+    let inline empty<'Key, 'Value> = HashMapFactory.Create<'Key, 'Value>()
+    let inline singleton item = empty.Add(item)
+
+    let inline ofSeq source = HashMapFactory.CreateRange(source)
+    let inline ofSeqWith getKey source =
+        source
         |> Seq.map (fun i -> KeyValuePair(getKey i, i))
         |> HashMapFactory.CreateRange
-    let inline ofSeqGroupBy getKey items =
-        checkNotNull (nameof items) items
-        items
+    let inline ofSeqGroupBy getKey source =
+        source
         |> Seq.groupBy getKey
         |> Seq.map (fun (key,value) -> KeyValuePair(key, value))
         |> HashMapFactory.CreateRange
-    let inline ofArray items = HashMapFactory.CreateRange(items)
+    let inline ofArray (source : _ array) = HashMapFactory.CreateRange(source)
 
-    let inline check (map: HashMap<_, _>) = checkNotNull (nameof map) map
+    ////////// Building //////////
 
     let inline builder() = HashMapFactory.CreateBuilder()
     let inline builderWithKeyComparer comparer = HashMapFactory.CreateBuilder(comparer)
@@ -45,7 +49,6 @@ module HashMap =
     let inline ofKeyComparer<'Key, 'Value> comparer = HashMapFactory.Create<'Key, 'Value>(comparer)
     let inline ofComparers<'Key, 'Value> keyComparer valueComparer = HashMapFactory.Create<'Key, 'Value>(keyComparer, valueComparer)
 
-    let inline singleton item = empty.Add(item)
 
     let inline isEmpty map = check map; map.IsEmpty
 
@@ -80,7 +83,6 @@ module HashMap =
 
     let inline exists predicate map = check map; map |> Seq.exists (fun kvp -> predicate kvp.Key kvp.Value)
 
-
     let inline add key value map : HashMap<_,_> = check map; map.Add(key, value)
     let inline append map pairs : HashMap<_,_> =
         check map
@@ -104,36 +106,36 @@ module HashMap =
     let inline where predicate map =
         map |> Seq.where (fun (kvp:KeyValuePair<_,_>) -> predicate kvp.Key kvp.Value) |> empty.AddRange
 
-    let inline count (map:HashMap<_,_>) = check map; map.Count
-
 
 type SortedMap<'Key, 'Value> =
     System.Collections.Immutable.ImmutableSortedDictionary<'Key, 'Value>
 
 type SortedMapBuilder<'Key, 'Value> = SortedMap<'Key, 'Value>.Builder
 
-type internal SortedMapFactory =
-    System.Collections.Immutable.ImmutableSortedDictionary
-
 [<RequireQualifiedAccess; CompiledName((nameof System.Collections.Immutable.ImmutableSortedDictionary) + "Module")>]
 module SortedMap =
-    let inline empty<'Key, 'Value> = SortedMapFactory.Create<'Key, 'Value>()
 
-    let inline ofSeq items = SortedMapFactory.CreateRange(items)
-    let inline ofSeqWith getKey items =
-        checkNotNull (nameof items) items
-        items
-        |> Seq.map (fun i -> KeyValuePair(getKey i, i))
-        |> SortedMapFactory.CreateRange
-    let inline ofSeqGroupBy getKey items =
-        checkNotNull (nameof items) items
-        items
-        |> Seq.groupBy getKey
-        |> Seq.map (fun (key,value) -> KeyValuePair(key, value))
-        |> SortedMapFactory.CreateRange
-    let inline ofArray items = SortedMapFactory.CreateRange(items)
+    type internal SortedMapFactory = System.Collections.Immutable.ImmutableSortedDictionary
 
     let inline check (sortedMap: SortedMap<_, _>) = checkNotNull (nameof sortedMap) sortedMap
+
+    ////////// Creating //////////
+
+    let inline empty<'Key, 'Value> = SortedMapFactory.Create<'Key, 'Value>()
+    let inline singleton item = SortedMapFactory.Create(item)
+
+    let inline ofSeq source = SortedMapFactory.CreateRange(source)
+    let inline ofSeqWith getKey source =
+        source
+        |> Seq.map (fun i -> KeyValuePair(getKey i, i))
+        |> SortedMapFactory.CreateRange
+    let inline ofSeqGroupBy getKey source =
+        source
+        |> Seq.groupBy getKey
+        |> Seq.map (fun (key,value) -> KeyValuePair(key, value))
+    let inline ofArray (source : _ array) = SortedMapFactory.CreateRange(source)
+
+    ////////// Building //////////
 
     let inline builder() = SortedMapFactory.CreateBuilder()
     let inline builderWithKeyComparer comparer = SortedMapFactory.CreateBuilder(comparer)
@@ -149,7 +151,6 @@ module SortedMap =
     let inline ofKeyComparer<'Key, 'Value> comparer = SortedMapFactory.Create<'Key, 'Value>(comparer)
     let inline ofComparers<'Key, 'Value> keyComparer valueComparer = SortedMapFactory.Create<'Key, 'Value>(keyComparer, valueComparer)
 
-    let inline singleton item = empty.Add(item)
 
     let inline isEmpty map = check map; map.IsEmpty
 
@@ -218,5 +219,3 @@ module SortedMap =
 
     let inline where predicate map =
         map |> Seq.where (fun (kvp:KeyValuePair<_,_>) -> predicate kvp.Key kvp.Value) |> empty.AddRange
-
-    let inline count (map:SortedMap<_,_>) = check map; map.Count

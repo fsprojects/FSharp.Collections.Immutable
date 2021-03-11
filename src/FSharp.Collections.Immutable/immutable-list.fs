@@ -14,14 +14,29 @@ module ImmutableList =
     let inline internal check (list: IImmutableList<_>) = checkNotNull (nameof list) list
 
     let inline empty<'T> = ImmutableList.Create<'T>()
-
     let inline singleton<'T> (item : 'T) : ImmutableList<'T> = ImmutableList.Create<'T> (item)
 
-    let inline ofSeq (seq : 'T seq) = checkNotNull (nameof seq) seq; ImmutableList.CreateRange seq
+    let inline ofSeq source = checkNotNull (nameof source) source; ImmutableList.CreateRange source
+    let inline ofArray (source : _ array) = checkNotNull (nameof source) source; ImmutableList.CreateRange source
+
+    ////////// Building //////////
 
     let inline ofBuilder (builder : ImmutableList<_>.Builder) = builder.ToImmutable()
 
-    let inline builder() = ImmutableList.CreateBuilder()
+    let inline builder () = ImmutableList.CreateBuilder()
+
+    let toBuilder (list: ImmutableList<_>) = check list; list.ToBuilder()
+
+    let inline build f =
+        let builder = builder()
+        f builder
+        builder.ToImmutable()
+
+    let inline update f list =
+        let builder = toBuilder list
+        f builder
+        builder.ToImmutable()
+
 
     open System.Collections.Generic
     open System
@@ -81,7 +96,6 @@ module ImmutableList =
     let remove item list = removeWith HashIdentity.Structural item list
 
 
-
     /// Removes the specified objects from the list with the given comparer.
     let exceptWith (comparer: IEqualityComparer<_>) items list =
         check list
@@ -136,7 +150,6 @@ module ImmutableList =
         lastIndexFromWith comparer (length list - 1) item list
     let lastIndex item list = lastIndexWith HashIdentity.Structural item list
 
-
     ////////// Filter-based //////////
 
     let filterFold (predicate: 'State -> 'T -> bool * 'State) initial list =
@@ -164,22 +177,6 @@ module ImmutableList =
                 not !condition
             else true) list
     let takeUntil predicate list = takeWhile (not << predicate) list
-
-    ////////// Building //////////
-
-    let inline build f =
-        let builder = builder()
-        f builder
-        builder.ToImmutable()
-
-    let toBuilder (list: ImmutableList<_>) = check list; list.ToBuilder()
-
-    let inline toSeq (immutableList: ImmutableList<_>) = immutableList :> seq<_>
-
-    let inline update f list =
-        let builder = toBuilder list
-        f builder
-        builder.ToImmutable()
 
     ////////// Loop-based //////////
 
