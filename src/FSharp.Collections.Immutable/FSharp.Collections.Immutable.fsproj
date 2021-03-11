@@ -7,8 +7,8 @@
     <AssemblyTitle>FSharp.Collections.Immutable</AssemblyTitle>
     <Company>XperiAndri</Company>
     <ProductName>FSharp.Collections.Immutable</ProductName>
-    <Version>1.0.0</Version>
-    <Authors>XperiAndri;EventHelix;vilinski</Authors>
+    <Version>2.0.0</Version>
+    <Authors>XperiAndri;EventHelix;vilinski;anthony-mi</Authors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>FSharp.Collections.Immutable</PackageId>
     <PackageTags>System;Immutable;Collections;FSharp;F#</PackageTags>
