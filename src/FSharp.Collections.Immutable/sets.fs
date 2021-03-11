@@ -25,6 +25,9 @@ module HashSet =
            hashSetBuilder.ToImmutable()
     let inline ofComparer<'T> comparer = HashSetFactory.Create<'T>(equalityComparer = comparer)
 
+    let inline toSeq (set : HashSet<_>) = set :> seq<_>
+    let inline toArray (set : HashSet<_>) = check set; Seq.toArray set
+
     ////////// Building //////////
 
     let inline builder() = HashSetFactory.CreateBuilder()
@@ -32,7 +35,6 @@ module HashSet =
     let inline builderWithComparer comparer = HashSetFactory.CreateBuilder(comparer)
 
     let inline toBuilder set : HashSetBuilder<_> = check set; set.ToBuilder()
-    let inline toSeq (set: HashSet<_>) = set :> seq<_>
 
     let inline keyComparer set = check set; set.KeyComparer
 
@@ -100,6 +102,9 @@ module SortedSet =
            sortedSetBuilder.ToImmutable()
     let inline ofComparer<'T> comparer = SortedSetFactory.Create<'T>(comparer = comparer)
 
+    let inline toSeq (set: SortedSet<_>) = set :> seq<_>
+    let inline toArray (set : SortedSet<_>) = check set; Seq.toArray set
+
     ////////// Building //////////
 
     let inline builder() = SortedSetFactory.CreateBuilder()
@@ -107,7 +112,6 @@ module SortedSet =
     let inline builderWithComparer comparer = SortedSetFactory.CreateBuilder(comparer)
 
     let inline toBuilder set : SortedSetBuilder<_> = check set; set.ToBuilder()
-    let inline toSeq (set: SortedSet<_>) = set :> seq<_>
 
     let inline keyComparer set = check set; set.KeyComparer
 

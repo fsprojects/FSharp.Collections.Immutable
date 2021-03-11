@@ -26,6 +26,7 @@ module FlatList =
     let inline ofArray (source : _ array) = FlatListFactory.CreateRange source
 
     let inline toSeq (flatList: FlatList<_>) = flatList :> seq<_>
+    let inline toArray (list : FlatList<_>) = check list; Seq.toArray list
 
     ////////// Building //////////
 

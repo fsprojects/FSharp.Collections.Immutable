@@ -18,6 +18,10 @@ module ImmutableList =
 
     let inline ofSeq source = checkNotNull (nameof source) source; ImmutableList.CreateRange source
     let inline ofArray (source : _ array) = checkNotNull (nameof source) source; ImmutableList.CreateRange source
+    let inline ofList (list : _ list) = ofSeq list
+
+    let inline toSeq (list : ImmutableList<_>) = list :> seq<_>
+    let inline toArray (list : ImmutableList<_>) = check list; Seq.toArray list
 
     ////////// Building //////////
 
@@ -230,20 +234,11 @@ module ImmutableList =
 
     let tryTail list = if isEmpty list then None else Some <| tail list
 
-
     let collect mapping list = concat <| map mapping list
 
     let cons head list = insert 0 head list
 
-
-
-
-
-    let ofList list = ofSeq list
-
     //let ofArray (array: 'T array) = ImmutableList.Create<'T>(items = [||])
-
-
 
     let init count initializer =
         if count < 0 then
@@ -285,5 +280,3 @@ module ImmutableList =
         Seq.forall2 predicate list1 list2
 
     let iter action list = check list; Seq.iter action list
-
-    let toArray list = check list; Seq.toArray list

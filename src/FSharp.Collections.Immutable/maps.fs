@@ -33,6 +33,9 @@ module HashMap =
         |> HashMapFactory.CreateRange
     let inline ofArray (source : _ array) = HashMapFactory.CreateRange(source)
 
+    let inline toSeq (map: HashMap<_,_>) = map :> seq<_>
+    let inline toArray (map : HashMap<_,_>) = check map; Seq.toArray map
+
     ////////// Building //////////
 
     let inline builder() = HashMapFactory.CreateBuilder()
@@ -44,7 +47,6 @@ module HashMap =
         mapBuilder.ToImmutable()
 
     let inline toBuilder map : HashMapBuilder<_,_> = check map; map.ToBuilder()
-    let inline toSeq (map: HashMap<_,_>) = map :> seq<_>
 
     let inline ofKeyComparer<'Key, 'Value> comparer = HashMapFactory.Create<'Key, 'Value>(comparer)
     let inline ofComparers<'Key, 'Value> keyComparer valueComparer = HashMapFactory.Create<'Key, 'Value>(keyComparer, valueComparer)
@@ -135,6 +137,9 @@ module SortedMap =
         |> Seq.map (fun (key,value) -> KeyValuePair(key, value))
     let inline ofArray (source : _ array) = SortedMapFactory.CreateRange(source)
 
+    let inline toSeq (map: SortedMap<_,_>) = map :> seq<_>
+    let inline toArray (map : SortedMap<_,_>) = check map; Seq.toArray map
+
     ////////// Building //////////
 
     let inline builder() = SortedMapFactory.CreateBuilder()
@@ -146,7 +151,6 @@ module SortedMap =
         sortedMapBuilder.ToImmutable()
 
     let inline toBuilder map : SortedMapBuilder<_,_> = check map; map.ToBuilder()
-    let inline toSeq (map: SortedMap<_,_>) = map :> seq<_>
 
     let inline ofKeyComparer<'Key, 'Value> comparer = SortedMapFactory.Create<'Key, 'Value>(comparer)
     let inline ofComparers<'Key, 'Value> keyComparer valueComparer = SortedMapFactory.Create<'Key, 'Value>(keyComparer, valueComparer)
