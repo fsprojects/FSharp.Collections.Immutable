@@ -1,45 +1,41 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
-	<PropertyGroup>
-		<TargetFramework>netstandard2.0</TargetFramework>
-		<AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
-		<Description>F# bindings for System.Collections.Immutable</Description>
-		<Copyright>Copyright © XperiAndri 2016</Copyright>
-		<AssemblyTitle>FSharp.Collections.Immutable</AssemblyTitle>
-		<Company>XperiAndri</Company>
-		<ProductName>FSharp.Collections.Immutable</ProductName>
-		<Version>2.0.0</Version>
-		<Authors>XperiAndri;EventHelix;vilinski;anthony-mi;dim-37</Authors>
-		<GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<PackageId>FSharp.Collections.Immutable</PackageId>
-		<PackageTags>System;Immutable;Collections;FSharp;F#</PackageTags>
-		<RepositoryType>git</RepositoryType>
-		<DebugType>embedded</DebugType>
-		<RepositoryUrl>https://github.com/fsprojects/FSharp.Collections.Immutable/</RepositoryUrl>
-		<PackageProjectUrl>https://github.com/fsprojects/FSharp.Collections.Immutable/</PackageProjectUrl>
-		<PublishRepositoryUrl>true</PublishRepositoryUrl>
-		<EmbedUntrackedSources>true</EmbedUntrackedSources>
-	</PropertyGroup>
-
-	<ItemGroup>
-		<Compile Include="immutable-collection-util.fs" />
-		<Compile Include="flat-list.fs" />
-		<Compile Include="stack.fs" />
-		<Compile Include="immutable-list.fs" />
-		<Compile Include="queue.fs" />
-		<Compile Include="indexed-seq.fs" />
-		<Compile Include="maps.fs" />
-		<Compile Include="sets.fs" />
-		<Compile Include="seq.fs" />
-	</ItemGroup>
-
-	<PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
-		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-	</PropertyGroup>
-
-	<ItemGroup>
-		<PackageReference Include="System.Collections.Immutable" Version="5.0.0" />
-		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All"/>
-	</ItemGroup>
-
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+    <Description>F# bindings for System.Collections.Immutable</Description>
+    <Copyright>Copyright © XperiAndri 2016</Copyright>
+    <AssemblyTitle>FSharp.Collections.Immutable</AssemblyTitle>
+    <Company>XperiAndri</Company>
+    <ProductName>FSharp.Collections.Immutable</ProductName>
+    <Version>2.0.0</Version>
+    <Authors>XperiAndri;EventHelix;vilinski;anthony-mi;dim-37</Authors>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageId>FSharp.Collections.Immutable</PackageId>
+    <PackageTags>System;Immutable;Collections;FSharp;F#</PackageTags>
+    <RepositoryType>git</RepositoryType>
+    <DebugType>embedded</DebugType>
+    <RepositoryUrl>https://github.com/fsprojects/FSharp.Collections.Immutable/</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/fsprojects/FSharp.Collections.Immutable/</PackageProjectUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="functional-utils.fs" />
+    <Compile Include="immutable-collection-util.fs" />
+    <Compile Include="flat-list.fs" />
+    <Compile Include="stack.fs" />
+    <Compile Include="immutable-list.fs" />
+    <Compile Include="queue.fs" />
+    <Compile Include="indexed-seq.fs" />
+    <Compile Include="maps.fs" />
+    <Compile Include="sets.fs" />
+    <Compile Include="seq.fs" />
+  </ItemGroup>
+  <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Collections.Immutable" Version="5.0.0" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+  </ItemGroup>
 </Project>
