@@ -21,6 +21,7 @@ module ImmutableList =
     let inline ofList (list : _ list) = ofSeq list
 
     let inline toSeq (list : ImmutableList<_>) = list :> seq<_>
+    let inline toList (list : ImmutableList<_>) = check list; Seq.toList list
     let inline toArray (list : ImmutableList<_>) = check list; Seq.toArray list
 
     ////////// Building //////////
