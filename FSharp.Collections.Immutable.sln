@@ -11,6 +11,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.github\workflows\publish_release.yml = .github\workflows\publish_release.yml
 	EndProjectSection
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FSharp.Collections.Immutable.Tests", "FSharp.Collections.Immutable.Tests\FSharp.Collections.Immutable.Tests.fsproj", "{2272CACE-DBCE-4BC8-BADD-11802BAF30EC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{9805E74C-D028-4D05-9256-5C2FDC9B6EA8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9805E74C-D028-4D05-9256-5C2FDC9B6EA8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9805E74C-D028-4D05-9256-5C2FDC9B6EA8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2272CACE-DBCE-4BC8-BADD-11802BAF30EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2272CACE-DBCE-4BC8-BADD-11802BAF30EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2272CACE-DBCE-4BC8-BADD-11802BAF30EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2272CACE-DBCE-4BC8-BADD-11802BAF30EC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
