@@ -1,4 +1,4 @@
-﻿#if INTERACTIVE
+#if INTERACTIVE
 namespace global
 #else
 namespace FSharp.Collections.Immutable
@@ -6,10 +6,10 @@ namespace FSharp.Collections.Immutable
 
 [<AutoOpen>]
 module internal ImmutableCollectionUtil =
-    let inline checkNotNull name arg =
+    let inline checkNotNull name (arg : _ | null) =
         match arg with
-        |null -> nullArg name
-        |_ -> ()
+        | null -> nullArg name
+        | _ -> ()
 
 module internal ErrorStrings =
     [<Literal>]

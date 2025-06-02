@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>$(AssemblyBaseName).Tests</AssemblyName>
+
+    <OutputType>Exe</OutputType>
+    <EnableMSTestRunner>true</EnableMSTestRunner>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="FlatList.fs" />
+    <Compile Include="Stack.fs" />
+    <Compile Include="ImmutableList.fs" />
+    <Compile Include="Queue.fs" />
+    <Compile Include="IndexedSeq.fs" />
+    <Compile Include="Maps.fs" />
+    <Compile Include="Sets.fs" />
+    <Compile Include="Attributes.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="MSTest" />
+    <PackageReference Include="Unquote" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\FSharp.Collections.Immutable\FSharp.Collections.Immutable.fsproj" />
+  </ItemGroup>
+
+</Project>

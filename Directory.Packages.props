@@ -1,0 +1,34 @@
+<Project>
+  <ItemGroup Label="Microsoft">
+    <PackageVersion Include="MSBuild.StructuredLogger" Version="2.2.472" />
+    <PackageVersion Include="System.Collections.Immutable" Version="9.0.5" />
+    <PackageVersion Include="System.Drawing.Common" Version="9.0.5" />
+    <PackageVersion Include="System.Formats.Asn1" Version="9.0.5" />
+    <PackageVersion Include="System.Linq.Async" Version="6.0.0" />
+  </ItemGroup>
+  <ItemGroup Label="FSharp">
+    <PackageVersion Include="FSharp.Control.Reactive" Version="6.1.2" />
+    <PackageVersion Include="FSharp.Core" Version="9.0.100" />
+  </ItemGroup>
+  <ItemGroup Label="Build and Test">
+    <PackageVersion Include="Argu" Version="6.2.5" />
+    <PackageVersion Include="Fake.Api.GitHub" Version="6.1.3" />
+    <PackageVersion Include="Fake.BuildServer.GitHubActions" Version="6.1.3" />
+    <PackageVersion Include="Fake.Core.Environment" Version="6.1.3" />
+    <PackageVersion Include="Fake.Core.Process" Version="6.1.3" />
+    <PackageVersion Include="Fake.Core.ReleaseNotes" Version="6.1.3" />
+    <PackageVersion Include="Fake.Core.Target" Version="6.1.3" />
+    <PackageVersion Include="Fake.DotNet.AssemblyInfoFile" Version="6.1.3" />
+    <PackageVersion Include="Fake.DotNet.Cli" Version="6.1.3" />
+    <PackageVersion Include="Fake.DotNet.Paket" Version="6.1.3" />
+    <PackageVersion Include="Fake.IO.FileSystem" Version="6.1.3" />
+    <PackageVersion Include="Fake.Tools.Git" Version="6.1.3" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.0" />
+    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
+    <PackageVersion Include="MSTest" Version="3.9.1" />
+    <PackageVersion Include="NuGet.Common" Version="6.14.0" />
+    <PackageVersion Include="NuGet.Protocol" Version="6.14.0" />
+    <PackageVersion Include="Octokit" Version="14.0.0" />
+    <PackageVersion Include="Unquote" Version="7.0.1" />
+  </ItemGroup>
+</Project>
