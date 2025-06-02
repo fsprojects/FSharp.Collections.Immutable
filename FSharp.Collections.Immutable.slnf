@@ -1,0 +1,9 @@
+{
+  "solution": {
+    "path": "FSharp.Collections.Immutable.slnx",
+    "projects": [
+      "src\\FSharp.Collections.Immutable\\FSharp.Collections.Immutable.fsproj",
+      "tests\\FSharp.Collections.Immutable.Tests\\FSharp.Collections.Immutable.Tests.fsproj"
+    ]
+  }
+}
