@@ -21,7 +21,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="ImmutableCollectionUtil.fs" />
+    <Compile Include="Helper.fs" />
     <Compile Include="FlatList.fs" />
     <Compile Include="Stack.fs" />
     <Compile Include="ImmutableList.fs" />
@@ -38,6 +38,12 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup Label="InternalsVisibleToProjects">
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>FSharp.Collections.Immutable.Tests</_Parameter1>
+    </AssemblyAttribute>
   </ItemGroup>
 
 </Project>
