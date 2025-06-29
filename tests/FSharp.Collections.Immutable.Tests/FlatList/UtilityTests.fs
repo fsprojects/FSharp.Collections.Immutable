@@ -38,7 +38,7 @@ type UtilityTests () =
         CollectionAssert.AreEqual ([| 1; 2; 4; 8; 16; 32 |], FlatList.toArray result)
 
     [<TestMethod>]
-    member _.``build creats list with builder function`` () =
+    member _.``build creates list with builder function`` () =
         let result =
             FlatList.build (fun builder ->
                 builder.Add (1)
