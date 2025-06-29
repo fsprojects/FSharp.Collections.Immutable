@@ -19,6 +19,7 @@
     <Compile Include="FlatList\IterationTests.fs" />
     <Compile Include="FlatList\SearchTests.fs" />
     <Compile Include="FlatList\FoldTests.fs" />
+    <Compile Include="FlatList\MapFoldTests.fs" />
     <Compile Include="FlatList\GroupingTests.fs" />
     <Compile Include="FlatList\PairOperationTests.fs" />
     <Compile Include="FlatList\SortTests.fs" />

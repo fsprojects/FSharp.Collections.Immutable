@@ -119,5 +119,91 @@ type CreationTests () =
         for i = 0 to original.Length - 1 do
             Assert.AreEqual<int> (original.[i], copy.[i])
 
-        // Verify copy is independent (this is true for immutable collections)
-        Assert.AreNotEqual (original.GetHashCode (), copy.GetHashCode ())
+        // Verify both reference the same array under the hood
+        Assert.AreEqual<int> (original.GetHashCode (), copy.GetHashCode ())
+
+    [<TestMethod>]
+    member _.``zeroCreate creates FlatList with default values`` () =
+        let flatList = FlatList.zeroCreate<int> 3
+
+        Assert.AreEqual<int> (3, flatList.Length)
+        for i = 0 to flatList.Length - 1 do
+            Assert.AreEqual<int> (0, flatList.[i])
+
+    [<TestMethod>]
+    member _.``zeroCreate creates FlatList with reference type defaults`` () =
+        let flatList = FlatList.zeroCreate<string> 2
+
+        Assert.AreEqual<int> (2, flatList.Length)
+        for i = 0 to flatList.Length - 1 do
+            Assert.AreEqual<string> (null, flatList.[i])
+
+    [<TestMethod>]
+    member _.``ofOption creates singleton for Some`` () =
+        let result = FlatList.ofOption (Some 42)
+
+        Assert.AreEqual<int> (1, result.Length)
+        Assert.AreEqual<int> (42, result.[0])
+
+    [<TestMethod>]
+    member _.``ofOption creates empty for None`` () =
+        let result = FlatList.ofOption None
+
+        Assert.AreEqual<int> (0, result.Length)
+        Assert.IsTrue (FlatList.isEmpty result)
+
+    [<TestMethod>]
+    member _.``ofValueOption creates singleton for ValueSome`` () =
+        let result = FlatList.ofValueOption (ValueSome 42)
+
+        Assert.AreEqual<int> (1, result.Length)
+        Assert.AreEqual<int> (42, result.[0])
+
+    [<TestMethod>]
+    member _.``ofValueOption creates empty for ValueNone`` () =
+        let result = FlatList.ofValueOption ValueNone
+
+        Assert.AreEqual<int> (0, result.Length)
+        Assert.IsTrue (FlatList.isEmpty result)
+
+    [<TestMethod>]
+    member _.``toOption returns Some for singleton`` () =
+        let flatList = FlatList.singleton 42
+        let result = FlatList.toOption flatList
+
+        Assert.AreEqual<int option> (Some 42, result)
+
+    [<TestMethod>]
+    member _.``toOption returns None for empty`` () =
+        let flatList = FlatList.empty<int>
+        let result = FlatList.toOption flatList
+
+        Assert.AreEqual<int option> (None, result)
+
+    [<TestMethod>]
+    member _.``toOption returns None for multiple elements`` () =
+        let flatList = FlatList.ofArray [| 1; 2 |]
+        let result = FlatList.toOption flatList
+
+        Assert.AreEqual<int option> (None, result)
+
+    [<TestMethod>]
+    member _.``toValueOption returns ValueSome for singleton`` () =
+        let flatList = FlatList.singleton 42
+        let result = FlatList.toValueOption flatList
+
+        Assert.AreEqual<int voption> (ValueSome 42, result)
+
+    [<TestMethod>]
+    member _.``toValueOption returns ValueNone for empty`` () =
+        let flatList = FlatList.empty<int>
+        let result = FlatList.toValueOption flatList
+
+        Assert.AreEqual<int voption> (ValueNone, result)
+
+    [<TestMethod>]
+    member _.``toValueOption returns ValueNone for multiple elements`` () =
+        let flatList = FlatList.ofArray [| 1; 2 |]
+        let result = FlatList.toValueOption flatList
+
+        Assert.AreEqual<int voption> (ValueNone, result)

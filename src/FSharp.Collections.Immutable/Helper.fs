@@ -20,6 +20,12 @@ module internal ErrorStrings =
     let ListsHaveDifferentLengths = "The lists have different lengths."
 
 [<AutoOpen>]
+module internal Struct =
+
+    let fstv tuple = let struct (a, _) = tuple in a
+    let sndv tuple = let struct (_, b) = tuple in b
+
+[<AutoOpen>]
 module internal ValueOption =
 
     module internal Seq =

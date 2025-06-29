@@ -47,9 +47,9 @@ type PairOperationTests () =
         let result = FlatList.zip list1 list2
 
         Assert.AreEqual<int> (3, result.Length)
-        Assert.AreEqual<int * string> ((1, "a"), result.[0])
-        Assert.AreEqual<int * string> ((2, "b"), result.[1])
-        Assert.AreEqual<int * string> ((3, "c"), result.[2])
+        Assert.AreEqual<struct (int * string)> (struct (1, "a"), result.[0])
+        Assert.AreEqual<struct (int * string)> (struct (2, "b"), result.[1])
+        Assert.AreEqual<struct (int * string)> (struct (3, "c"), result.[2])
 
     [<TestMethod>]
     [<ExpectedException(typeof<ArgumentException>)>]
@@ -61,9 +61,9 @@ type PairOperationTests () =
 
     [<TestMethod>]
     member _.``unzip splits pairs into two lists`` () =
-        let flatList = FlatList.ofArray [| (1, "a"); (2, "b"); (3, "c") |]
+        let flatList = FlatList.ofArray [| struct (1, "a"); (2, "b"); (3, "c") |]
 
-        let list1, list2 = FlatList.unzip flatList
+        let struct (list1, list2) = FlatList.unzip flatList
 
         Assert.AreEqual<int> (3, list1.Length)
         Assert.AreEqual<int> (3, list2.Length)
@@ -85,9 +85,9 @@ type PairOperationTests () =
         let result = FlatList.zip3 list1 list2 list3
 
         Assert.AreEqual<int> (3, result.Length)
-        Assert.AreEqual<int * string * bool> ((1, "a", true), result.[0])
-        Assert.AreEqual<int * string * bool> ((2, "b", false), result.[1])
-        Assert.AreEqual<int * string * bool> ((3, "c", true), result.[2])
+        Assert.AreEqual<struct (int * string * bool)> (struct (1, "a", true), result.[0])
+        Assert.AreEqual<struct (int * string * bool)> (struct (2, "b", false), result.[1])
+        Assert.AreEqual<struct (int * string * bool)> (struct (3, "c", true), result.[2])
 
     [<TestMethod>]
     [<ExpectedException(typeof<ArgumentException>)>]
@@ -109,9 +109,9 @@ type PairOperationTests () =
 
     [<TestMethod>]
     member _.``unzip3 splits triples into three lists`` () =
-        let flatList = FlatList.ofArray [| (1, "a", true); (2, "b", false); (3, "c", true) |]
+        let flatList = FlatList.ofArray [| struct (1, "a", true); (2, "b", false); (3, "c", true) |]
 
-        let list1, list2, list3 = FlatList.unzip3 flatList
+        let struct (list1, list2, list3) = FlatList.unzip3 flatList
 
         Assert.AreEqual<int> (3, list1.Length)
         Assert.AreEqual<int> (3, list2.Length)

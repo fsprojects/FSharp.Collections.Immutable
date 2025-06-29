@@ -80,6 +80,16 @@ type FilterMapTests () =
         Assert.AreEqual<int> (4, result.[1])
 
     [<TestMethod>]
+    member _.``filter removes elements that do not match predicate`` () =
+        let flatList = FlatList.ofArray [| 1; 2; 3; 4; 5; 6 |]
+        let result = FlatList.filter (fun x -> x % 2 = 0) flatList
+
+        Assert.AreEqual<int> (3, result.Length)
+        Assert.AreEqual<int> (2, result.[0])
+        Assert.AreEqual<int> (4, result.[1])
+        Assert.AreEqual<int> (6, result.[2])
+
+    [<TestMethod>]
     member _.``where is alias for filter`` () =
         let flatList = FlatList.ofArray [| 1; 2; 3; 4; 5 |]
         let filtered = FlatList.filter (fun x -> x % 2 = 0) flatList
@@ -90,6 +100,16 @@ type FilterMapTests () =
             Assert.AreEqual<int> (filtered.[i], wheered.[i])
 
     [<TestMethod>]
+    member _.``where removes elements that do not match predicate`` () =
+        let flatList = FlatList.ofArray [| 1; 2; 3; 4; 5; 6 |]
+        let result = FlatList.where (fun x -> x % 2 = 0) flatList
+
+        Assert.AreEqual<int> (3, result.Length)
+        Assert.AreEqual<int> (2, result.[0])
+        Assert.AreEqual<int> (4, result.[1])
+        Assert.AreEqual<int> (6, result.[2])
+
+    [<TestMethod>]
     member _.``choose selects and maps elements`` () =
         let flatList = FlatList.ofArray [| 1; 2; 3; 4; 5 |]
         let result = FlatList.choose (fun x -> if x % 2 = 0 then ValueSome (x * 10) else ValueNone) flatList
@@ -97,9 +117,40 @@ type FilterMapTests () =
         CollectionAssert.AreEqual ([| 20; 40 |], FlatList.toArray result)
 
     [<TestMethod>]
+    member _.``choose transforms and filters elements`` () =
+        let flatList = FlatList.ofArray [| 1; 2; 3; 4; 5 |]
+        let result = FlatList.choose (fun x -> if x % 2 = 0 then ValueSome (x * 10) else ValueNone) flatList
+
+        Assert.AreEqual<int> (2, result.Length)
+        Assert.AreEqual<int> (20, result.[0])
+        Assert.AreEqual<int> (40, result.[1])
+
+    [<TestMethod>]
+    member _.``chooseBack transforms and filters elements in reverse`` () =
+        let flatList = FlatList.ofArray [| 1; 2; 3; 4; 5 |]
+        let result = FlatList.chooseBack (fun x -> if x % 2 = 0 then ValueSome (x * 10) else ValueNone) flatList
+
+        Assert.AreEqual<int> (2, result.Length)
+        Assert.AreEqual<int> (40, result.[0])
+        Assert.AreEqual<int> (20, result.[1])
+
+    [<TestMethod>]
     member _.``collect maps and concatenates`` () =
         let flatList = FlatList.ofArray [| 1; 2; 3 |]
         let result = FlatList.collect (fun x -> [ x; x * 10 ]) flatList
+
+        Assert.AreEqual<int> (6, result.Length)
+        Assert.AreEqual<int> (1, result.[0])
+        Assert.AreEqual<int> (10, result.[1])
+        Assert.AreEqual<int> (2, result.[2])
+        Assert.AreEqual<int> (20, result.[3])
+        Assert.AreEqual<int> (3, result.[4])
+        Assert.AreEqual<int> (30, result.[5])
+
+    [<TestMethod>]
+    member _.``collect transforms and concatenates results`` () =
+        let flatList = FlatList.ofArray [| 1; 2; 3 |]
+        let result = FlatList.collect (fun x -> [| x; x * 10 |]) flatList
 
         Assert.AreEqual<int> (6, result.Length)
         Assert.AreEqual<int> (1, result.[0])
@@ -116,6 +167,21 @@ type FilterMapTests () =
 
         CollectionAssert.AreEqual ([| 2; 4 |], FlatList.toArray evens)
         CollectionAssert.AreEqual ([| 1; 3; 5 |], FlatList.toArray odds)
+
+    [<TestMethod>]
+    member _.``partition splits list by predicate`` () =
+        let flatList = FlatList.ofArray [| 1; 2; 3; 4; 5; 6 |]
+        let (evens, odds) = FlatList.partition (fun x -> x % 2 = 0) flatList
+
+        Assert.AreEqual<int> (3, evens.Length)
+        Assert.AreEqual<int> (2, evens.[0])
+        Assert.AreEqual<int> (4, evens.[1])
+        Assert.AreEqual<int> (6, evens.[2])
+
+        Assert.AreEqual<int> (3, odds.Length)
+        Assert.AreEqual<int> (1, odds.[0])
+        Assert.AreEqual<int> (3, odds.[1])
+        Assert.AreEqual<int> (5, odds.[2])
 
     [<TestMethod>]
     member _.``distinct removes duplicates`` () =

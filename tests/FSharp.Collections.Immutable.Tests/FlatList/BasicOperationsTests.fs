@@ -135,3 +135,41 @@ type BasicOperationsTests () =
         Assert.AreEqual<int voption> (ValueSome 42, FlatList.tryExactlyOne singletonList)
         Assert.AreEqual<int voption> (ValueNone, FlatList.tryExactlyOne emptyList)
         Assert.AreEqual<int voption> (ValueNone, FlatList.tryExactlyOne multipleList)
+
+    [<TestMethod>]
+    member _.``tryHeadAndTail returns head and tail for non-empty list`` () =
+        let flatList = FlatList.ofArray [| 1; 2; 3 |]
+
+        match FlatList.tryHeadAndTail flatList with
+        | ValueSome (head, tail) ->
+            Assert.AreEqual<int> (1, head)
+            Assert.AreEqual<int> (2, tail.Length)
+            Assert.AreEqual<int> (2, tail.[0])
+            Assert.AreEqual<int> (3, tail.[1])
+        | ValueNone -> Assert.Fail ("Should return ValueSome for non-empty list")
+
+    [<TestMethod>]
+    member _.``tryHeadAndTail returns ValueNone for empty list`` () =
+        let emptyList = FlatList.empty<int>
+        let result = FlatList.tryHeadAndTail emptyList
+
+        Assert.AreEqual<(int * FlatList<int>) voption> (ValueNone, result)
+
+    [<TestMethod>]
+    member _.``tryLastAndInit returns init and last for non-empty list`` () =
+        let flatList = FlatList.ofArray [| 1; 2; 3 |]
+
+        match FlatList.tryLastAndInit flatList with
+        | ValueSome (init, last) ->
+            Assert.AreEqual<int> (3, last)
+            Assert.AreEqual<int> (2, init.Length)
+            Assert.AreEqual<int> (1, init.[0])
+            Assert.AreEqual<int> (2, init.[1])
+        | ValueNone -> Assert.Fail ("Should return ValueSome for non-empty list")
+
+    [<TestMethod>]
+    member _.``tryLastAndInit returns ValueNone for empty list`` () =
+        let emptyList = FlatList.empty<int>
+        let result = FlatList.tryLastAndInit emptyList
+
+        Assert.AreEqual<(FlatList<int> * int) voption> (ValueNone, result)

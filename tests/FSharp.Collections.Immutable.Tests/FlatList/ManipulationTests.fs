@@ -213,10 +213,9 @@ type ManipulationTests () =
 
         let result = FlatList.removeAll itemsToRemove flatList
 
-        Assert.AreEqual<int> (3, result.Length)
+        Assert.AreEqual<int> (2, result.Length)
         Assert.AreEqual<int> (10, result.[0])
-        Assert.AreEqual<int> (20, result.[1]) // Only removes first occurrence by default
-        Assert.AreEqual<int> (40, result.[2])
+        Assert.AreEqual<int> (40, result.[1])
 
     [<TestMethod>]
     member _.``except removes elements from another collection`` () =
@@ -229,3 +228,134 @@ type ManipulationTests () =
         Assert.IsTrue (FlatList.contains 2 result)
         Assert.IsTrue (FlatList.contains 4 result)
         Assert.IsTrue (FlatList.contains 5 result)
+
+    [<TestMethod>]
+    member _.``takeEnd returns last N elements`` () =
+        let flatList = FlatList.ofArray [| 10; 20; 30; 40; 50 |]
+
+        let result1 = FlatList.takeEnd 3 flatList
+        Assert.AreEqual<int> (3, result1.Length)
+        Assert.AreEqual<int> (30, result1.[0])
+        Assert.AreEqual<int> (40, result1.[1])
+        Assert.AreEqual<int> (50, result1.[2])
+
+        let result2 = FlatList.takeEnd 0 flatList
+        Assert.AreEqual<int> (0, result2.Length)
+
+    [<TestMethod>]
+    [<ExpectedException(typeof<ArgumentException>)>]
+    member _.``takeEnd throws for negative count`` () =
+        let flatList = FlatList.ofArray [| 1; 2; 3 |]
+        FlatList.takeEnd -1 flatList |> ignore
+
+    [<TestMethod>]
+    member _.``skipEnd skips last N elements`` () =
+        let flatList = FlatList.ofArray [| 10; 20; 30; 40; 50 |]
+
+        let result1 = FlatList.skipEnd 2 flatList
+        Assert.AreEqual<int> (3, result1.Length)
+        Assert.AreEqual<int> (10, result1.[0])
+        Assert.AreEqual<int> (20, result1.[1])
+        Assert.AreEqual<int> (30, result1.[2])
+
+        let result2 = FlatList.skipEnd 0 flatList
+        Assert.AreEqual<int> (5, result2.Length)
+
+    [<TestMethod>]
+    [<ExpectedException(typeof<ArgumentException>)>]
+    member _.``skipEnd throws for negative count`` () =
+        let flatList = FlatList.ofArray [| 1; 2; 3 |]
+        FlatList.skipEnd -1 flatList |> ignore
+
+    [<TestMethod>]
+    member _.``findDup finds first duplicate element`` () =
+        let flatList = FlatList.ofArray [| 1; 2; 3; 2; 4 |]
+        let result = FlatList.findDup flatList
+
+        Assert.AreEqual<int> (2, result)
+
+    [<TestMethod>]
+    [<ExpectedException(typeof<KeyNotFoundException>)>]
+    member _.``findDup throws when no duplicates`` () =
+        let flatList = FlatList.ofArray [| 1; 2; 3 |]
+        FlatList.findDup flatList |> ignore
+
+    [<TestMethod>]
+    member _.``findDupBy finds first duplicate element by projection`` () =
+        let flatList = FlatList.ofArray [| "apple"; "banana"; "avocado"; "cherry" |]
+        let result = FlatList.findDupBy (fun (s : string) -> s.[0]) flatList
+
+        Assert.AreEqual<string> ("avocado", result)
+
+    [<TestMethod>]
+    [<ExpectedException(typeof<KeyNotFoundException>)>]
+    member _.``findDupBy throws when no duplicates`` () =
+        let flatList = FlatList.ofArray [| "apple"; "banana"; "cherry" |]
+        FlatList.findDupBy (fun (s : string) -> s.[0]) flatList
+        |> ignore
+
+    [<TestMethod>]
+    member _.``unfold generates FlatList from state`` () =
+        let result =
+            FlatList.unfold
+                (fun state ->
+                    if state > 5 then
+                        ValueNone
+                    else
+                        ValueSome (struct (state, state + 1))
+                )
+                1
+
+        Assert.AreEqual<int> (5, result.Length)
+        Assert.AreEqual<int> (1, result.[0])
+        Assert.AreEqual<int> (2, result.[1])
+        Assert.AreEqual<int> (3, result.[2])
+        Assert.AreEqual<int> (4, result.[3])
+        Assert.AreEqual<int> (5, result.[4])
+
+    [<TestMethod>]
+    member _.``unfold handles empty generation`` () =
+        let result = FlatList.unfold (fun _ -> ValueNone) 1
+
+        Assert.AreEqual<int> (0, result.Length)
+        Assert.IsTrue (FlatList.isEmpty result)
+
+    [<TestMethod>]
+    member _.``compareWith compares two FlatLists`` () =
+        let list1 = FlatList.ofArray [| 1; 2; 3 |]
+        let list2 = FlatList.ofArray [| 1; 2; 3 |]
+        let list3 = FlatList.ofArray [| 1; 2; 4 |]
+        let list4 = FlatList.ofArray [| 1; 2 |]
+
+        Assert.AreEqual<int> (0, FlatList.compareWith compare list1 list2)
+        Assert.IsTrue (FlatList.compareWith compare list1 list3 < 0)
+        Assert.IsTrue (FlatList.compareWith compare list3 list1 > 0)
+        Assert.IsTrue (FlatList.compareWith compare list4 list1 < 0)
+        Assert.IsTrue (FlatList.compareWith compare list1 list4 > 0)
+
+    [<TestMethod>]
+    member _.``transpose transposes matrix of lists`` () =
+        let matrix =
+            FlatList.ofArray [| FlatList.ofArray [| 1; 2; 3 |]; FlatList.ofArray [| 4; 5; 6 |]; FlatList.ofArray [| 7; 8; 9 |] |]
+
+        let result = FlatList.transpose matrix
+
+        Assert.AreEqual<int> (3, result.Length)
+
+        let col1 = result.[0]
+        Assert.AreEqual<int> (3, col1.Length)
+        Assert.AreEqual<int> (1, col1.[0])
+        Assert.AreEqual<int> (4, col1.[1])
+        Assert.AreEqual<int> (7, col1.[2])
+
+        let col2 = result.[1]
+        Assert.AreEqual<int> (3, col2.Length)
+        Assert.AreEqual<int> (2, col2.[0])
+        Assert.AreEqual<int> (5, col2.[1])
+        Assert.AreEqual<int> (8, col2.[2])
+
+        let col3 = result.[2]
+        Assert.AreEqual<int> (3, col3.Length)
+        Assert.AreEqual<int> (3, col3.[0])
+        Assert.AreEqual<int> (6, col3.[1])
+        Assert.AreEqual<int> (9, col3.[2])

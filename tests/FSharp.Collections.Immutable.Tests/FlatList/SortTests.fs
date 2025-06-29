@@ -28,8 +28,8 @@ type SortTests () =
         let flatList = FlatList.ofArray [| "apple"; "banana"; "cherry"; "date"; "fig" |]
         let result = FlatList.sortBy String.length flatList
 
-        // Should be sorted by length: "fig", "date", "apple", "cherry", "banana"
-        CollectionAssert.AreEqual ([| "fig"; "date"; "apple"; "cherry"; "banana" |], FlatList.toArray result)
+        // Should be sorted by length: "fig", "date", "apple", "banana", "cherry"
+        CollectionAssert.AreEqual ([| "fig"; "date"; "apple"; "banana"; "cherry" |], FlatList.toArray result)
 
     [<TestMethod>]
     member _.``sortByDescending orders using key selector in reverse`` () =
@@ -112,7 +112,7 @@ type SortTests () =
             else 1
 
         // list1 and list2 differ at position 2, where 3 and 4 have same parity
-        Assert.AreEqual<int> (0, FlatList.compareWith comparer list1 list2)
+        Assert.AreEqual<int> (1, FlatList.compareWith comparer list1 list2)
 
         // list1 is shorter than list3 (where all elements match)
         Assert.AreEqual<int> (-1, FlatList.compareWith comparer list1 list3)

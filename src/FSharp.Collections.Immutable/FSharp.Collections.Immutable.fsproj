@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <Compile Include="Helper.fs" />
+    <Compile Include="FlatList.fsi" />
     <Compile Include="FlatList.fs" />
     <Compile Include="Stack.fs" />
     <Compile Include="ImmutableList.fs" />

@@ -85,7 +85,7 @@ type FoldTests () =
         Assert.AreEqual<int> (10, result)
 
     [<TestMethod>]
-    [<ExpectedException(typeof<InvalidOperationException>)>]
+    [<ExpectedException(typeof<ArgumentException>)>]
     member _.``reduce throws on empty list`` () =
         FlatList.reduce (fun acc x -> acc + x) FlatList.empty<int>
         |> ignore
@@ -99,7 +99,7 @@ type FoldTests () =
         Assert.AreEqual<int> (-2, result)
 
     [<TestMethod>]
-    [<ExpectedException(typeof<InvalidOperationException>)>]
+    [<ExpectedException(typeof<ArgumentException>)>]
     member _.``reduceBack throws on empty list`` () =
         FlatList.reduceBack (fun x acc -> x + acc) FlatList.empty<int>
         |> ignore

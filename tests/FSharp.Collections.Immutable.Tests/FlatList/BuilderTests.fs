@@ -37,7 +37,7 @@ type BuilderTests () =
 
     [<TestMethod>]
     member _.``moveFromBuilder builds FlatList and empties builder`` () =
-        let b = FlatList.builder ()
+        let b = FlatList.builderWith 3 // Set exact capacity
         b.Add (1)
         b.Add (2)
         b.Add (3)
@@ -59,10 +59,11 @@ type BuilderTests () =
     [<TestMethod>]
     member _.``Builder.add adds to builder`` () =
         let b = FlatList.builder ()
-        FlatList.Builder.add 42 b
+        let returned = FlatList.Builder.add 42 b
 
         Assert.AreEqual<int> (1, b.Count)
         Assert.AreEqual<int> (42, b.[0])
+        Assert.AreSame (b, returned) // Check that same builder is returned
 
     [<TestMethod>]
     member _.``build applies function to builder and returns FlatList`` () =

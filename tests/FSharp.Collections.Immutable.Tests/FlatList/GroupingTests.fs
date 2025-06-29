@@ -61,12 +61,17 @@ type GroupingTests () =
         Assert.AreEqual<int> (3, result.[1].Length)
         Assert.AreEqual<int> (1, result.[2].Length)
 
-        for i = 0 to 2 do
-            Assert.AreEqual<int> (i * 3 + 1, result.[0].[i])
+        // Check first chunk
+        Assert.AreEqual<int> (1, result.[0].[0])
+        Assert.AreEqual<int> (2, result.[0].[1])
+        Assert.AreEqual<int> (3, result.[0].[2])
 
-        for i = 0 to 2 do
-            Assert.AreEqual<int> (i * 3 + 4, result.[1].[i])
+        // Check second chunk
+        Assert.AreEqual<int> (4, result.[1].[0])
+        Assert.AreEqual<int> (5, result.[1].[1])
+        Assert.AreEqual<int> (6, result.[1].[2])
 
+        // Check third chunk
         Assert.AreEqual<int> (7, result.[2].[0])
 
     [<TestMethod>]
@@ -141,9 +146,9 @@ type GroupingTests () =
         let result = FlatList.pairwise flatList
 
         Assert.AreEqual<int> (3, result.Length)
-        Assert.AreEqual<int * int> ((10, 20), result.[0])
-        Assert.AreEqual<int * int> ((20, 30), result.[1])
-        Assert.AreEqual<int * int> ((30, 40), result.[2])
+        Assert.AreEqual<struct (int * int)> (struct (10, 20), result.[0])
+        Assert.AreEqual<struct (int * int)> (struct (20, 30), result.[1])
+        Assert.AreEqual<struct (int * int)> (struct (30, 40), result.[2])
 
     [<TestMethod>]
     member _.``pairwise returns empty for singleton or empty`` () =
