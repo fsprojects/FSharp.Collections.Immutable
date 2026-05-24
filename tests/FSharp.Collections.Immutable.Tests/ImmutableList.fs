@@ -2,6 +2,7 @@ namespace FSharp.Collections.Immutable.Tests
 
 open Microsoft.VisualStudio.TestTools.UnitTesting
 open FSharp.Collections.Immutable
+module CoreSeq = Microsoft.FSharp.Collections.Seq
 
 [<TestClass; TestCategory(nameof IndexedList)>]
 type IndexedListTests () =
