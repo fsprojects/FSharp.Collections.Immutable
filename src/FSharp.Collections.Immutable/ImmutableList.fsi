@@ -7,6 +7,9 @@ module ImmutableList =
     /// <summary>Returns an empty immutable list.</summary>
     val inline empty<'T> : System.Collections.Immutable.ImmutableList<'T>
 
+    /// <summary>Creates an immutable list from a sequence.</summary>
+    val ofSeq : source : seq<'T> -> System.Collections.Immutable.ImmutableList<'T>
+
     /// <summary>Returns a sequence view of an immutable list.</summary>
     val inline toSeq : list : System.Collections.Immutable.ImmutableList<'T> -> seq<'T>
 
