@@ -356,30 +356,37 @@ let fsharpAnalyzers _ =
     )
 
 let dotnetTest ctx =
-    // Create test results directory if it doesn't exist
-    Directory.create testResultsDir
+    let excludeCoverage =
+        !!testsGlob
+        |> Seq.map (IO.Path.GetFileNameWithoutExtension >> Unchecked.nonNull)
+        |> String.concat "|"
 
-    let args = [
-        "--no-build"
-        if enableCodeCoverage then
-            "--collect:\"Code Coverage\""
-            "--results-directory"
-            testResultsDir
-        "--logger:trx" // Enable TRX report generation
-    ]
+    let isGenerateCoverageReportTarget =
+        String.Equals (ctx.Context.FinalTarget, "GenerateCoverageReport", StringComparison.OrdinalIgnoreCase)
+        || String.Equals (ctx.Context.FinalTarget, "ShowCoverageReport", StringComparison.OrdinalIgnoreCase)
 
-    DotNet.test
-        (fun c -> {
-            c with
-                MSBuildParams = disableBinLog c.MSBuildParams
-                Configuration = configuration (ctx.Context.AllExecutingTargets)
-                Common = c.Common |> DotNet.Options.withAdditionalArgs args
-        })
-        sln
+    let shouldCollectCoverage = enableCodeCoverage || isGenerateCoverageReportTarget
+
+    if shouldCollectCoverage then
+        Directory.create testResultsDir
+
+    let args =
+        [
+            "--no-build"
+            $"--configuration {configuration (ctx.Context.AllExecutingTargets)}"
+            if shouldCollectCoverage then
+                "/p:AltCover=true"
+                $"/p:AltCoverAssemblyExcludeFilter={excludeCoverage}"
+                "/p:AltCoverLocalSource=true"
+            $"--solution \"{sln}\""
+        ]
+        |> String.concat " "
+
+    DotNet.exec (DotNet.Options.withWorkingDirectory rootDirectory) "test" args
+    |> failOnBadExitAndPrint
 
 let generateCoverageReport _ =
-
-    let coverageFiles = !!(testResultsDir </> "*/coverage.cobertura.xml")
+    let coverageFiles = !!(rootDirectory </> "tests/**/coverage*.xml")
 
     let sourceDirs = !!srcGlob |> Seq.map Path.getDirectory |> String.concat ";"
 
@@ -388,10 +395,9 @@ let generateCoverageReport _ =
         sprintf "-targetdir:\"%s\"" coverageReportDir
         // Add source dir
         sprintf "-sourcedirs:\"%s\"" sourceDirs
-        // Ignore test assemblies
-        sprintf "-assemblyfilters:\"%s\"" "-*.Tests"
-        // Generate HTML and Cobertura reports
-        sprintf "-reporttypes:%s" "Html;Cobertura"
+        // Ignore test assemblies and AltCover recorder helpers
+        sprintf "-assemblyfilters:\"%s\"" "-*.Tests;-AltCover.Recorder.g"
+        sprintf "-reporttypes:%s" "Html"
     ]
 
     let args = independentArgs |> String.concat " "
