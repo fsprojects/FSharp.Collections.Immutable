@@ -22,13 +22,23 @@
 
   <ItemGroup>
     <Compile Include="ImmutableCollectionUtil.fs" />
+    <Compile Include="FlatList.fsi" />
     <Compile Include="FlatList.fs" />
+    <Compile Include="Stack.fsi" />
     <Compile Include="Stack.fs" />
+    <Compile Include="ImmutableList.fsi" />
     <Compile Include="ImmutableList.fs" />
+    <Compile Include="IndexedList.fsi" />
+    <Compile Include="IndexedList.fs" />
+    <Compile Include="Queue.fsi" />
     <Compile Include="Queue.fs" />
+    <Compile Include="IndexedSeq.fsi" />
     <Compile Include="IndexedSeq.fs" />
+    <Compile Include="Maps.fsi" />
     <Compile Include="Maps.fs" />
+    <Compile Include="Sets.fsi" />
     <Compile Include="Sets.fs" />
+    <Compile Include="Seq.fsi" />
     <Compile Include="Seq.fs" />
   </ItemGroup>
 
