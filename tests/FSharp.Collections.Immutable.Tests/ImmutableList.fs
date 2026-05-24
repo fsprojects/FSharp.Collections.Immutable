@@ -20,8 +20,6 @@ type IndexedListTests () =
 
         CollectionAssert.AreEqual (
             [| 1; 2; 3 |],
-            indexedList
-            |> FSharp.Collections.Immutable.Seq.ofIndexedList
-            |> Microsoft.FSharp.Collections.Seq.toArray,
+            indexedList |> Seq.ofIndexedList |> CoreSeq.toArray,
             "Seq.ofIndexedList should preserve the indexed list contents."
         )
