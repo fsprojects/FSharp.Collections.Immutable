@@ -31,7 +31,7 @@ module Seq =
     val inline ofQueue : queue : Queue<'T> -> seq<'T>
 
     /// <summary>Creates a queue from a sequence.</summary>
-    val inline toQueue : queue : seq<'T> -> Queue<'T>
+    val inline toQueue : seq : seq<'T> -> Queue<'T>
 
     /// <summary>Returns a sequence view of a hash map.</summary>
     val inline ofHashMap :
