@@ -3,10 +3,14 @@ namespace FSharp.Collections.Immutable.Tests
 open Microsoft.VisualStudio.TestTools.UnitTesting
 open FSharp.Collections.Immutable
 
-[<TestClass>]
+[<TestClass; TestCategory(nameof IndexedList)>]
 type IndexedListTests () =
 
-    [<TestMethod>]
+    [<TestMethod;
+      TestCategory(nameof IndexedList.ofSeq);
+      TestCategory(nameof IndexedList.length);
+      TestCategory(nameof IndexedList.head);
+      TestCategory(nameof Seq.ofIndexedList)>]
     member _.IndexedList_module_uses_the_immutable_list_bindings () =
         let indexedList = IndexedList.ofSeq [ 1; 2; 3 ]
 
