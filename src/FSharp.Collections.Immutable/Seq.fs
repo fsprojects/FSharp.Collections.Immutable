@@ -13,8 +13,11 @@ module Seq =
     let inline ofStack stack = Stack.toSeq stack
     let inline toStack seq = Stack.ofSeq seq
 
-    let inline ofImmutableList immutableList = ImmutableList.toSeq immutableList
-    let inline toImmutableList seq = ImmutableList.ofSeq seq
+    let inline ofImmutableList (immutableList : System.Collections.Immutable.ImmutableList<_>) = immutableList :> seq<_>
+    let inline toImmutableList seq = System.Collections.Immutable.ImmutableList.CreateRange seq
+
+    let inline ofIndexedList (indexedList : IndexedList<_>) = indexedList :> seq<_>
+    let inline toIndexedList seq = System.Collections.Immutable.ImmutableList.CreateRange seq
 
     let inline ofQueue queue = Queue.toSeq queue
     let inline toQueue queue = Queue.ofSeq queue
