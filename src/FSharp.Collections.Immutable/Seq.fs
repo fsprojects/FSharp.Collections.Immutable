@@ -20,7 +20,7 @@ module Seq =
     let inline toIndexedList seq = System.Collections.Immutable.ImmutableList.CreateRange seq
 
     let inline ofQueue queue = Queue.toSeq queue
-    let inline toQueue seq = Queue.ofSeq seq
+    let inline toQueue source = Queue.ofSeq source
 
     let inline ofHashMap hashMap = HashMap.toSeq hashMap
     let inline toHashMap hashMap = HashMap.ofSeq hashMap
