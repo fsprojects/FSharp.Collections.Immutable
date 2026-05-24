@@ -17,7 +17,7 @@ module ImmutableList =
     let inline empty<'T> = ImmutableList.Create<'T> ()
     let inline singleton<'T> (item : 'T) : ImmutableList<'T> = ImmutableList.Create<'T> (item)
 
-    let inline ofSeq source =
+    let ofSeq<'T> (source : seq<'T>) : ImmutableList<'T> =
         checkNotNull (nameof source) source
         ImmutableList.CreateRange source
 

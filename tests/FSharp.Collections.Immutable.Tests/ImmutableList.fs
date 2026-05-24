@@ -2,7 +2,7 @@ namespace FSharp.Collections.Immutable.Tests
 
 open Microsoft.VisualStudio.TestTools.UnitTesting
 open FSharp.Collections.Immutable
-module FSharpCoreSeq = Microsoft.FSharp.Collections.Seq
+module CoreSeq = Microsoft.FSharp.Collections.Seq
 
 [<TestClass; IndexedListTestCategory>]
 type IndexedListTests () =
@@ -20,6 +20,6 @@ type IndexedListTests () =
 
         CollectionAssert.AreEqual (
             [| 1; 2; 3 |],
-            indexedList |> Seq.ofIndexedList |> FSharpCoreSeq.toArray,
+            indexedList |> Seq.ofIndexedList |> CoreSeq.toArray,
             "Seq.ofIndexedList should preserve the indexed list contents."
         )
