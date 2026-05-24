@@ -6,7 +6,15 @@
 
     <OutputType>Exe</OutputType>
     <EnableMSTestRunner>true</EnableMSTestRunner>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="testconfig.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 
   <ItemGroup>
     <Compile Include="FlatList.fs" />
@@ -16,11 +24,9 @@
     <Compile Include="IndexedSeq.fs" />
     <Compile Include="Maps.fs" />
     <Compile Include="Sets.fs" />
-    <Compile Include="Attributes.fs" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="MSTest" />
     <PackageReference Include="Unquote" />
   </ItemGroup>
