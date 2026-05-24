@@ -11,7 +11,7 @@ type IndexedListTests () =
       TestCategory(nameof IndexedList.ofSeq);
       TestCategory(nameof IndexedList.length);
       TestCategory(nameof IndexedList.head);
-      TestCategory("ofIndexedList")>]
+      TestCategory(nameof Seq.ofIndexedList)>]
     member _.IndexedList_module_uses_the_immutable_list_bindings () =
         let indexedList = IndexedList.ofSeq [ 1; 2; 3 ]
 
