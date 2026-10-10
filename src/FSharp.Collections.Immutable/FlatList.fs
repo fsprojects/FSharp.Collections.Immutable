@@ -23,8 +23,8 @@ module FlatList =
 
     ////////// Creating //////////
 
-    let inline empty<'T> : FlatList<_> = FlatListFactory.Create<'T> ()
-    let inline singleton<'T> (item : 'T) : FlatList<'T> = FlatListFactory.Create<'T> (item)
+    let inline empty<'T> : FlatList<_> = FlatListFactory.Create<'T>()
+    let inline singleton<'T> (item : 'T) : FlatList<'T> = FlatListFactory.Create<'T>(item)
 
     let inline ofSeq source = FlatListFactory.CreateRange source
     let inline ofArray (source : _ array) = FlatListFactory.CreateRange source
@@ -234,7 +234,7 @@ module FlatList =
     let iter2 action list1 list2 =
         checkNotDefault (nameof list1) list1
         checkNotDefault (nameof list2) list2
-        let f = OptimizedClosures.FSharpFunc<'T, 'U, unit>.Adapt (action)
+        let f = OptimizedClosures.FSharpFunc<'T, 'U, unit>.Adapt(action)
         let len = length list1
 
         if len <> length list2 then
@@ -245,7 +245,7 @@ module FlatList =
 
     let distinctBy projection (list : FlatList<'T>) =
         let builder : FlatList<'T>.Builder = builderWith <| length list
-        let set = System.Collections.Generic.HashSet<'Key> (HashIdentity.Structural)
+        let set = System.Collections.Generic.HashSet<'Key>(HashIdentity.Structural)
         let mutable outputIndex = 0
 
         for i = 0 to length list - 1 do
@@ -260,7 +260,7 @@ module FlatList =
     let map2 mapping list1 list2 =
         checkNotDefault (nameof list1) list1
         checkNotDefault (nameof list2) list2
-        let f = OptimizedClosures.FSharpFunc<_, _, _>.Adapt (mapping)
+        let f = OptimizedClosures.FSharpFunc<_, _, _>.Adapt(mapping)
         let len1 = list1.Length
 
         if len1 <> list2.Length then
@@ -277,7 +277,7 @@ module FlatList =
         checkNotDefault (nameof list1) list1
         checkNotDefault (nameof list2) list2
         checkNotDefault (nameof list3) list3
-        let f = OptimizedClosures.FSharpFunc<_, _, _, _>.Adapt (mapping)
+        let f = OptimizedClosures.FSharpFunc<_, _, _, _>.Adapt(mapping)
         let len1 = list1.Length
 
         if not (len1 = list2.Length) then
@@ -296,7 +296,7 @@ module FlatList =
     let mapi2 mapping list1 list2 =
         checkNotDefault (nameof list1) list1
         checkNotDefault (nameof list2) list2
-        let f = OptimizedClosures.FSharpFunc<_, _, _, _>.Adapt (mapping)
+        let f = OptimizedClosures.FSharpFunc<_, _, _, _>.Adapt(mapping)
         let len1 = list1.Length
 
         if len1 <> list2.Length then
@@ -311,7 +311,7 @@ module FlatList =
 
     let iteri action list =
         check list
-        let f = OptimizedClosures.FSharpFunc<_, _, _>.Adapt (action)
+        let f = OptimizedClosures.FSharpFunc<_, _, _>.Adapt(action)
         let len = list.Length
 
         for i = 0 to len - 1 do
@@ -320,7 +320,7 @@ module FlatList =
     let iteri2 action list1 list2 =
         checkNotDefault (nameof list1) list1
         checkNotDefault (nameof list2) list2
-        let f = OptimizedClosures.FSharpFunc<_, _, _, _>.Adapt (action)
+        let f = OptimizedClosures.FSharpFunc<_, _, _, _>.Adapt(action)
         let len1 = list1.Length
 
         if len1 <> list2.Length then
@@ -331,7 +331,7 @@ module FlatList =
 
     let mapi mapping list =
         check list
-        let f = OptimizedClosures.FSharpFunc<_, _, _>.Adapt (mapping)
+        let f = OptimizedClosures.FSharpFunc<_, _, _>.Adapt(mapping)
         let len = list.Length
         let res = builderWithLengthOf list
 
@@ -360,7 +360,7 @@ module FlatList =
     let exists2 predicate list1 list2 =
         checkNotDefault (nameof list1) list1
         checkNotDefault (nameof list2) list2
-        let f = OptimizedClosures.FSharpFunc<_, _, _>.Adapt (predicate)
+        let f = OptimizedClosures.FSharpFunc<_, _, _>.Adapt(predicate)
         let len1 = list1.Length
 
         if len1 <> list2.Length then
@@ -381,7 +381,7 @@ module FlatList =
     let forall2 predicate list1 list2 =
         checkNotDefault (nameof list1) list1
         checkNotDefault (nameof list2) list2
-        let f = OptimizedClosures.FSharpFunc<_, _, _>.Adapt (predicate)
+        let f = OptimizedClosures.FSharpFunc<_, _, _>.Adapt(predicate)
         let len1 = list1.Length
 
         if len1 <> list2.Length then

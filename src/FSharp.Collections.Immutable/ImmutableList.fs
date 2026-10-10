@@ -14,8 +14,8 @@ module ImmutableList =
 
     let inline internal check (list : IImmutableList<_>) = checkNotNull (nameof list) list
 
-    let inline empty<'T> = ImmutableList.Create<'T> ()
-    let inline singleton<'T> (item : 'T) : ImmutableList<'T> = ImmutableList.Create<'T> (item)
+    let inline empty<'T> = ImmutableList.Create<'T>()
+    let inline singleton<'T> (item : 'T) : ImmutableList<'T> = ImmutableList.Create<'T>(item)
 
     let inline ofSeq source =
         checkNotNull (nameof source) source
