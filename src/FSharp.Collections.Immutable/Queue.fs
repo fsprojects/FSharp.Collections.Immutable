@@ -13,9 +13,9 @@ module Queue =
 
     let inline private check (queue : IQueue<_>) = checkNotNull (nameof queue) queue
 
-    let inline empty<'T> : Queue<'T> = QueueFactory.Create<'T> ()
+    let inline empty<'T> : Queue<'T> = QueueFactory.Create<'T>()
 
-    let inline singleton<'T> (item : 'T) : Queue<'T> = QueueFactory.Create<'T> (item)
+    let inline singleton<'T> (item : 'T) : Queue<'T> = QueueFactory.Create<'T>(item)
 
     let inline ofSeq (source : 'T seq) : Queue<'T> = QueueFactory.CreateRange source
 
