@@ -450,9 +450,7 @@ let generateAssemblyInfo _ =
         AssemblyInfo.Title (projectName)
         AssemblyInfo.Product productName
         AssemblyInfo.Version latestEntry.AssemblyVersion
-        // The date is optional in a changelog entry, and FAKE 6.1.4 also drops it from the last entry of the file
-        // (https://github.com/fsprojects/FAKE/blob/6.1.4/src/app/Fake.Core.ReleaseNotes/Changelog.fs#L618),
-        // which is the latest one while the changelog has a single entry
+        // The date is optional in a changelog entry
         match latestEntry.Date with
         | Some releaseDate -> AssemblyInfo.Metadata ("ReleaseDate", releaseDate.ToString ("o"))
         | None -> ()
