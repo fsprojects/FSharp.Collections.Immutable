@@ -16,6 +16,13 @@
       ],
       "rollForward": false
     },
+    "fslangmcp": {
+      "version": "0.18.0",
+      "commands": [
+        "fslangmcp"
+      ],
+      "rollForward": true
+    },
     "fantomas": {
       "version": "8.0.5",
       "commands": [
