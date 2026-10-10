@@ -93,8 +93,8 @@ Maps and sets measure their size with `count` (FSharp.Core `Map.count`/`Set.coun
 * The conversion rules are about representation, not about FSharp.Core having the function. Where FSharp.Core has it
   (`tryFind`, `tryHead`, `choose`, `pick`, `unfold`, `zip`, `partition`, `Map.tryFind`, `Map.change`, …), opening both
   namespaces with `.Option` last yields exactly its signature. Extras without a counterpart (`tryTail`, `uncons`,
-  `tryUncons`, `tryGetKey`, `tryGetValue`, map and set `choose`, `SortedSet.tryItem`) get the same representation, which is
-  the one FSharp.Core would use, but there is no FSharp.Core signature to match.
+  `tryUncons`, `tryGetKey`, `tryGetValue`, `tryAlternateLookup`, map and set `choose`, `SortedSet.tryItem`) get the same
+  representation, which is the one FSharp.Core would use, but there is no FSharp.Core signature to match.
 
 This relies on F# name resolution, verified in `src/Compiler/Checking/NameResolution.fs` of the compiler: opened modules are
 prepended to the environment (most recently opened first), the resolver takes the first module that contains the member and
@@ -175,8 +175,8 @@ F# `Set<string>` is.
 ### D6. Exceptions mirror FSharp.Core
 
 Each function validates its arguments as the FSharp.Core function of the mirrored module does for the same input, and
-throws the same exception type with the same message. The mirrored module is `Array` for `FlatList`,
-`List` for `IndexedList`, `Queue`, `Stack` and their interface modules, `Map` for the map modules and
+throws the same exception type with the same message. The mirrored module is `Array` for `FlatList`, `Array.Parallel` for
+`FlatList.Parallel`, `List` for `IndexedList`, `Queue`, `Stack` and their interface modules, `Map` for the map modules and
 `Set` for the set modules. The rules differ per operation and per module (FSharp.Core 10, measured):
 
 | Input | `Array` | `List` |
@@ -230,17 +230,48 @@ after conversion.
 ### D9. Delivery: one pull request per collection, stacked
 
 `chore/foundation` (helper module, order check script, test categories and contract bases, changelog and documentation
-skeleton, target frameworks), then `feat/flat-list`, `feat/indexed-list`, `feat/queue`, `feat/stack`, `feat/hash-map` (with
-`IMap`), `feat/sorted-map`, `feat/hash-set` (with `ISet`), `feat/sorted-set`, `feat/frozen-map`, `feat/frozen-set`, and an
-optional `chore/benchmarks` (BenchmarkDotNet, excluded from the solution filter). Each pull request deletes the legacy file
+skeleton, target frameworks), then `feat/flat-list`, `feat/flat-list-parallel` (the nested `Parallel` module of D11),
+`feat/indexed-list`, `feat/queue`, `feat/stack`, `feat/hash-map` (with `IMap`), `feat/sorted-map`, `feat/hash-set` (with
+`ISet`), `feat/sorted-set`, `feat/frozen-map`, `feat/frozen-set` (both with the alternate lookup of D11), and an optional
+`chore/benchmarks` (BenchmarkDotNet, excluded from the solution filter). Each pull request deletes the legacy file
 it replaces, keeps the build green and updates the changelog and the documentation table. No release is cut mid-chain.
 
 ### D10. Target frameworks
 
 `net8.0;net10.0`. The published package already targeted `net8.0` only; `netstandard2.0` is not added (the LINQ surface
 used in D5 would need conditional fallbacks); `net9.0` is not added (short-term support, ended 2026-05; the `net8.0` asset
-serves it). `net10.0` enables `#if NET10_0_OR_GREATER` paths for newer LINQ members and, as a follow-up, the Frozen
-alternate lookup.
+serves it). `net10.0` enables `#if NET10_0_OR_GREATER` paths for newer LINQ members and the Frozen alternate lookup (D11).
+
+### D11. `FlatList.Parallel` and the Frozen alternate lookup
+
+`FlatList` gets a nested module `Parallel` that mirrors `Array.Parallel` through the zero-copy bridge of D5: every function
+unwraps the array, calls `Array.Parallel.*` and wraps the fresh result (`map`, `mapi`, `choose`, `collect`, `filter`, `init`,
+`iter`, `iteri`, `zip`, `groupBy`, `partition`, `partitionWith`, `sort`, `sortBy`, `sortByDescending`, `sortDescending`,
+`sortWith`, `reduce`, `reduceBy`, `sum`, `sumBy`, `average`, `averageBy`, `max`, `maxBy`, `min`, `minBy`, `exists`, `forall`,
+`tryFind`, `tryFindIndex`, `tryPick`); the three `sortInPlace*` functions are omitted because they mutate. The nested module
+lives in `FlatList.fsi`/`FlatList.fs` (as `Array.Parallel` lives in `array.fs`) with its own category banners, and has its
+`Option` and `Tuple` counterparts (`choose`, `tryFind`, `tryFindIndex`, `tryPick`; `groupBy`, `partition`, `partitionWith`,
+`zip`). Its tests compare every function with the sequential `FlatList` counterpart on the same inputs.
+
+`FrozenMap` and `FrozenSet` expose `alternateLookup<'Alternate>` (`GetAlternateLookup`) and `tryAlternateLookup<'Alternate>`
+(`TryGetAlternateLookup`, returning `voption`) under `#if NET10_0_OR_GREATER`, because the API exists only in the `net9.0`
+and later assets of the package. They return the BCL `AlternateLookup<'Alternate>` struct, whose `ContainsKey`, `TryGetValue`
+and indexer (map) or `Contains` and `TryGetValue` (set) do the lookups; no `findAlternate`-style wrappers over those members
+are added. The comparer must implement `IAlternateEqualityComparer<'Alternate, 'Key>`; `tryAlternateLookup` returns
+`ValueNone` otherwise. The tests for these functions compile only for `net10.0`.
+
+The wrappers cannot serve `ReadOnlySpan<char>`, the alternate key type that string keys use with `StringComparer.Ordinal`.
+Since F# 9, F# can instantiate generic parameters that C# declares with the `allows ref struct` anti-constraint, so
+`map.GetAlternateLookup<ReadOnlySpan<char>> ()` and the members of the returned struct work when called directly. F# cannot
+declare that anti-constraint on its own type parameters, though: the
+[F# byrefs documentation](https://learn.microsoft.com/dotnet/fsharp/language-reference/byrefs) states that generic code
+supporting byref-like types cannot be authored in F#, and [dotnet/fsharp#16800](https://github.com/dotnet/fsharp/issues/16800)
+limited the F# 9 support to consumption. An F# wrapper instantiated with `ReadOnlySpan<char>` therefore fails with FS0412
+("A type instantiation involves a byref type").
+[fslang-suggestions#1476](https://github.com/fsharp/fslang-suggestions/issues/1476) and RFC FS-1356 propose that F# declares
+the anti-constraint. When that ships, the wrappers declare `'Alternate : allows ref struct` and accept spans. Until then, the
+documentation of both functions points span users to the BCL methods, and the wrappers serve alternate key types that are
+not byref-like, such as an `int` alternate for `int64` keys with a custom comparer.
 
 ## Consequences
 
@@ -390,6 +421,12 @@ their element-type-changing transformations return the concrete type.
 | **Type-specific** | | | | | | | | | |
 | `clear` | | – | – | ᵇ | – | ᵇ | – | ᵇ | keeps the implementation |
 | `isDefault` / `isDefaultOrEmpty` | | ᵇ | – | – | – | – | – | – | accept a default `FlatList` |
+| **Parallel** (nested module `FlatList.Parallel`, mirrors `Array.Parallel`; same category order inside) | | | | | | | | | |
+| `average` / `averageBy` / `max` / `maxBy` / `min` / `minBy` / `reduce` / `reduceBy` / `sum` / `sumBy` | | ✓ | – | – | – | – | – | – | Folding |
+| `choose` / `collect` / `filter` / `init` / `iter` / `iteri` / `map` / `mapi` / `zip` | Ⓥ (`choose`), Ⓣ (`zip`) | ✓ | – | – | – | – | – | – | Transformation (`init`: Creation) |
+| `exists` / `forall` / `tryFind` / `tryFindIndex` / `tryPick` | Ⓥ (`try*`) | ✓ | – | – | – | – | – | – | Search |
+| `groupBy` / `partition` / `partitionWith` | Ⓣ | ✓ | – | – | – | – | – | – | Partitioning and grouping |
+| `sort` / `sortBy` / `sortByDescending` / `sortDescending` / `sortWith` | | ✓ | – | – | – | – | – | – | Sorting, unstable like `Array.Parallel.sort*`; `sortInPlace*` omitted |
 
 `Option.*`: `choose`, `pick`, `tryExactlyOne`, `tryFind`, `tryFindBack`, `tryFindIndex`, `tryFindIndexBack`, `tryHead`,
 `tryItem`, `tryLast`, `tryPick`, `tryTail`, `tryUncons`, `unfold`.
@@ -443,8 +480,12 @@ their element-type-changing transformations return the concrete type.
 | `partition` | Ⓣ | ✓ | ✓ | ✓ | ✓ | |
 | **Conversion** | | | | | | |
 | `toArray` / `toList` / `toSeq` | Ⓣ | ✓ | ✓ | ✓ | ✓ | `struct ('Key * 'Value)` |
+| **Type-specific** | | | | | | |
+| `alternateLookup<'Alternate>` | | – | – | – | ᵇ | `GetAlternateLookup`; `#if NET10_0_OR_GREATER` |
+| `tryAlternateLookup<'Alternate>` | Ⓥ | – | – | – | ᵇ | `TryGetAlternateLookup`; `#if NET10_0_OR_GREATER` |
 
-`Option.*`: `change`, `choose`, `pick`, `tryFind`, `tryFindKey`, `tryGetKey`, `tryPick`. `Tuple.*`: `addRange`, `ofArray`,
+`Option.*`: `change`, `choose`, `pick`, `tryFind`, `tryFindKey`, `tryGetKey`, `tryPick` (+ `tryAlternateLookup` for
+`FrozenMap`, `net10.0` only). `Tuple.*`: `addRange`, `ofArray`,
 `ofList`, `ofSeq`, `ofSeqWithKeyComparer`, `partition`, `toArray`, `toList`, `toSeq` (+ `maxKeyValue`, `minKeyValue` for
 `SortedMap`).
 
@@ -488,5 +529,9 @@ their element-type-changing transformations return the concrete type.
 | **Conversion** | | | | | | |
 | `toArray` / `toList` / `toSeq` | | ✓ | ✓ | ✓ | ✓ | |
 | `toFlatList` | | – | – | – | ᵇ | O(1) via `Items` |
+| **Type-specific** | | | | | | |
+| `alternateLookup<'Alternate>` | | – | – | – | ᵇ | `GetAlternateLookup`; `#if NET10_0_OR_GREATER` |
+| `tryAlternateLookup<'Alternate>` | Ⓥ | – | – | – | ᵇ | `TryGetAlternateLookup`; `#if NET10_0_OR_GREATER` |
 
-`Option.*`: `choose`, `tryGetValue` (+ `tryItem` for `SortedSet`). `Tuple.*`: `partition`, `partitionWith`.
+`Option.*`: `choose`, `tryGetValue` (+ `tryItem` for `SortedSet`, `tryAlternateLookup` for `FrozenSet`, `net10.0` only).
+`Tuple.*`: `partition`, `partitionWith`.
