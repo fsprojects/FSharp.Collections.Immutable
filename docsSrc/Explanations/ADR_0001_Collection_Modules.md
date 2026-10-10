@@ -178,17 +178,36 @@ functions and that the override functions are equivalent to the defaults after c
 ### D9. Delivery: one pull request per collection, stacked
 
 `chore/foundation` (helper module, order check script, test categories and contract bases, changelog and documentation
-skeleton, target frameworks), then `feat/flat-list`, `feat/indexed-list`, `feat/queue`, `feat/stack`, `feat/hash-map` (with
-`IMap`), `feat/sorted-map`, `feat/hash-set` (with `ISet`), `feat/sorted-set`, `feat/frozen-map`, `feat/frozen-set`, and an
-optional `chore/benchmarks` (BenchmarkDotNet, excluded from the solution filter). Each pull request deletes the legacy file
+skeleton, target frameworks), then `feat/flat-list`, `feat/flat-list-parallel` (the nested `Parallel` module of D11),
+`feat/indexed-list`, `feat/queue`, `feat/stack`, `feat/hash-map` (with `IMap`), `feat/sorted-map`, `feat/hash-set` (with
+`ISet`), `feat/sorted-set`, `feat/frozen-map`, `feat/frozen-set` (both with the alternate lookup of D11), and an optional
+`chore/benchmarks` (BenchmarkDotNet, excluded from the solution filter). Each pull request deletes the legacy file
 it replaces, keeps the build green and updates the changelog and the documentation table. No release is cut mid-chain.
 
 ### D10. Target frameworks
 
 `net8.0;net10.0`. The published package already targeted `net8.0` only; `netstandard2.0` is not added (the LINQ surface
 used in D5 would need conditional fallbacks); `net9.0` is not added (short-term support, ended 2026-05; the `net8.0` asset
-serves it). `net10.0` enables `#if NET10_0_OR_GREATER` paths for newer LINQ members and, as a follow-up, the Frozen
-alternate lookup.
+serves it). `net10.0` enables `#if NET10_0_OR_GREATER` paths for newer LINQ members and the Frozen alternate lookup (D11).
+
+### D11. `FlatList.Parallel` and the Frozen alternate lookup
+
+`FlatList` gets a nested module `Parallel` that mirrors `Array.Parallel` through the zero-copy bridge of D5: every function
+unwraps the array, calls `Array.Parallel.*` and wraps the fresh result (`map`, `mapi`, `choose`, `collect`, `filter`, `init`,
+`iter`, `iteri`, `zip`, `groupBy`, `partition`, `partitionWith`, `sort`, `sortBy`, `sortByDescending`, `sortDescending`,
+`sortWith`, `reduce`, `reduceBy`, `sum`, `sumBy`, `average`, `averageBy`, `max`, `maxBy`, `min`, `minBy`, `exists`, `forall`,
+`tryFind`, `tryFindIndex`, `tryPick`); the three `sortInPlace*` functions are omitted because they mutate. The nested module
+lives in `FlatList.fsi`/`FlatList.fs` (as `Array.Parallel` lives in `array.fs`) with its own category banners, and has its
+`Option` and `Tuple` counterparts (`choose`, `tryFind`, `tryFindIndex`, `tryPick`; `groupBy`, `partition`, `partitionWith`,
+`zip`). Its tests compare every function with the sequential `FlatList` counterpart on the same inputs.
+
+`FrozenMap` and `FrozenSet` expose `alternateLookup<'Alternate>` (`GetAlternateLookup`) and `tryAlternateLookup<'Alternate>`
+(`TryGetAlternateLookup`, returning `voption`) under `#if NET10_0_OR_GREATER`, because the API exists only in the `net9.0`
+and later assets of the package. They return the BCL `AlternateLookup<'Alternate>` struct; callers with a
+`ReadOnlySpan<char>` alternate use its `ContainsKey`/`TryGetValue`/`Contains` members directly, since F# cannot instantiate
+its own generic functions with byref-like type arguments, so no `findAlternate`-style wrappers are added. The comparer must
+implement `IAlternateEqualityComparer<'Alternate, 'Key>` (as `StringComparer.Ordinal` does); `tryAlternateLookup` returns
+`ValueNone` otherwise. The tests for these functions compile only for `net10.0`.
 
 ## Consequences
 
@@ -338,6 +357,12 @@ their element-type-changing transformations return the concrete type.
 | **Type-specific** | | | | | | | | | |
 | `clear` | | – | – | ᵇ | – | ᵇ | – | ᵇ | keeps the implementation |
 | `isDefault` / `isDefaultOrEmpty` | | ᵇ | – | – | – | – | – | – | accept a default `FlatList` |
+| **Parallel** (nested module `FlatList.Parallel`, mirrors `Array.Parallel`; same category order inside) | | | | | | | | | |
+| `average` / `averageBy` / `max` / `maxBy` / `min` / `minBy` / `reduce` / `reduceBy` / `sum` / `sumBy` | | ✓ | – | – | – | – | – | – | Folding |
+| `choose` / `collect` / `filter` / `init` / `iter` / `iteri` / `map` / `mapi` / `zip` | Ⓥ (`choose`), Ⓣ (`zip`) | ✓ | – | – | – | – | – | – | Transformation (`init`: Creation) |
+| `exists` / `forall` / `tryFind` / `tryFindIndex` / `tryPick` | Ⓥ (`try*`) | ✓ | – | – | – | – | – | – | Search |
+| `groupBy` / `partition` / `partitionWith` | Ⓣ | ✓ | – | – | – | – | – | – | Partitioning and grouping |
+| `sort` / `sortBy` / `sortByDescending` / `sortDescending` / `sortWith` | | ✓ | – | – | – | – | – | – | Sorting; `sortInPlace*` omitted |
 
 `Option.*`: `choose`, `pick`, `tryExactlyOne`, `tryFind`, `tryFindBack`, `tryFindIndex`, `tryFindIndexBack`, `tryHead`,
 `tryItem`, `tryLast`, `tryPick`, `tryTail`, `tryUncons`, `unfold`.
@@ -391,6 +416,9 @@ their element-type-changing transformations return the concrete type.
 | `partition` | Ⓣ | ✓ | ✓ | ✓ | ✓ | |
 | **Conversion** | | | | | | |
 | `toArray` / `toList` / `toSeq` | Ⓣ | ✓ | ✓ | ✓ | ✓ | `struct ('Key * 'Value)` |
+| **Type-specific** | | | | | | |
+| `alternateLookup<'Alternate>` | | – | – | – | ᵇ | `GetAlternateLookup`; `#if NET10_0_OR_GREATER` |
+| `tryAlternateLookup<'Alternate>` | Ⓥ | – | – | – | ᵇ | `TryGetAlternateLookup`; `#if NET10_0_OR_GREATER` |
 
 `Option.*`: `change`, `choose`, `pick`, `tryFind`, `tryFindKey`, `tryGetKey`, `tryPick`. `Tuple.*`: `addRange`, `ofArray`,
 `ofList`, `ofSeq`, `ofSeqWithKeyComparer`, `partition`, `toArray`, `toList`, `toSeq` (+ `maxKeyValue`, `minKeyValue` for
@@ -436,5 +464,8 @@ their element-type-changing transformations return the concrete type.
 | **Conversion** | | | | | | |
 | `toArray` / `toList` / `toSeq` | | ✓ | ✓ | ✓ | ✓ | |
 | `toFlatList` | | – | – | – | ᵇ | O(1) via `Items` |
+| **Type-specific** | | | | | | |
+| `alternateLookup<'Alternate>` | | – | – | – | ᵇ | `GetAlternateLookup`; `#if NET10_0_OR_GREATER` |
+| `tryAlternateLookup<'Alternate>` | Ⓥ | – | – | – | ᵇ | `TryGetAlternateLookup`; `#if NET10_0_OR_GREATER` |
 
 `Option.*`: `choose`, `tryGetValue` (+ `tryItem` for `SortedSet`). `Tuple.*`: `partition`, `partitionWith`.
