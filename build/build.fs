@@ -269,15 +269,6 @@ let dotnetRestore _ =
     )
     |> Seq.iter (retryIfInCI 10)
 
-let dotnetToolRestore _ =
-    let result =
-        fun () -> DotNet.exec id "tool" "restore"
-        |> (retryIfInCI 10)
-
-
-    if not result.OK then
-        failwithf "Failed to restore .NET tools: %A" result.Errors
-
 let updateChangelog ctx =
     latestEntry <-
         if not <| isPublishToGitHub ctx then
@@ -631,7 +622,6 @@ let initTargets (ctx : Context.FakeExecutionContext) =
 
     Target.create "Clean" clean
     Target.create "DotnetRestore" dotnetRestore
-    Target.create "DotnetToolRestore" dotnetToolRestore
     Target.create "UpdateChangelog" updateChangelog
     Target.createBuildFailure "RevertChangelog" revertChangelog // Do NOT put this in the dependency chain
     Target.createFinal "DeleteChangelogBackupFile" deleteChangelogBackupFile // Do NOT put this in the dependency chain
@@ -713,11 +703,6 @@ let initTargets (ctx : Context.FakeExecutionContext) =
     ==>! "PublishToGitHub"
 
     "DotnetRestore" ==>! "WatchTests"
-
-    //"DotnetToolRestore" ?=>! "DotnetRestore"
-    "DotnetToolRestore" ==>! "BuildDocs"
-    "DotnetToolRestore" ?=>! "CheckFormatCode"
-    "DotnetToolRestore" ?=>! "FormatCode"
 
 //-----------------------------------------------------------------------------
 // Target Start
