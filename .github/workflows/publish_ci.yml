@@ -59,7 +59,7 @@ jobs:
           NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           FAKE_DETAILED_ERRORS: true
-          ENABLE_COVERAGE: false # AltCover doesn't work with Release builds, reports lower coverage than actual
+          ENABLE_COVERAGE: false
         run: |
           chmod +x ./build.sh
           ./build.sh "PublishToGitHub"
