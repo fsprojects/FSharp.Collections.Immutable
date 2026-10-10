@@ -11,8 +11,18 @@ See https://learn.microsoft.com/en-us/visualstudio/msbuild/customize-by-director
     <_DotnetFantomasOutputFile>$(BaseIntermediateOutputPath)dotnet-fantomas-msbuild-$(NETCoreSdkVersion)-$(OS)</_DotnetFantomasOutputFile>
   </PropertyGroup>
 
-  <!-- Make sure that dotnet tools are restored before restoring any project -->
-  <Target Name="ToolRestore" BeforeTargets="Restore;CollectPackageReferences" Inputs="$(_DotnetToolManifestFile)" Outputs="$(_DotnetToolRestoreOutputFile)">
+  <!--
+    Make sure that dotnet tools are restored before restoring any project.
+    A solution restores its projects in parallel, so restoring the tools in each of them ran `dotnet tool restore`
+    concurrently and raced on the marker file.
+    Every project therefore delegates to one instance of this file: MSBuild runs a target once per project instance,
+    so the tools are restored once per build, and the projects that ask at the same time wait for that one run.
+  -->
+  <Target Name="ToolRestore" BeforeTargets="Restore;CollectPackageReferences">
+    <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="ToolRestoreOnce" Properties="_DotnetToolRestoreOutputFile=$(_DotnetToolRestoreOutputFile)" RemoveProperties="TargetFramework;RuntimeIdentifier" />
+  </Target>
+
+  <Target Name="ToolRestoreOnce" Inputs="$(_DotnetToolManifestFile)" Outputs="$(_DotnetToolRestoreOutputFile)">
     <Exec Command="dotnet tool restore" WorkingDirectory="$(MSBuildThisFileDirectory)" StandardOutputImportance="High" StandardErrorImportance="High" />
     <MakeDir Directories="$(_BuildProjBaseIntermediateOutputPath)"/>
     <Touch Files="$(_DotnetToolRestoreOutputFile)" AlwaysCreate="True" ForceTouch="True" />
@@ -51,6 +61,7 @@ See https://learn.microsoft.com/en-us/visualstudio/msbuild/customize-by-director
     <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Format" Properties="_FantomasFormatInstance=true" RemoveProperties="TargetFramework;RuntimeIdentifier" />
   </Target>
 
+  <!-- Fantomas runs twice on purpose: one pass is not always idempotent, and the second one settles what the first moved -->
   <Target Name="Format" Inputs="@(Compile)" Outputs="$(_DotnetFantomasOutputFile)">
     <Exec Command="dotnet fantomas $(MSBuildProjectDirectory)" StandardOutputImportance="High" StandardErrorImportance="High" WorkingDirectory="$(MSBuildThisFileDirectory)" ContinueOnError="WarnAndContinue" />
     <Exec Command="dotnet fantomas $(MSBuildProjectDirectory)" StandardOutputImportance="High" StandardErrorImportance="High" WorkingDirectory="$(MSBuildThisFileDirectory)" ContinueOnError="WarnAndContinue" />
