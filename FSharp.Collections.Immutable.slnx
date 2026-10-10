@@ -9,7 +9,11 @@
     <File Path="global.json" />
     <File Path="README.md" />
   </Folder>
-  <Project Path="build/build.fsproj" />
-  <Project Path="src/FSharp.Collections.Immutable/FSharp.Collections.Immutable.fsproj" />
-  <Project Path="tests/FSharp.Collections.Immutable.Tests/FSharp.Collections.Immutable.Tests.fsproj" />
+  <Folder Name="/src/">
+    <Project Path="src\FSharp.Collections.Immutable\FSharp.Collections.Immutable.fsproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests\FSharp.Collections.Immutable.Tests\FSharp.Collections.Immutable.Tests.fsproj" />
+  </Folder>
+  <Project Path="build\build.fsproj" />
 </Solution>
