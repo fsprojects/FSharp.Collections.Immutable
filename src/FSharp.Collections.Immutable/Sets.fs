@@ -16,8 +16,8 @@ module HashSet =
 
     ////////// Creating //////////
 
-    let inline empty<'T> = HashSetFactory.Create<'T> ()
-    let inline singleton<'T> (item : 'T) = HashSetFactory.Create<'T> (item)
+    let inline empty<'T> = HashSetFactory.Create<'T>()
+    let inline singleton<'T> (item : 'T) = HashSetFactory.Create<'T>(item)
     let inline ofSeq source = HashSetFactory.CreateRange (source)
     let inline ofSeqWithComparer comparer source = HashSetFactory.Create (comparer, items = (source |> Array.ofSeq))
     let inline ofArray (source : _ array) = HashSetFactory.CreateRange (source)
@@ -26,7 +26,7 @@ module HashSet =
         checkNotNull (nameof hashSetBuilder) hashSetBuilder
         hashSetBuilder.ToImmutable ()
 
-    let inline ofComparer<'T> comparer = HashSetFactory.Create<'T> (equalityComparer = comparer)
+    let inline ofComparer<'T> comparer = HashSetFactory.Create<'T>(equalityComparer = comparer)
 
     let inline toSeq (set : HashSet<_>) = set :> seq<_>
 
@@ -149,8 +149,8 @@ module SortedSet =
 
     ////////// Creating //////////
 
-    let inline empty<'T> = SortedSetFactory.Create<'T> ()
-    let inline singleton<'T> (item : 'T) = SortedSetFactory.Create<'T> (item)
+    let inline empty<'T> = SortedSetFactory.Create<'T>()
+    let inline singleton<'T> (item : 'T) = SortedSetFactory.Create<'T>(item)
     let inline ofSeq source = SortedSetFactory.CreateRange (source)
     let inline ofSeqWithComparer comparer source = SortedSetFactory.Create (comparer, items = (source |> Array.ofSeq))
     let inline ofArray (source : _ array) = SortedSetFactory.CreateRange (source)
@@ -159,7 +159,7 @@ module SortedSet =
         checkNotNull (nameof sortedSetBuilder) sortedSetBuilder
         sortedSetBuilder.ToImmutable ()
 
-    let inline ofComparer<'T> comparer = SortedSetFactory.Create<'T> (comparer = comparer)
+    let inline ofComparer<'T> comparer = SortedSetFactory.Create<'T>(comparer = comparer)
 
     let inline toSeq (set : SortedSet<_>) = set :> seq<_>
 

@@ -19,7 +19,7 @@ module HashMap =
 
     ////////// Creating //////////
 
-    let inline empty<'Key, 'Value when 'Key : not null> = HashMapFactory.Create<'Key, 'Value> ()
+    let inline empty<'Key, 'Value when 'Key : not null> = HashMapFactory.Create<'Key, 'Value>()
     let inline singleton item = empty.Add (item)
 
     let inline ofSeq source = HashMapFactory.CreateRange (source)
@@ -57,9 +57,9 @@ module HashMap =
         check map
         map.ToBuilder ()
 
-    let inline ofKeyComparer<'Key, 'Value when 'Key : not null> comparer = HashMapFactory.Create<'Key, 'Value> (comparer)
+    let inline ofKeyComparer<'Key, 'Value when 'Key : not null> comparer = HashMapFactory.Create<'Key, 'Value>(comparer)
     let inline ofComparers<'Key, 'Value when 'Key : not null> keyComparer valueComparer =
-        HashMapFactory.Create<'Key, 'Value> (keyComparer, valueComparer)
+        HashMapFactory.Create<'Key, 'Value>(keyComparer, valueComparer)
 
 
     let inline isEmpty map =
@@ -178,7 +178,7 @@ module SortedMap =
 
     ////////// Creating //////////
 
-    let inline empty<'Key, 'Value when 'Key : not null> = SortedMapFactory.Create<'Key, 'Value> ()
+    let inline empty<'Key, 'Value when 'Key : not null> = SortedMapFactory.Create<'Key, 'Value>()
     let inline singleton item = SortedMapFactory.Create (item)
 
     let inline ofSeq source = SortedMapFactory.CreateRange (source)
@@ -215,9 +215,9 @@ module SortedMap =
         check map
         map.ToBuilder ()
 
-    let inline ofKeyComparer<'Key, 'Value when 'Key : not null> comparer = SortedMapFactory.Create<'Key, 'Value> (comparer)
+    let inline ofKeyComparer<'Key, 'Value when 'Key : not null> comparer = SortedMapFactory.Create<'Key, 'Value>(comparer)
     let inline ofComparers<'Key, 'Value when 'Key : not null> keyComparer valueComparer =
-        SortedMapFactory.Create<'Key, 'Value> (keyComparer, valueComparer)
+        SortedMapFactory.Create<'Key, 'Value>(keyComparer, valueComparer)
 
 
     let inline isEmpty map =

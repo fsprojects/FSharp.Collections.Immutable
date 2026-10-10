@@ -12,7 +12,7 @@ module Stack =
 
     let inline internal check (stack : IStack<_>) = checkNotNull (nameof stack) stack
 
-    let inline empty<'T> = StackFactory.Create<'T> ()
+    let inline empty<'T> = StackFactory.Create<'T>()
 
     let inline ofSeq source = StackFactory.CreateRange source
 
