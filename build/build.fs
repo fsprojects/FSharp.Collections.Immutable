@@ -145,12 +145,12 @@ let failOnWrongBranch () =
 
 
 module dotnet =
-    let watch cmdParam program args = DotNet.exec cmdParam (sprintf "watch %s" program) args
+    let watch cmdParam program args = DotNet.exec cmdParam $"watch %s{program}" args
 
     let run cmdParam args = DotNet.exec cmdParam "run" args
 
-    let tool optionConfig command args =
-        DotNet.exec optionConfig (sprintf "%s" command) args
+    let tool optionConfig (command : string) args =
+        DotNet.exec optionConfig command args
         |> failOnBadExitAndPrint
 
     let reportgenerator optionConfig args = tool optionConfig "reportgenerator" args
@@ -175,9 +175,9 @@ module FSharpAnalyzers =
             member s.Usage = ""
 
 
-module DocsTool =
-    let quoted s = $"\"%s{s}\""
+let quoted s = $"\"%s{s}\""
 
+module DocsTool =
     let fsDocsDotnetOptions (o : DotNet.Options) = { o with WorkingDirectory = rootDirectory }
 
     let fsDocsBuildParams configuration (p : Fsdocs.BuildCommandParams) = {
@@ -347,37 +347,39 @@ let fsharpAnalyzers _ =
     )
 
 let dotnetTest ctx =
-    let excludeCoverage =
-        !!testsGlob
-        |> Seq.map (IO.Path.GetFileNameWithoutExtension >> Unchecked.nonNull)
-        |> String.concat "|"
+    // Create test results directory if it doesn't exist
+    Directory.create testResultsDir
 
-    let isGenerateCoverageReportTarget =
-        String.Equals (ctx.Context.FinalTarget, "GenerateCoverageReport", StringComparison.OrdinalIgnoreCase)
-        || String.Equals (ctx.Context.FinalTarget, "ShowCoverageReport", StringComparison.OrdinalIgnoreCase)
+    let dotnetConfiguration = configuration (ctx.Context.AllExecutingTargets)
 
-    let shouldCollectCoverage = enableCodeCoverage || isGenerateCoverageReportTarget
+    let isGenerateCoverageReport = ctx.Context.TryFindTarget("GenerateCoverageReport").IsSome
 
-    if shouldCollectCoverage then
-        Directory.create testResultsDir
+    let collectCoverage = enableCodeCoverage || isGenerateCoverageReport
 
-    let args =
-        [
-            "--no-build"
-            $"--configuration {configuration (ctx.Context.AllExecutingTargets)}"
-            if shouldCollectCoverage then
-                "/p:AltCover=true"
-                $"/p:AltCoverAssemblyExcludeFilter={excludeCoverage}"
-                "/p:AltCoverLocalSource=true"
-            $"--solution \"{sln}\""
-        ]
-        |> String.concat " "
-
-    DotNet.exec (DotNet.Options.withWorkingDirectory rootDirectory) "test" args
-    |> failOnBadExitAndPrint
+    !!testsGlob
+    |> Seq.iter (fun testProject ->
+        DotNet.testMTP
+            (fun options -> {
+                options with
+                    NoBuild = true
+                    Configuration = Some dotnetConfiguration
+                    ResultsDirectory = if collectCoverage then Some testResultsDir else None
+                    CodeCoverage =
+                        if collectCoverage then
+                            Some {
+                                DotNet.MTPCodeCoverageOptions.Create () with
+                                    OutputFormat = Some DotNet.MTPCoverageFormat.Cobertura
+                            }
+                        else
+                            None
+            })
+            (DotNet.MTPTestTarget.Project testProject)
+    )
 
 let generateCoverageReport _ =
-    let coverageFiles = !!(rootDirectory </> "tests/**/coverage*.xml")
+    let coverageFiles =
+        !!(testResultsDir </> "*.cobertura.xml")
+        ++ (testResultsDir </> "*/coverage.cobertura.xml")
 
     let sourceDirs = !!srcGlob |> Seq.map Path.getDirectory |> String.concat ";"
 
@@ -386,9 +388,10 @@ let generateCoverageReport _ =
         sprintf "-targetdir:\"%s\"" coverageReportDir
         // Add source dir
         sprintf "-sourcedirs:\"%s\"" sourceDirs
-        // Ignore test assemblies and AltCover recorder helpers
-        sprintf "-assemblyfilters:\"%s\"" "-*.Tests;-AltCover.Recorder.g"
-        sprintf "-reporttypes:%s" "Html"
+        // Ignore test assemblies
+        sprintf "-assemblyfilters:\"%s\"" "-*.Tests"
+        // Generate HTML and Cobertura reports
+        sprintf "-reporttypes:%s" "Html;Cobertura"
     ]
 
     let args = independentArgs |> String.concat " "
@@ -436,7 +439,7 @@ let generateAssemblyInfo _ =
         | f when f.EndsWith ("fsproj") -> Fsproj
         | f when f.EndsWith ("csproj") -> Csproj
         | f when f.EndsWith ("vbproj") -> Vbproj
-        | _ -> failwith (sprintf "Project file %s not supported. Unknown project type." projFileName)
+        | _ -> failwithf "Project file %s not supported. Unknown project type." projFileName
 
     let releaseChannel =
         match latestEntry.SemVer.PreRelease with
@@ -530,7 +533,7 @@ let gitRelease _ =
     ++ (rootDirectory </> "tests/**/AssemblyInfo.fs")
     |> Seq.iter (Git.Staging.stageFile "" >> ignore)
 
-    let msg = $"Bump version to `%s{latestEntry.NuGetVersion}`\n\n%s{releaseNotesGitCommitFormat}"
+    let msg = $"release: bump version to `%s{latestEntry.NuGetVersion}`\n\n%s{releaseNotesGitCommitFormat}"
 
     Git.Commit.exec "" msg
 
@@ -606,10 +609,15 @@ let initTargets (ctx : Context.FakeExecutionContext) =
             && String.Equals (value, "PublishToGitHub", StringComparison.OrdinalIgnoreCase)
         )
 
-    /// Defines a dependency - y is dependent on x. Finishes the chain.
+    /// <summary>
+    /// Defines a dependency - <paramref name="y"/> is dependent on <paramref name="x"/>. Finishes the chain.
+    /// </summary>
     let (==>!) x y = x ==> y |> ignore
 
-    /// Defines a soft dependency. x must run before y, if it is present, but y does not require x to be run. Finishes the chain.
+    /// <summary>
+    /// Defines a soft dependency. <paramref name="x"/> must run before <paramref name="y"/>, if it is present, but
+    /// <paramref name="y"/> does not require <paramref name="x"/> to be run. Finishes the chain.
+    /// </summary>
     let (?=>!) x y = x ?=> y |> ignore
     //-----------------------------------------------------------------------------
     // Hide Secrets in Logger
