@@ -37,6 +37,5 @@ jobs:
             10.x
 
       - name: Restore dependencies
-        run: |
-          dotnet tool restore
-          dotnet restore FSharp.Collections.Immutable.slnx
+        # Restoring the solution restores the local tools first (see Directory.Build.targets)
+        run: dotnet restore FSharp.Collections.Immutable.slnx
