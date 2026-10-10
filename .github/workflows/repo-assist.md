@@ -39,7 +39,7 @@ safe-outputs:
     labels: [automation, repo-assist]
     max: 3
   update_issue:
-     target: "*"
+    target: "*"
      #title-prefix: "[Repo Assist] "
   add_labels:
     allowed: [bug, enhancement, "help wanted", "good first issue", "spam", "off topic"]
