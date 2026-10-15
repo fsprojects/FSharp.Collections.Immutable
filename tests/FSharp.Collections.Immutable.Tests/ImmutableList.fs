@@ -1,10 +1,25 @@
 namespace FSharp.Collections.Immutable.Tests
 
-open System
 open Microsoft.VisualStudio.TestTools.UnitTesting
+open FSharp.Collections.Immutable
+module CoreSeq = Microsoft.FSharp.Collections.Seq
 
-[<TestClass>]
-type ImmutableListTests () =
+[<TestClass; IndexedListTestCategory>]
+type IndexedListTests () =
 
-    [<TestMethod>]
-    member this.TestMethodPassing () = Assert.IsTrue (true)
+    [<TestMethod;
+      TestCategory(nameof IndexedList.ofSeq);
+      TestCategory(nameof IndexedList.length);
+      TestCategory(nameof IndexedList.head);
+      TestCategory(nameof Seq.ofIndexedList)>]
+    member _.IndexedList_module_uses_the_immutable_list_bindings () =
+        let indexedList = IndexedList.ofSeq [ 1; 2; 3 ]
+
+        Assert.AreEqual (3, IndexedList.length indexedList, "IndexedList.length should return the source item count.")
+        Assert.AreEqual (1, IndexedList.head indexedList, "IndexedList.head should return the first item.")
+
+        CollectionAssert.AreEqual (
+            [| 1; 2; 3 |],
+            indexedList |> Seq.ofIndexedList |> CoreSeq.toArray,
+            "Seq.ofIndexedList should preserve the indexed list contents."
+        )
