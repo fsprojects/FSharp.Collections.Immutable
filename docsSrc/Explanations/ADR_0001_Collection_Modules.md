@@ -92,8 +92,8 @@ Maps and sets measure their size with `count` (FSharp.Core `Map.count`/`Set.coun
 * The conversion rules are about representation, not about FSharp.Core having the function. Where FSharp.Core has it
   (`tryFind`, `tryHead`, `choose`, `pick`, `unfold`, `zip`, `partition`, `Map.tryFind`, `Map.change`, …), opening both
   namespaces with `.Option` last yields exactly its signature. Extras without a counterpart (`tryTail`, `uncons`,
-  `tryUncons`, `tryGetKey`, `tryGetValue`, map and set `choose`, `SortedSet.tryItem`) get the same representation, which is
-  the one FSharp.Core would use, but there is no FSharp.Core signature to match.
+  `tryUncons`, `tryGetKey`, `tryGetValue`, `tryAlternateLookup`, map and set `choose`, `SortedSet.tryItem`) get the same
+  representation, which is the one FSharp.Core would use, but there is no FSharp.Core signature to match.
 
 This relies on F# name resolution, verified in `src/Compiler/Checking/NameResolution.fs` of the compiler: opened modules are
 prepended to the environment (most recently opened first), the resolver takes the first module that contains the member and
@@ -221,11 +221,21 @@ lives in `FlatList.fsi`/`FlatList.fs` (as `Array.Parallel` lives in `array.fs`) 
 
 `FrozenMap` and `FrozenSet` expose `alternateLookup<'Alternate>` (`GetAlternateLookup`) and `tryAlternateLookup<'Alternate>`
 (`TryGetAlternateLookup`, returning `voption`) under `#if NET10_0_OR_GREATER`, because the API exists only in the `net9.0`
-and later assets of the package. They return the BCL `AlternateLookup<'Alternate>` struct; callers with a
-`ReadOnlySpan<char>` alternate use its `ContainsKey`/`TryGetValue`/`Contains` members directly, since F# cannot instantiate
-its own generic functions with byref-like type arguments, so no `findAlternate`-style wrappers are added. The comparer must
-implement `IAlternateEqualityComparer<'Alternate, 'Key>` (as `StringComparer.Ordinal` does); `tryAlternateLookup` returns
+and later assets of the package. They return the BCL `AlternateLookup<'Alternate>` struct, whose `ContainsKey`, `TryGetValue`
+and indexer (map) or `Contains` and `TryGetValue` (set) do the lookups; no `findAlternate`-style wrappers over those members
+are added. The comparer must implement `IAlternateEqualityComparer<'Alternate, 'Key>`; `tryAlternateLookup` returns
 `ValueNone` otherwise. The tests for these functions compile only for `net10.0`.
+
+The wrappers cannot serve `ReadOnlySpan<char>`, the alternate key type that string keys use with `StringComparer.Ordinal`.
+Since F# 9, F# can instantiate generic parameters that C# declares with the `allows ref struct` anti-constraint, so
+`map.GetAlternateLookup<ReadOnlySpan<char>> ()` and the members of the returned struct work when called directly. F# cannot
+declare that anti-constraint on its own type parameters, though: the
+[F# byrefs documentation](https://learn.microsoft.com/dotnet/fsharp/language-reference/byrefs) states that generic code
+supporting byref-like types cannot be authored in F#, and [dotnet/fsharp#16800](https://github.com/dotnet/fsharp/issues/16800)
+limited the F# 9 support to consumption. An F# wrapper instantiated with `ReadOnlySpan<char>` therefore fails with FS0412
+("A type instantiation involves a byref type"). Until that changes, the documentation of both functions points span users to
+the BCL methods, and the wrappers serve alternate key types that are not byref-like, such as an `int` alternate for `int64`
+keys with a custom comparer.
 
 ## Consequences
 
@@ -379,7 +389,7 @@ their element-type-changing transformations return the concrete type.
 | `choose` / `collect` / `filter` / `init` / `iter` / `iteri` / `map` / `mapi` / `zip` | Ⓥ (`choose`), Ⓣ (`zip`) | ✓ | – | – | – | – | – | – | Transformation (`init`: Creation) |
 | `exists` / `forall` / `tryFind` / `tryFindIndex` / `tryPick` | Ⓥ (`try*`) | ✓ | – | – | – | – | – | – | Search |
 | `groupBy` / `partition` / `partitionWith` | Ⓣ | ✓ | – | – | – | – | – | – | Partitioning and grouping |
-| `sort` / `sortBy` / `sortByDescending` / `sortDescending` / `sortWith` | | ✓ | – | – | – | – | – | – | Sorting; `sortInPlace*` omitted |
+| `sort` / `sortBy` / `sortByDescending` / `sortDescending` / `sortWith` | | ✓ | – | – | – | – | – | – | Sorting, unstable like `Array.Parallel.sort*`; `sortInPlace*` omitted |
 
 `Option.*`: `choose`, `pick`, `tryExactlyOne`, `tryFind`, `tryFindBack`, `tryFindIndex`, `tryFindIndexBack`, `tryHead`,
 `tryItem`, `tryLast`, `tryPick`, `tryTail`, `tryUncons`, `unfold`.
@@ -437,7 +447,8 @@ their element-type-changing transformations return the concrete type.
 | `alternateLookup<'Alternate>` | | – | – | – | ᵇ | `GetAlternateLookup`; `#if NET10_0_OR_GREATER` |
 | `tryAlternateLookup<'Alternate>` | Ⓥ | – | – | – | ᵇ | `TryGetAlternateLookup`; `#if NET10_0_OR_GREATER` |
 
-`Option.*`: `change`, `choose`, `pick`, `tryFind`, `tryFindKey`, `tryGetKey`, `tryPick`. `Tuple.*`: `addRange`, `ofArray`,
+`Option.*`: `change`, `choose`, `pick`, `tryFind`, `tryFindKey`, `tryGetKey`, `tryPick` (+ `tryAlternateLookup` for
+`FrozenMap`, `net10.0` only). `Tuple.*`: `addRange`, `ofArray`,
 `ofList`, `ofSeq`, `ofSeqWithKeyComparer`, `partition`, `toArray`, `toList`, `toSeq` (+ `maxKeyValue`, `minKeyValue` for
 `SortedMap`).
 
@@ -485,4 +496,5 @@ their element-type-changing transformations return the concrete type.
 | `alternateLookup<'Alternate>` | | – | – | – | ᵇ | `GetAlternateLookup`; `#if NET10_0_OR_GREATER` |
 | `tryAlternateLookup<'Alternate>` | Ⓥ | – | – | – | ᵇ | `TryGetAlternateLookup`; `#if NET10_0_OR_GREATER` |
 
-`Option.*`: `choose`, `tryGetValue` (+ `tryItem` for `SortedSet`). `Tuple.*`: `partition`, `partitionWith`.
+`Option.*`: `choose`, `tryGetValue` (+ `tryItem` for `SortedSet`, `tryAlternateLookup` for `FrozenSet`, `net10.0` only).
+`Tuple.*`: `partition`, `partitionWith`.
