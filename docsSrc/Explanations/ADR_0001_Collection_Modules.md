@@ -87,8 +87,9 @@ Maps and sets measure their size with `count` (FSharp.Core `Map.count`/`Set.coun
 * The namespace `FSharp.Collections.Immutable.Option` contains, per collection, a module with the same name holding every
   function whose signature mentions `voption`, converted to the FSharp.Core representation: `voption` becomes `option`, and
   a struct tuple inside an option payload becomes a reference tuple (`unfold : ('State -> ('T * 'State) option) -> …`).
-* The namespace `FSharp.Collections.Immutable.Tuple` holds every function with a tuple outside an option payload, with
-  reference tuples and `voption` kept.
+* The namespace `FSharp.Collections.Immutable.Tuple` holds every function whose signature mentions a struct tuple, with
+  reference tuples and `voption` kept. A function with a struct tuple inside a `voption`, such as `unfold` or `tryUncons`,
+  is in both namespaces.
 * The conversion rules are about representation, not about FSharp.Core having the function. Where FSharp.Core has it
   (`tryFind`, `tryHead`, `choose`, `pick`, `unfold`, `zip`, `partition`, `Map.tryFind`, `Map.change`, …), opening both
   namespaces with `.Option` last yields exactly its signature. Extras without a counterpart (`tryTail`, `uncons`,
