@@ -85,11 +85,15 @@ Maps and sets measure their size with `count` (FSharp.Core `Map.count`/`Set.coun
   `groupBy`, `countBy`, `partition`, `partitionWith`, `splitAt`, `mapFold`, `mapFoldBack`, `unfold`, `uncons`, map
   `ofSeq`/`toSeq`/`addRange`/`minKeyValue`/`maxKeyValue`, and so on.
 * The namespace `FSharp.Collections.Immutable.Option` contains, per collection, a module with the same name holding every
-  function whose signature mentions an option, with the **exact FSharp.Core signature** (reference tuples inside option
-  payloads: `unfold : ('State -> ('T * 'State) option) -> …`).
+  function whose signature mentions `voption`, converted to the FSharp.Core representation: `voption` becomes `option`, and
+  a struct tuple inside an option payload becomes a reference tuple (`unfold : ('State -> ('T * 'State) option) -> …`).
 * The namespace `FSharp.Collections.Immutable.Tuple` holds every function with a tuple outside an option payload, with
   reference tuples and `voption` kept.
-* Opening both namespaces with `.Option` last yields FSharp.Core-identical shapes for everything.
+* The conversion rules are about representation, not about FSharp.Core having the function. Where FSharp.Core has it
+  (`tryFind`, `tryHead`, `choose`, `pick`, `unfold`, `zip`, `partition`, `Map.tryFind`, `Map.change`, …), opening both
+  namespaces with `.Option` last yields exactly its signature. Extras without a counterpart (`tryTail`, `uncons`,
+  `tryUncons`, `tryGetKey`, `tryGetValue`, map and set `choose`, `SortedSet.tryItem`) get the same representation, which is
+  the one FSharp.Core would use, but there is no FSharp.Core signature to match.
 
 This relies on F# name resolution, verified in `src/Compiler/Checking/NameResolution.fs` of the compiler: opened modules are
 prepended to the environment (most recently opened first), the resolver takes the first module that contains the member and
@@ -122,7 +126,7 @@ the sibling `.fs` has the same banners and the same sequence of `[<CompiledName>
 Priority for every function body:
 
 1. a member of the collection type itself (`ImmutableList.ConvertAll`/`FindAll`/`FindIndex`/`FindLastIndex`/`TrueForAll`/
-   `Exists`/`ForEach`/`Sort`/`Reverse`/`GetRange`/`IndexOf`/`Insert`/`RemoveRange`/`SetItem`/`BinarySearch`,
+   `Exists`/`ForEach`/`Reverse`/`GetRange`/`IndexOf`/`Insert`/`RemoveRange`/`SetItem`/`BinarySearch`,
    `ImmutableArray.Slice`/`Sort`/`IndexOf`/`AsSpan`/`CopyTo`, set algebra, `ImmutableDictionary.SetItems`/`TryGetKey`/
    `WithComparers`, Frozen struct enumerators and `Keys`/`Values`/`Items`);
 2. `System.Linq.ImmutableArrayExtensions` (`Any`, `All`, `ToArray`; its `First`/`Single`/`ElementAt` throw the wrong
@@ -136,10 +140,23 @@ Priority for every function body:
    `transpose`, `permute`, `random*`);
 6. hand-written enumerator loops only where measured (an internal `SeqV` module for `Queue`/`Stack`/interface modules).
 
-Consequences for the types: `FlatList` range operations (`sub`, `take`, `skip`, `truncate`, `splitAt`, `takeLast`, `skipLast`,
-`chunkBySize`, `windowed`) return slices over shared storage; `IndexedList` ranges use `GetRange` (O(log n)); `Stack` reverses
-only in its constructor (`ofSeq [1; 2; 3]` has `1` on top; every transformation snapshots top-to-bottom, applies `Array.*`
-and rebuilds); `Queue.length`/`Stack.length` are O(n) and say so; map and set transformations preserve the comparers of the
+The priority ranks only implementations that meet the documented contract (D6 exceptions, ordering, stability, comparison
+semantics); a faster candidate that breaks the contract is skipped. Sorting is the main case. Stability follows the
+FSharp.Core module that a collection mirrors: `FlatList` and `FlatList.Parallel` sort unstably, as `Array.sort*` and
+`Array.Parallel.sort*` are documented ("This is not a stable sort"), through `ImmutableArray.Sort` or `Array.sort*` on the
+bridge; `IndexedList`, `Queue`, `Stack` and their interface modules sort stably, as `List.sort*` and `Seq.sort*` are
+documented, through LINQ `OrderBy`/`OrderByDescending` (documented stable), not through the unstable `ImmutableList.Sort`.
+Every sort compares with F# structural comparison (`LanguagePrimitives.FastGenericComparer<'T>`, the comparer behind
+`compare`), never with `Comparer<'T>.Default`, which compares strings culture-sensitively.
+
+Consequences for the types: `FlatList` range operations (`take`, `skip`, `truncate`, `splitAt`, `takeLast`, `skipLast`,
+`chunkBySize`, `windowed`) copy the selected elements. An `ImmutableArray` is a single array reference without an offset or a
+length, so `Slice` allocates and copies unless the range is empty (`Empty` is returned) or covers the whole input (the input
+itself is returned); zero-copy views of a range are available through `asSpan`/`asMemory` and the span's own `Slice`.
+`IndexedList` ranges use `GetRange` (O(log n)). `Stack` reverses only in its constructors: the BCL `ImmutableStack.Create`
+and `CreateRange` push in order and leave the last element on top, so `ofSeq`, `ofArray`, `ofList`, `ofReadOnlySpan` and
+`ofSpan` push from the end instead (`ofSeq [1; 2; 3]` has `1` on top), and every transformation snapshots top-to-bottom,
+applies `Array.*` and rebuilds the same way. `Queue.length`/`Stack.length` are O(n) and say so; map and set transformations preserve the comparers of the
 input (`CreateRange(keyComparer, valueComparer, …)`, `CreateBuilder(keyComparer)`); interface modules preserve the caller's
 implementation through `Clear()` plus `AddRange`/`Enqueue`/`Push`; `FrozenMap.keys`/`values` and `FrozenSet.toFlatList`
 return the underlying `ImmutableArray` in O(1).
@@ -166,8 +183,9 @@ duplicate `FlatListBuilderCE` is dropped.
 Tests are rewritten on MSTest 4 with the Microsoft.Testing.Platform runner. Each capability is an abstract generic base
 class without `[<TestClass>]` (MSTEST0085/MSTEST0002) that takes an immutable record of the module's functions; every
 collection derives one closed `[<TestClass>]` per capability it supports, so inapplicable tests do not exist rather than
-being skipped. Facets: `SeqLike`, `SeqCreation`, `Indexed`; `Map`, `MapTransform`, `MapMutation`, `MapCreation`; `Set`,
-`SetTransform`, `SetMutation`, `SetCreation`. Expectations are computed with FSharp.Core `List` over the collection's
+being skipped. Facets: `SeqLike`, `SeqCreation`, `Indexed`, `StableSort` (every sequence-like module except `FlatList`,
+which sorts unstably, see D5); `Map`, `MapTransform`, `MapMutation`, `MapCreation`; `Set`, `SetTransform`, `SetMutation`,
+`SetCreation`. Expectations are computed with FSharp.Core `List` over the collection's
 observed enumeration order, so one test body serves FIFO, LIFO and indexed collections. Collection-specific behaviour
 (`isDefault`, spans, builders, `Stack.cons` direction, comparers, sorted-only functions, null inputs) lives in a per-collection
 file. Exceptions are asserted with `Assert.ThrowsExactly` on type, `ParamName` and message prefix; every assertion carries
@@ -218,7 +236,7 @@ follow FSharp.Core semantics; `Stack` element order is defined (first element of
 short input; `netstandard2.0` is not a target. The `Option` and `Tuple` namespaces give consumers a one-line migration path.
 
 Benefits: one vocabulary across ten modules, consistent with FSharp.Core 10.0.300; defects of the current map and set modules
-fixed by construction (comparer preservation, real `singleton`); fewer allocations (`voption`, struct tuples, slices, zero-copy
+fixed by construction (comparer preservation, real `singleton`); fewer allocations (`voption`, struct tuples, span and memory views, zero-copy
 bridge); `Frozen*` support; tests that cannot drift between collections; machine-checked function order.
 
 Costs: about 150 sequence functions × 7 modules plus maps, sets and frozen collections to implement and document; the
@@ -256,9 +274,9 @@ their element-type-changing transformations return the concrete type.
 | `init` | | ✓ | ✓ | – | ✓ | – | ✓ | – | sequential initializer |
 | `ofArray` | | ✓ | ✓ | – | ✓ | – | ✓ | – | copies; Stack pushes from the end |
 | `ofList` | | ✓ | ✓ | – | ✓ | – | ✓ | – | |
-| `ofReadOnlySpan` | | ᵇ | ᵇ | – | ᵇ | – | ᵇ | – | `Create(ReadOnlySpan)` |
-| `ofSeq` | | ✓ | ✓ | – | ✓ | – | ✓ | – | `CreateRange`; Stack: top = first element |
-| `ofSpan` | | ᵇ | ᵇ | – | ᵇ | – | ᵇ | – | |
+| `ofReadOnlySpan` | | ᵇ | ᵇ | – | ᵇ | – | ᵇ | – | `Create(ReadOnlySpan)`; Stack pushes from the end, because the BCL `Create` leaves the last element on top |
+| `ofSeq` | | ✓ | ✓ | – | ✓ | – | ✓ | – | `CreateRange`; Stack pushes a snapshot from the end, so the first element is on top |
+| `ofSpan` | | ᵇ | ᵇ | – | ᵇ | – | ᵇ | – | as `ofReadOnlySpan` |
 | `replicate` | | ✓ | ✓ | – | ✓ | – | ✓ | – | |
 | `singleton` | | ✓ | ✓ | – | ✓ | – | ✓ | – | |
 | `unfold` | Ⓥ+Ⓣ | ✓ | ✓ | – | ✓ | – | ✓ | – | `'State -> struct ('T * 'State) voption` |
@@ -345,9 +363,8 @@ their element-type-changing transformations return the concrete type.
 | `splitInto` | | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | FSharp.Core chunk sizes |
 | `take` / `takeWhile` / `truncate` | | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | `take` throws when short |
 | **Sorting** | | | | | | | | | |
-| `sort` / `sortBy` / `sortByDescending` / `sortDescending` | | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | unstable |
-| `sortWith` | | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | stable |
-| `sortWithComparer` | | ᵇ | ᵇ | ᵇ | ᵇ | ᵇ | ᵇ | ᵇ | `IComparer<'T>` |
+| `sort` / `sortBy` / `sortByDescending` / `sortDescending` / `sortWith` | | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | FlatList unstable like `Array.sort*`; the others stable like `List.sort*` (LINQ `OrderBy`) |
+| `sortWithComparer` | | ᵇ | ᵇ | ᵇ | ᵇ | ᵇ | ᵇ | ᵇ | `IComparer<'T>`; same stability rule |
 | **Random** | | | | | | | | | |
 | `randomChoice`, `randomChoices`, `randomSample`, `randomShuffle` (+ `By`, `With`) | | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 12 functions |
 | **Conversion** | | | | | | | | | |
