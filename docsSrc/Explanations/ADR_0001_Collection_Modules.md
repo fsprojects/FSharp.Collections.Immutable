@@ -50,11 +50,13 @@ New collections: `FrozenMap` (`FrozenDictionary<'Key, 'Value>`) and `FrozenSet` 
 creation, lookup, iteration, folds, conversions **and** whole-collection transformations (`map`, `filter`, `choose`,
 `partition`, set algebra), each documented as an O(n) rebuild. They offer no incremental mutation (`add`, `remove`,
 `setItem`, `change`, `clear`, `addRange`, `removeRange`): a frozen collection is built once and read many times.
+ADR 0002 – EquatableArray (`ADR_0002_EquatableArray.md`) adds `EquatableArray<'T>`, an immutable array with value
+semantics, whose module mirrors `FlatList`.
 
 Curated extras kept beyond FSharp.Core: `indexOf`/`indexOfWith`/`lastIndexOf`/`lastIndexOfWith`, `binarySearch`,
 `sortWithComparer`, `isDefault`/`isDefaultOrEmpty`, `asSpan`/`asMemory`/`ofSpan`/`ofReadOnlySpan`, the builder family
 (`builder`, `builderWith`, `ofBuilder`, `toBuilder`, `moveFromBuilder`, `build`, `update`), `blit`, `add`,
-`cons`/`uncons`/`tryUncons`/`(|Cons|Nil|)`, `tryTail`, `enqueue`/`enqueueMany`, `consMany`, `takeLast`/`skipLast`, `clear`
+`cons`/`uncons`/`tryUncons`, the struct partial patterns `(|Cons|_|)`/`(|Nil|_|)`, `tryTail`, `enqueue`/`enqueueMany`, `consMany`, `takeLast`/`skipLast`, `clear`
 on interface modules, `tryGetKey`/`tryGetValue`, `setItem`/`setItems`/`addRange`/`removeRange`, `containsValue`,
 `symmetricDifference`, `overlaps`/`setEquals`, comparer accessors and `with*Comparer` functions.
 
@@ -76,7 +78,7 @@ Names: `IMap` module and `IMap<'Key, 'Value>` abbreviation for `IImmutableDictio
 Maps and sets measure their size with `count` (FSharp.Core `Map.count`/`Set.count`), sequences with `length`. `Queue` keeps
 `enqueue`/`head`/`tail`/`uncons` (compiled `Enqueue`/`Peek`/`Dequeue`/`PeekDequeue`), `Stack` keeps `cons`/`head`/`tail`/
 `uncons` (`Push`/`Peek`/`Pop`/`PeekPop`). Computation expression instances: `flatList`, `indexedList`, `queue`, `stack`,
-`hashMap`, `sortedMap`, `hashSet`, `sortedSet`, `frozenMap`, `frozenSet`.
+`hashMap`, `sortedMap`, `hashSet`, `sortedSet`, `frozenMap`, `frozenSet`, and `equatableArray` of ADR 0002.
 
 ### D3. Value-type defaults and the `Option`/`Tuple` override namespaces
 
@@ -147,8 +149,9 @@ FSharp.Core module that a collection mirrors: `FlatList` and `FlatList.Parallel`
 `Array.Parallel.sort*` are documented ("This is not a stable sort"), through `ImmutableArray.Sort` or `Array.sort*` on the
 bridge; `IndexedList`, `Queue`, `Stack` and their interface modules sort stably, as `List.sort*` and `Seq.sort*` are
 documented, through LINQ `OrderBy`/`OrderByDescending` (documented stable), not through the unstable `ImmutableList.Sort`.
-Every sort compares with F# structural comparison (`LanguagePrimitives.FastGenericComparer<'T>`, the comparer behind
-`compare`), never with `Comparer<'T>.Default`, which compares strings culture-sensitively.
+Every sort compares in the order of F# generic comparison (`LanguagePrimitives.FastGenericComparer<'T>`, the comparer
+behind `compare`), never with a culture-sensitive comparer such as `Comparer<string>.Default`. ADR 0002 §3 shows the
+effect on strings and uses the same order for the elements of `EquatableArray`.
 
 Consequences for the types: `FlatList` range operations (`take`, `skip`, `truncate`, `splitAt`, `takeLast`, `skipLast`,
 `chunkBySize`, `windowed`) copy the selected elements. An `ImmutableArray` is a single array reference without an offset or a
@@ -190,18 +193,21 @@ which sorts unstably, see D5); `Map`, `MapTransform`, `MapMutation`, `MapCreatio
 observed enumeration order, so one test body serves FIFO, LIFO and indexed collections. Collection-specific behaviour
 (`isDefault`, spans, builders, `Stack.cons` direction, comparers, sorted-only functions, null inputs) lives in a per-collection
 file. Exceptions are asserted with `Assert.ThrowsExactly` on type, `ParamName` and message prefix; every assertion carries
-a message; categories come from `TestCategories.fs` attributes (collection level) and `TestCategory` strings or `nameof`
-(operation level). Dedicated files per collection prove that opening the `Option`/`Tuple` namespaces shadows the default
+a message; categories come from `TestCategories.fs` attributes (collection level) and `TestCategory (nameof …)`
+(operation level), never from string literals. In a contract base, the function of any module gives the name, for
+example `nameof FlatList.map`. Dedicated files per collection prove that opening the `Option`/`Tuple` namespaces shadows the default
 functions and that the override functions are equivalent to the defaults after conversion.
 
 ### D9. Delivery: one pull request per collection, stacked
 
 `chore/foundation` (helper module, order check script, test categories and contract bases, changelog and documentation
 skeleton, target frameworks), then `feat/flat-list`, `feat/flat-list-parallel` (the nested `Parallel` module of D11),
-`feat/indexed-list`, `feat/queue`, `feat/stack`, `feat/hash-map` (with `IMap`), `feat/sorted-map`, `feat/hash-set` (with
+`feat/equatable-array` (step 2 of ADR 0002: the mirror of the `FlatList` module, its builder functions and
+`equatableArray { }`), `feat/indexed-list`, `feat/queue`, `feat/stack`, `feat/hash-map` (with `IMap`), `feat/sorted-map`, `feat/hash-set` (with
 `ISet`), `feat/sorted-set`, `feat/frozen-map`, `feat/frozen-set` (both with the alternate lookup of D11), and an optional
 `chore/benchmarks` (BenchmarkDotNet, excluded from the solution filter). Each pull request deletes the legacy file
 it replaces, keeps the build green and updates the changelog and the documentation table. No release is cut mid-chain.
+Step 1 of ADR 0002 (the `EquatableArray` type, its patterns and JSON converter) MAY ship from `main` before the chain.
 
 ### D10. Target frameworks
 
@@ -317,7 +323,8 @@ their element-type-changing transformations return the concrete type.
 | `tryTail` | Ⓥ | ᵃ | ᵃ | ᵃ | ᵃ | ᵃ | ᵃ | ᵃ | |
 | `tryUncons` | Ⓥ+Ⓣ | – | ᵃ | ᵃ | ᵃ | ᵃ | ᵃ | ᵃ | `struct ('T * X<'T>) voption` |
 | `uncons` | Ⓣ | – | ᵃ | ᵃ | ᵃ | ᵃ | ᵃ | ᵃ | compiled `PeekDequeue`/`PeekPop` |
-| `(\|Cons\|Nil\|)` | Ⓣ | – | ᵃ | ᵃ | ᵃ | ᵃ | ᵃ | ᵃ | |
+| `(\|Cons\|_\|)` | Ⓥ+Ⓣ | – | ᵃ | ᵃ | ᵃ | ᵃ | ᵃ | ᵃ | `[<return: Struct>]`, `struct ('T * X<'T>) voption`; a multi-case pattern allocates a `Choice` per match (ADR 0002 §5) |
+| `(\|Nil\|_\|)` | | – | ᵃ | ᵃ | ᵃ | ᵃ | ᵃ | ᵃ | returns `bool` |
 | **Search** | | | | | | | | | |
 | `binarySearch` | | ᵇ | ᵇ | – | – | – | – | – | BCL bitwise-complement contract |
 | `contains` | | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
@@ -395,9 +402,12 @@ their element-type-changing transformations return the concrete type.
 | `sort` / `sortBy` / `sortByDescending` / `sortDescending` / `sortWith` | | ✓ | – | – | – | – | – | – | Sorting, unstable like `Array.Parallel.sort*`; `sortInPlace*` omitted |
 
 `Option.*`: `choose`, `pick`, `tryExactlyOne`, `tryFind`, `tryFindBack`, `tryFindIndex`, `tryFindIndexBack`, `tryHead`,
-`tryItem`, `tryLast`, `tryPick`, `tryTail`, `tryUncons`, `unfold`.
+`tryItem`, `tryLast`, `tryPick`, `tryTail`, `tryUncons`, `unfold`, `(|Cons|_|)`.
 `Tuple.*`: `allPairs`, `countBy`, `groupBy`, `indexed`, `mapFold`, `mapFoldBack`, `pairwise`, `partition`, `partitionWith`,
-`splitAt`, `unfold`, `unzip`, `unzip3`, `zip`, `zip3`, `uncons`, `tryUncons`, `(|Cons|Nil|)` where present.
+`splitAt`, `unfold`, `unzip`, `unzip3`, `zip`, `zip3`, `uncons`, `tryUncons`, `(|Cons|_|)` where present.
+
+`EquatableArray<'T>` of ADR 0002 mirrors the `FlatList` column, without `isDefault` and `isDefaultOrEmpty`, and adds
+`ofImmutableArray`, `toImmutableArray` and `unsafeOfArray`.
 
 ## Appendix B – maps
 
