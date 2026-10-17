@@ -233,9 +233,11 @@ declare that anti-constraint on its own type parameters, though: the
 [F# byrefs documentation](https://learn.microsoft.com/dotnet/fsharp/language-reference/byrefs) states that generic code
 supporting byref-like types cannot be authored in F#, and [dotnet/fsharp#16800](https://github.com/dotnet/fsharp/issues/16800)
 limited the F# 9 support to consumption. An F# wrapper instantiated with `ReadOnlySpan<char>` therefore fails with FS0412
-("A type instantiation involves a byref type"). Until that changes, the documentation of both functions points span users to
-the BCL methods, and the wrappers serve alternate key types that are not byref-like, such as an `int` alternate for `int64`
-keys with a custom comparer.
+("A type instantiation involves a byref type").
+[fslang-suggestions#1476](https://github.com/fsharp/fslang-suggestions/issues/1476) and RFC FS-1356 propose that F# declares
+the anti-constraint. When that ships, the wrappers declare `'Alternate : allows ref struct` and accept spans. Until then, the
+documentation of both functions points span users to the BCL methods, and the wrappers serve alternate key types that are
+not byref-like, such as an `int` alternate for `int64` keys with a custom comparer.
 
 ## Consequences
 
