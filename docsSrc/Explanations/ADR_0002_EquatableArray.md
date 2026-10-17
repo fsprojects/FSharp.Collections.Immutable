@@ -75,12 +75,16 @@ create a no-cost wrapper around ImmutableArray that has sequence-equality semant
    `==` and `!=` use the same equality (§1).
 4. Comparison is by length first, then by the first differing element, in the order of F# generic comparison (§3,
    question 2).
-5. The type satisfies `equality` and `comparison` only when its element type does.
-6. Conversion to and from `ImmutableArray<'T>` is O(1). C# collection expressions and JSON work without registration
+5. Equality and comparison agree for every element type on which `EqualityComparer<'T>.Default` and F# comparison
+   agree. For elements that are F# arrays, `FlatList`s or tuples that hold them, they do not: `Equals` compares such
+   elements by reference, `CompareTo` by contents. This is accepted. A default `HashSet` can then hold two values where
+   a `Set` holds one (§2, question 8).
+6. The type satisfies `equality` and `comparison` only when its element type does.
+7. Conversion to and from `ImmutableArray<'T>` is O(1). C# collection expressions and JSON work without registration
    (§4).
-7. The module `EquatableArray`, compiled as `EquatableArrayModule`, mirrors the `FlatList` module. Construction reuses
+8. The module `EquatableArray`, compiled as `EquatableArrayModule`, mirrors the `FlatList` module. Construction reuses
    the builder of `FlatList`, and there are a computation expression and struct active patterns (§5).
-8. No language syntax is assumed.
+9. No language syntax is assumed.
 
 ## Consequences
 
@@ -89,6 +93,7 @@ create a no-cost wrapper around ImmutableArray that has sequence-equality semant
 * There are two array types. `EquatableArray` is for fields of records and unions, for keys and for persisted documents.
   `FlatList` is for local computation and for signatures shared with .NET code. Moving between them costs nothing.
 * Its equality differs from that of F# lists in two visible points: `NaN` elements, and elements that are arrays (§2).
+  For elements that are arrays, hash-based and sorted collections also disagree on which values are one key (§2).
 * Consumers need a new release: nuget.org has only version 1.0.0 from 2020.
 
 ## 1. The type
@@ -181,11 +186,29 @@ equality:
 |---|---|---|
 | `[nan] = [nan]` | `true` | `false` |
 | `[nan].Equals [nan]` | `true` | `true` for a list |
-| Elements that are F# arrays or `FlatList`s with equal contents, also inside a reference tuple | not equal: such elements compare by reference | equal |
+| Elements that are F# arrays or `FlatList`s with equal contents, also inside a struct or reference tuple | not equal: such elements compare by reference | equal |
 | `[nan] < [1.0]` | `true`: the operators follow `CompareTo` | `false` |
 
 To nest arrays, use `EquatableArray` as the element type: `EquatableArray<EquatableArray<int>>` compares by elements at
 both levels.
+
+**Keys.** Equality and comparison agree for every element type on which `EqualityComparer<'T>.Default` and F#
+comparison agree. Examples *(verified)* are primitive types (`NaN` included), strings, F# records and unions (also with
+array fields), struct tuples of these and `EquatableArray` itself. F# arrays, `FlatList`s and tuples that hold them do
+not agree. .NET equality compares their references, and F# comparison compares their contents. Take two
+`EquatableArray<int[]>` values whose inner arrays have equal contents but are allocated separately *(verified)*:
+
+| Caller | Result |
+|---|---|
+| `Equals`, `=` | `false` |
+| `CompareTo`, `compare` | 0 |
+| A default `HashSet`, `Dictionary` or `ImmutableHashSet`, `HashIdentity.Structural`, `List.distinct` | two keys |
+| `Set`, `Map`, `SortedSet`, `ImmutableSortedSet` | one key |
+
+`FlatList` elements and struct or reference tuples of arrays give the same results. `FlatList` elements of different
+lengths make `CompareTo` throw `ArgumentException`, as `compare` on two such `FlatList`s does. This is accepted
+(decision 5, question 8). Comparison cannot follow a reference, because a reference has no stable order. Equality keeps
+the .NET equality of the element. With `EquatableArray` as the element type, the two agree.
 
 ## 3. Measured costs and the choice of element comparison
 
@@ -241,7 +264,9 @@ workable *(verified)*:
 Elements are therefore compared in the order of F# generic comparison, through a comparer chosen once per element type:
 `StringComparer.Ordinal` for `string`; `Comparer<'T>.Default` for the primitive types and `decimal`, where it agrees
 with F# `compare` on every edge value tried (`NaN`, signed zero, the extremes); `Unchecked.compare` for everything else,
-because it needs no `comparison` constraint, which a conditional constraint cannot supply.
+because it needs no `comparison` constraint, which a conditional constraint cannot supply. For F# arrays, `FlatList`s
+and tuples that hold them, this order compares contents, but equality compares references. §2 (Keys) shows the effect
+on keys.
 
 | Elements through | `int` | `string` | struct tuple | Order |
 |---|---:|---:|---:|---|
@@ -408,6 +433,11 @@ attributes sorted by type name.
   that differ only in the first one hash differently; separately built equal arrays are one dictionary key.
 * **The deliberate differences of §2** (`NaN`, array elements, `<` with `NaN`) are pinned, so that changing them is a
   decision.
+* **Keys** (§2, decision 5), as regression tests. The elements are `int[]`, `FlatList<int>` and struct and reference
+  tuples of `int[]`. Two values whose inner arrays have equal contents but are allocated separately are not equal and
+  compare as 0. A default `HashSet` and `Dictionary` hold them as two keys, `Set`, `Map` and `SortedSet` as one.
+  `CompareTo` on `FlatList` elements of different lengths throws `ArgumentException`. For
+  `EquatableArray<EquatableArray<int>>` and for a record with an array field as the element, every caller sees one key.
 * **Comparison**: length first; strings ordinal while the current culture is `tr-TR`; struct tuples of strings; arrays
   as elements.
 * **Constraints**: the type parameter carries `EqualityConditionalOn` and `ComparisonConditionalOn`, read by reflection,
@@ -478,7 +508,7 @@ Deliberately different from the FS-1094 draft:
 |---|---|---|
 | Element rules | `EqualityComparer<'T>.Default` (§3) | those of `'T list`: `=` is a partial equivalence, `.Equals` an equivalence, elements compared structurally |
 | `IStructuralEquatable`, `IStructuralComparable` | absent: they bring the boxing back | present; FSharp.Core can forward the comparer to typed comparers, a library cannot (warning FS1204) |
-| Visible effects | `[nan] = [nan]` is `true`; array elements compare by reference; `[nan] < [1.0]` is `true` | as for `'T list` |
+| Visible effects | `[nan] = [nan]` is `true`; array elements compare by reference in `Equals` and by contents in `CompareTo`; `[nan] < [1.0]` is `true` | as for `'T list` |
 | Module | mirrors `FlatList` | mirrors `Array` |
 | `%A` | the notation of an F# array | `immarray [1; 2; 3]` |
 | Library additions | `Items`, the constructor, `AsMemory`, `Slice`, read-only `IList<'T>`, `==` and `!=`, the JSON converter, the patterns, `equatableArray { }` | no `==`, no converter on the type, patterns left to users |
@@ -487,7 +517,8 @@ Deliberately different from the FS-1094 draft:
 
 1. **Element equality.** `EqualityComparer<'T>.Default`, or the rules of F# lists through `IStructuralEquatable`?
    *Recommendation: `EqualityComparer<'T>.Default`.* It is the only strategy that does not allocate for struct elements,
-   and allocation-free equality is the first use case. The price is the two differences of §2.
+   and allocation-free equality is the first use case. The price is the two differences of §2 and, for elements that
+   are arrays, the keys of question 8.
 2. **Comparison.** Length first as for F# arrays, or lexicographic as for F# lists? *Recommendation: length first.* It
    is the rule of F# arrays and of the FS-1094 draft, and arrays of different length are compared without reading an
    element. Independently of that, elements are compared in the order of F# generic comparison and not with
@@ -509,3 +540,10 @@ Deliberately different from the FS-1094 draft:
 7. **Two steps** (§6): release the type, the patterns and the converter from `main` before the chain of ADR 0001 starts,
    or make the type one link of that chain? *Recommendation: release first.* The first consumer is waiting for a
    release, and the chain cuts none before its end.
+8. **Keys with array elements** (decision 5). Accept that equality and comparison disagree on F# arrays, `FlatList`s
+   and tuples that hold them, or compare such elements by contents, as `.Equals` on an F# list does?
+   *Recommendation: accept.* The element keeps the equality that .NET and C# give it. The type needs no list of element
+   types that it treats differently. The other choice is cheap *(verified)*. It compares through
+   `LanguagePrimitives.GenericEqualityERComparer`. On 32 elements that are arrays of `int` or `string`, it allocates
+   nothing. On 32 `FlatList`s of four `int`, it allocates 7680 B per `Equals` and 3840 B per hash. That is not more than
+   `CompareTo` allocates for the same elements. `EquatableArray` as the element type makes the question irrelevant.
