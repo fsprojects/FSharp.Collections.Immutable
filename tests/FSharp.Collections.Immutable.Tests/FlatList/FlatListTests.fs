@@ -35,12 +35,6 @@ type FlatListTests () =
         | "source" -> "values"
         | other -> other
 
-    /// Maps the parameter names of Array.sub to the ones of FlatList.sub, which names the flat list list.
-    static let subParamName (name : string) =
-        match name with
-        | "array" -> "list"
-        | other -> other
-
     /// The elements without the first one that the equality finds equal to the item: the oracle of the removal by value.
     static let removeFirst (equal : 'T -> 'T -> bool) (item : 'T) (elements : 'T array) =
         match Array.tryFindIndex (equal item) elements with
@@ -230,25 +224,25 @@ type FlatListTests () =
                         |> ignore
                     ))
             struct (nameof FlatList.length, "array", (fun () -> FlatList.length defaultArray |> ignore))
-            struct (nameof FlatList.remove, "list", (fun () -> FlatList.remove 1 defaultArray |> ignore))
-            struct (nameof FlatList.removeMany, "list", (fun () -> FlatList.removeMany [| 1 |] defaultArray |> ignore))
+            struct (nameof FlatList.remove, "source", (fun () -> FlatList.remove 1 defaultArray |> ignore))
+            struct (nameof FlatList.removeMany, "source", (fun () -> FlatList.removeMany [| 1 |] defaultArray |> ignore))
             struct (nameof FlatList.removeManyWith,
-                    "list",
+                    "source",
                     (fun () ->
                         FlatList.removeManyWith EqualityComparer<int>.Default [| 1 |] defaultArray
                         |> ignore
                     ))
             struct (nameof FlatList.removeWith,
-                    "list",
+                    "source",
                     (fun () ->
                         FlatList.removeWith EqualityComparer<int>.Default 1 defaultArray
                         |> ignore
                     ))
             struct (nameof FlatList.skipLast, "array", (fun () -> FlatList.skipLast 0 defaultArray |> ignore))
-            struct (nameof FlatList.sortRange, "list", (fun () -> FlatList.sortRange 0 0 defaultArray |> ignore))
-            struct (nameof FlatList.sortRangeWith, "list", (fun () -> FlatList.sortRangeWith compare 0 0 defaultArray |> ignore))
+            struct (nameof FlatList.sortRange, "array", (fun () -> FlatList.sortRange 0 0 defaultArray |> ignore))
+            struct (nameof FlatList.sortRangeWith, "array", (fun () -> FlatList.sortRangeWith compare 0 0 defaultArray |> ignore))
             struct (nameof FlatList.sortRangeWithComparer,
-                    "list",
+                    "array",
                     (fun () ->
                         FlatList.sortRangeWithComparer Comparer<int>.Default 0 0 defaultArray
                         |> ignore
@@ -322,8 +316,8 @@ type FlatListTests () =
                         |> ignore
                     ))
             // ImmutableArray.RemoveRange checks the flat list before the items
-            struct ($"%s{nameof FlatList.removeMany} (default list and items)",
-                    "list",
+            struct ($"%s{nameof FlatList.removeMany} (default source and items)",
+                    "source",
                     (fun () ->
                         FlatList.removeMany (defaultArray :> seq<_>) defaultArray
                         |> ignore
@@ -343,8 +337,8 @@ type FlatListTests () =
                             (FlatList.ofArray Inputs.Several)
                         |> ignore
                     ))
-            struct ($"%s{nameof FlatList.removeManyWith} (default list and items)",
-                    "list",
+            struct ($"%s{nameof FlatList.removeManyWith} (default source and items)",
+                    "source",
                     (fun () ->
                         FlatList.removeManyWith EqualityComparer<int>.Default (defaultArray :> seq<_>) defaultArray
                         |> ignore
@@ -784,7 +778,7 @@ type FlatListTests () =
     [<TestMethod; DynamicData(nameof FlatListTests.SubRangesOutOfRange)>]
     member _.``sub throws for a range out of range as Array.sub does`` (input : int array, startIndex : int, count : int) =
         ExceptionAssert.Same (
-            subParamName,
+            id,
             (fun () -> Array.sub input startIndex count |> ignore),
             (fun () ->
                 FlatList.sub (FlatList.ofArray input) startIndex count
@@ -798,7 +792,7 @@ type FlatListTests () =
         (startIndex : int, count : int)
         =
         ExceptionAssert.Same (
-            subParamName,
+            id,
             (fun () -> Array.sub nullArray startIndex count |> ignore),
             (fun () -> FlatList.sub defaultArray startIndex count |> ignore),
             "FlatList.sub must reject a default flat list as Array.sub rejects a null array"
