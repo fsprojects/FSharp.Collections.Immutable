@@ -12,7 +12,8 @@ F# bindings for [System.Collections.Immutable](https://learn.microsoft.com/en-us
 | `ImmutableList` | `ImmutableList<'T>` | – |
 | `Stack` | `ImmutableStack<'T>` | – |
 | `Queue` | `ImmutableQueue<'T>` | – |
-| `HashMap` | `ImmutableDictionary<'Key, 'Value>` | – |
+| `HashMap` | `ImmutableDictionary<'Key, 'Value>` | `hashMap { }` |
+| `IMap` | `IImmutableDictionary<'Key, 'Value>` | – |
 | `SortedMap` | `ImmutableSortedDictionary<'Key, 'Value>` | – |
 | `HashSet` | `ImmutableHashSet<'T>` | – |
 | `SortedSet` | `ImmutableSortedSet<'T>` | – |
