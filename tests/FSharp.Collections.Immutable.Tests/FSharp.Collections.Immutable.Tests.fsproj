@@ -23,6 +23,11 @@
     <NoWarn>$(NoWarn);FS0075</NoWarn>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <!-- The allocation tests count bytes: without tiered compilation every method is fully optimized from its first call -->
+    <TieredCompilation>false</TieredCompilation>
+  </PropertyGroup>
+
   <ItemGroup>
     <Content Include="testconfig.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -63,9 +68,21 @@
     <Compile Include="FlatList\FlatListParallelTests.fs" />
     <Compile Include="FlatList\FlatListParallelOptionTests.fs" />
     <Compile Include="FlatList\FlatListParallelTupleTests.fs" />
+    <Compile Include="EquatableArray/EquatableArrayTestTypes.fs" />
+    <Compile Include="EquatableArray/EquatableArrayModuleTests.fs" />
+    <Compile Include="EquatableArray/EquatableArrayDefaultValueTests.fs" />
+    <Compile Include="EquatableArray/EquatableArrayEqualityTests.fs" />
+    <Compile Include="EquatableArray/EquatableArrayComparisonTests.fs" />
+    <Compile Include="EquatableArray/EquatableArrayKeyTests.fs" />
+    <Compile Include="EquatableArray/EquatableArrayFormattingTests.fs" />
+    <Compile Include="EquatableArray/EquatableArrayInteropTests.fs" />
+    <Compile Include="EquatableArray/EquatableArrayJsonTests.fs" />
+    <Compile Include="EquatableArray/EquatableArrayPatternTests.fs" />
+    <Compile Include="EquatableArray/EquatableArrayAllocationTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="FSharp.SystemTextJson" />
     <PackageReference Include="MSTest" />
     <PackageReference Include="Unquote" />
   </ItemGroup>
