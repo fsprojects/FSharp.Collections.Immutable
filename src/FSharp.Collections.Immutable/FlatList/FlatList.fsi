@@ -349,6 +349,89 @@ val tryTail : array : FlatList<'T> -> FlatList<'T> voption
 val binarySearch : value : 'T -> array : FlatList<'T> -> int when 'T : comparison
 
 /// <summary>
+/// Searches a range of a sorted flat list for a value with the binary search algorithm.
+/// </summary>
+/// <param name="index">The index of the first element of the range.</param>
+/// <param name="count">The number of elements of the range.</param>
+/// <param name="value">The value to search for.</param>
+/// <param name="array">The input flat list, sorted in the order of F# generic comparison.</param>
+/// <returns>
+/// The index of the value, or the bitwise complement of the index of the first larger element of the range, or the
+/// bitwise complement of the index after the range when no element is larger.
+/// </returns>
+/// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when <paramref name="index"/> or <paramref name="count"/> is negative.</exception>
+/// <exception cref="T:System.ArgumentException">Thrown when the range extends beyond the end of the flat list.</exception>
+/// <remarks>
+/// <para>
+/// O(log count). The result is an index of the flat list, not of the range. The function compares as
+/// <see cref="M:FSharp.Collections.Immutable.FlatList.BinarySearch``1(``0,System.Collections.Immutable.ImmutableArray{``0})"/>
+/// does.
+/// </para>
+/// <para>
+/// The function wraps
+/// <see cref="M:System.Collections.Immutable.ImmutableArray.BinarySearch``1(System.Collections.Immutable.ImmutableArray{``0},System.Int32,System.Int32,``0,System.Collections.Generic.IComparer{``0})"/>
+/// and throws what it throws. It names the parameter <paramref name="count"/> where the BCL names it <c>length</c>.
+/// </para>
+/// </remarks>
+[<CompiledName "BinarySearchRange">]
+val binarySearchRange : index : int -> count : int -> value : 'T -> array : FlatList<'T> -> int when 'T : comparison
+
+/// <summary>
+/// Searches a range of a flat list that a comparer sorts for a value with the binary search algorithm.
+/// </summary>
+/// <param name="comparer">
+/// The comparer that orders the flat list. <see langword="null"/> stands for
+/// <see cref="P:System.Collections.Generic.Comparer`1.Default"/>.
+/// </param>
+/// <param name="index">The index of the first element of the range.</param>
+/// <param name="count">The number of elements of the range.</param>
+/// <param name="value">The value to search for.</param>
+/// <param name="array">The input flat list, sorted in the order of the comparer.</param>
+/// <returns>
+/// The index of the value, or the bitwise complement of the index of the first larger element of the range, or the
+/// bitwise complement of the index after the range when no element is larger.
+/// </returns>
+/// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when <paramref name="index"/> or <paramref name="count"/> is negative.</exception>
+/// <exception cref="T:System.ArgumentException">Thrown when the range extends beyond the end of the flat list.</exception>
+/// <exception cref="T:System.InvalidOperationException">Thrown when the comparison fails: the comparer throws, which becomes the inner exception, or the comparer is <see langword="null"/> and the elements are not comparable.</exception>
+/// <remarks>
+/// <para>
+/// O(log count). The result is an index of the flat list, not of the range.
+/// </para>
+/// <para>
+/// The function wraps
+/// <see cref="M:System.Collections.Immutable.ImmutableArray.BinarySearch``1(System.Collections.Immutable.ImmutableArray{``0},System.Int32,System.Int32,``0,System.Collections.Generic.IComparer{``0})"/>
+/// and throws what it throws. It names the parameter <paramref name="count"/> where the BCL names it <c>length</c>.
+/// </para>
+/// </remarks>
+[<CompiledName "BinarySearchRangeWithComparer">]
+val binarySearchRangeWithComparer :
+    comparer : IComparer<'T> -> index : int -> count : int -> value : 'T -> array : FlatList<'T> -> int
+
+/// <summary>
+/// Searches a flat list that a comparer sorts for a value with the binary search algorithm.
+/// </summary>
+/// <param name="comparer">
+/// The comparer that orders the flat list. <see langword="null"/> stands for
+/// <see cref="P:System.Collections.Generic.Comparer`1.Default"/>.
+/// </param>
+/// <param name="value">The value to search for.</param>
+/// <param name="array">The input flat list, sorted in the order of the comparer.</param>
+/// <returns>
+/// The index of the value, or the bitwise complement of the index of the first larger element, or the bitwise
+/// complement of the length when no element is larger.
+/// </returns>
+/// <exception cref="T:System.InvalidOperationException">Thrown when the comparison fails: the comparer throws, which becomes the inner exception, or the comparer is <see langword="null"/> and the elements are not comparable.</exception>
+/// <remarks>
+/// O(log n). The function wraps
+/// <see cref="M:System.Collections.Immutable.ImmutableArray.BinarySearch``1(System.Collections.Immutable.ImmutableArray{``0},``0,System.Collections.Generic.IComparer{``0})"/>.
+/// Unlike <see cref="M:FSharp.Collections.Immutable.FlatList.BinarySearch``1(``0,System.Collections.Immutable.ImmutableArray{``0})"/>
+/// it does not need F# comparison, so a comparer of a key or of a culture can order the flat list.
+/// </remarks>
+[<CompiledName "BinarySearchWithComparer">]
+val binarySearchWithComparer : comparer : IComparer<'T> -> value : 'T -> array : FlatList<'T> -> int
+
+/// <summary>
 /// Returns whether the flat list contains an element equal to a value, in F# structural equality.
 /// </summary>
 /// <param name="value">The value to find.</param>
@@ -461,6 +544,56 @@ val forall2 : predicate : ('T1 -> 'T2 -> bool) -> array1 : FlatList<'T1> -> arra
 val indexOf : value : 'T -> array : FlatList<'T> -> int
 
 /// <summary>
+/// Returns the index of the first element equal to a value in a range, in
+/// <see cref="P:System.Collections.Generic.EqualityComparer`1.Default"/>.
+/// </summary>
+/// <param name="startIndex">The index of the first element of the range.</param>
+/// <param name="count">The number of elements of the range.</param>
+/// <param name="value">The value to find.</param>
+/// <param name="array">The input flat list.</param>
+/// <returns>The index in the flat list of the first equal element of the range, or -1.</returns>
+/// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when <paramref name="startIndex"/> or <paramref name="count"/> is outside the flat list.</exception>
+/// <remarks>
+/// <para>
+/// O(count). The function wraps
+/// <see cref="M:System.Collections.Immutable.ImmutableArray`1.IndexOf(`0,System.Int32,System.Int32)"/>.
+/// </para>
+/// <para>
+/// The start index must be less than the length, as in the BCL member, also for an empty range. An empty flat list
+/// accepts only the start index 0 with the count 0, and the result is -1.
+/// </para>
+/// </remarks>
+[<CompiledName "IndexOfRange">]
+val indexOfRange : startIndex : int -> count : int -> value : 'T -> array : FlatList<'T> -> int
+
+/// <summary>
+/// Returns the index of the first element equal to a value in a range, in a given equality comparer.
+/// </summary>
+/// <param name="comparer">
+/// The equality comparer. <see langword="null"/> stands for
+/// <see cref="P:System.Collections.Generic.EqualityComparer`1.Default"/>.
+/// </param>
+/// <param name="startIndex">The index of the first element of the range.</param>
+/// <param name="count">The number of elements of the range.</param>
+/// <param name="value">The value to find.</param>
+/// <param name="array">The input flat list.</param>
+/// <returns>The index in the flat list of the first equal element of the range, or -1.</returns>
+/// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when <paramref name="startIndex"/> or <paramref name="count"/> is outside the flat list.</exception>
+/// <remarks>
+/// <para>
+/// O(count). The function wraps
+/// <see cref="M:System.Collections.Immutable.ImmutableArray`1.IndexOf(`0,System.Int32,System.Int32,System.Collections.Generic.IEqualityComparer{`0})"/>.
+/// </para>
+/// <para>
+/// The start index must be less than the length, as in the BCL member, also for an empty range. An empty flat list
+/// accepts only the start index 0 with the count 0, and the result is -1.
+/// </para>
+/// </remarks>
+[<CompiledName "IndexOfRangeWith">]
+val indexOfRangeWith :
+    comparer : IEqualityComparer<'T> -> startIndex : int -> count : int -> value : 'T -> array : FlatList<'T> -> int
+
+/// <summary>
 /// Returns the index of the first element equal to a value in a given equality comparer.
 /// </summary>
 /// <param name="comparer">The equality comparer.</param>
@@ -485,6 +618,59 @@ val indexOfWith : comparer : IEqualityComparer<'T> -> value : 'T -> array : Flat
 /// </remarks>
 [<CompiledName "LastIndexOf">]
 val lastIndexOf : value : 'T -> array : FlatList<'T> -> int
+
+/// <summary>
+/// Returns the index of the last element equal to a value in a range that is searched backward, in
+/// <see cref="P:System.Collections.Generic.EqualityComparer`1.Default"/>.
+/// </summary>
+/// <param name="startIndex">The index of the last element of the range, where the search starts.</param>
+/// <param name="count">The number of elements of the range, counted backward from the start index.</param>
+/// <param name="value">The value to find.</param>
+/// <param name="array">The input flat list.</param>
+/// <returns>The index in the flat list of the last equal element of the range, or -1.</returns>
+/// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when <paramref name="startIndex"/> or <paramref name="count"/> is outside the flat list.</exception>
+/// <remarks>
+/// <para>
+/// O(count). The range holds the elements from <paramref name="startIndex"/> down to
+/// <c>startIndex - count + 1</c>. The function wraps
+/// <see cref="M:System.Collections.Immutable.ImmutableArray`1.LastIndexOf(`0,System.Int32,System.Int32)"/>.
+/// </para>
+/// <para>
+/// The start index must be less than the length, as in the BCL member, also for an empty range. An empty flat list
+/// accepts only the start index 0 with the count 0, and the result is -1.
+/// </para>
+/// </remarks>
+[<CompiledName "LastIndexOfRange">]
+val lastIndexOfRange : startIndex : int -> count : int -> value : 'T -> array : FlatList<'T> -> int
+
+/// <summary>
+/// Returns the index of the last element equal to a value in a range that is searched backward, in a given equality
+/// comparer.
+/// </summary>
+/// <param name="comparer">
+/// The equality comparer. <see langword="null"/> stands for
+/// <see cref="P:System.Collections.Generic.EqualityComparer`1.Default"/>.
+/// </param>
+/// <param name="startIndex">The index of the last element of the range, where the search starts.</param>
+/// <param name="count">The number of elements of the range, counted backward from the start index.</param>
+/// <param name="value">The value to find.</param>
+/// <param name="array">The input flat list.</param>
+/// <returns>The index in the flat list of the last equal element of the range, or -1.</returns>
+/// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when <paramref name="startIndex"/> or <paramref name="count"/> is outside the flat list.</exception>
+/// <remarks>
+/// <para>
+/// O(count). The range holds the elements from <paramref name="startIndex"/> down to
+/// <c>startIndex - count + 1</c>. The function wraps
+/// <see cref="M:System.Collections.Immutable.ImmutableArray`1.LastIndexOf(`0,System.Int32,System.Int32,System.Collections.Generic.IEqualityComparer{`0})"/>.
+/// </para>
+/// <para>
+/// The start index must be less than the length, as in the BCL member, also for an empty range. An empty flat list
+/// accepts only the start index 0 with the count 0, and the result is -1.
+/// </para>
+/// </remarks>
+[<CompiledName "LastIndexOfRangeWith">]
+val lastIndexOfRangeWith :
+    comparer : IEqualityComparer<'T> -> startIndex : int -> count : int -> value : 'T -> array : FlatList<'T> -> int
 
 /// <summary>
 /// Returns the index of the last element equal to a value in a given equality comparer.
@@ -880,6 +1066,48 @@ val removeManyWith : comparer : IEqualityComparer<'T> -> items : seq<'T> -> sour
 /// </remarks>
 [<CompiledName "RemoveWith">]
 val removeWith : comparer : IEqualityComparer<'T> -> item : 'T -> source : FlatList<'T> -> FlatList<'T>
+
+/// <summary>
+/// Replaces the first element that equals a value with another value, in
+/// <see cref="P:System.Collections.Generic.EqualityComparer`1.Default"/>.
+/// </summary>
+/// <param name="oldValue">The value to replace.</param>
+/// <param name="newValue">The new value.</param>
+/// <param name="array">The input flat list.</param>
+/// <returns>The flat list with the new value in the place of the first element that equals the old value.</returns>
+/// <exception cref="T:System.ArgumentException">Thrown when no element equals <paramref name="oldValue"/>.</exception>
+/// <remarks>
+/// <para>
+/// O(n). The function wraps <see cref="M:System.Collections.Immutable.ImmutableArray`1.Replace(`0,`0)"/>. It returns a
+/// new flat list also when the new value equals the old one.
+/// </para>
+/// <para>
+/// To replace the element at an index, use
+/// <see cref="M:FSharp.Collections.Immutable.FlatList.UpdateAt``1(System.Int32,``0,System.Collections.Immutable.ImmutableArray{``0})"/>.
+/// </para>
+/// </remarks>
+[<CompiledName "Replace">]
+val replace : oldValue : 'T -> newValue : 'T -> array : FlatList<'T> -> FlatList<'T>
+
+/// <summary>
+/// Replaces the first element that equals a value with another value, in a given equality comparer.
+/// </summary>
+/// <param name="comparer">
+/// The equality comparer. <see langword="null"/> stands for
+/// <see cref="P:System.Collections.Generic.EqualityComparer`1.Default"/>.
+/// </param>
+/// <param name="oldValue">The value to replace.</param>
+/// <param name="newValue">The new value.</param>
+/// <param name="array">The input flat list.</param>
+/// <returns>The flat list with the new value in the place of the first element that equals the old value.</returns>
+/// <exception cref="T:System.ArgumentException">Thrown when no element equals <paramref name="oldValue"/>.</exception>
+/// <remarks>
+/// O(n). The function wraps
+/// <see cref="M:System.Collections.Immutable.ImmutableArray`1.Replace(`0,`0,System.Collections.Generic.IEqualityComparer{`0})"/>.
+/// It returns a new flat list also when the new value equals the old one.
+/// </remarks>
+[<CompiledName "ReplaceWith">]
+val replaceWith : comparer : IEqualityComparer<'T> -> oldValue : 'T -> newValue : 'T -> array : FlatList<'T> -> FlatList<'T>
 
 /// <summary>Returns the elements in reverse order.</summary>
 /// <param name="array">The input flat list.</param>

@@ -33,21 +33,52 @@ module internal ImmutableCollectionUtil =
             nullArg name
 
     /// <summary>
+    /// Tells whether an object is a default <see cref="T:System.Collections.Immutable.ImmutableArray`1"/>, of any element type.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <see cref="T:System.Collections.Generic.IEnumerable`1"/> is covariant, so a sequence of a reference type is also a
+    /// sequence of its base types: a default <c>ImmutableArray&lt;string&gt;</c> can be a <c>seq&lt;obj&gt;</c>. The type
+    /// test <c>:? ImmutableArray&lt;obj&gt;</c> does not recognize it, because the type is another instantiation.
+    /// </para>
+    /// <para>
+    /// The function finds the instantiation from the type of the object and reads the property <c>IsDefault</c> through
+    /// reflection. It allocates nothing for an object of another type. It is inline, because the public inline members of
+    /// the computation expression call the check, and an inline member cannot call an internal function.
+    /// </para>
+    /// </remarks>
+    let inline isDefaultImmutableArray (source : obj) : bool =
+        let sourceType = source.GetType ()
+
+        sourceType.IsGenericType
+        && Type.(=) (sourceType.GetGenericTypeDefinition (), typedefof<ImmutableArray<_>>)
+        && unbox<bool>((nonNull (sourceType.GetProperty "IsDefault")).GetValue source)
+
+    /// <summary>
     /// Throws <see cref="T:System.ArgumentNullException"/> for a <see langword="null"/> sequence and for a default
     /// <see cref="T:System.Collections.Immutable.ImmutableArray`1"/> that is given as a sequence.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// A default immutable array converts to a sequence without a check, and the sequence fails with
     /// <see cref="T:System.InvalidOperationException"/> when a function enumerates it. A function that takes a sequence
     /// calls this check, which treats a default immutable array as FSharp.Core treats a <see langword="null"/> sequence
     /// (ADR 0001, D6). Any other sequence passes.
+    /// </para>
+    /// <para>
+    /// An immutable array of the element type is recognized by its type, without reflection. A default immutable array of
+    /// a derived reference type, which arrives as a sequence of a base type by covariance, is recognized by its generic
+    /// type and by reading <c>IsDefault</c> through reflection.
+    /// </para>
     /// </remarks>
     let inline checkNotNullOrDefaultSeq name (source : seq<'T>) =
         checkNotNull name source
 
         match source with
         | :? ImmutableArray<'T> as array -> checkNotDefault name array
-        | _ -> ()
+        | _ ->
+            if isDefaultImmutableArray source then
+                nullArg name
 
     /// <summary>
     /// The array under an immutable array, without a copy (ADR 0001, D5).
@@ -111,11 +142,12 @@ module internal Comparers =
         static member Instance : IComparer<'T> = comparer
 
 /// <summary>
-/// The exception messages of FSharp.Core (<c>FSCore.resx</c>), in English.
+/// The exception messages of FSharp.Core (<c>FSCore.resx</c>) and of the .NET libraries, in English.
 /// </summary>
 /// <remarks>
 /// The modules throw what the FSharp.Core function that they mirror throws (ADR 0001, D6). FSharp.Core keeps its resources
-/// internal, so the texts are copied.
+/// internal, so the texts are copied. The texts of the .NET libraries are for the functions that report a BCL exception
+/// under the name of their own parameter.
 /// </remarks>
 module internal ErrorStrings =
 
@@ -155,6 +187,10 @@ module internal ErrorStrings =
     /// The message of the modules written before ADR 0001.
     [<Literal>]
     let ListsHaveDifferentLengths = "The lists have different lengths."
+
+    /// The message of the .NET libraries for a negative argument, as `Array.BinarySearch` reports it.
+    [<Literal>]
+    let NeedNonNegativeNumber = "Non-negative number required."
 
     [<Literal>]
     let NotAPermutation = "The function did not compute a permutation."

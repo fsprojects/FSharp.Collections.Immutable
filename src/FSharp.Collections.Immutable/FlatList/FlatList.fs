@@ -37,7 +37,10 @@ let ofSeq (source : seq<'T>) =
     | :? ImmutableArray<'T> as array ->
         checkNotDefault (nameof source) array
         array
-    | _ -> Array.ofSeq source |> wrapArray
+    | _ ->
+        // A default flat list of a derived type is also a sequence of its base type, and Array.ofSeq would fail on it
+        checkNotNullOrDefaultSeq (nameof source) source
+        Array.ofSeq source |> wrapArray
 
 [<CompiledName "OfSpan">]
 let ofSpan (span : Span<'T>) = ImmutableArray.Create<'T> span
@@ -167,10 +170,36 @@ let tryTail (array : FlatList<'T>) =
 
 // ---- Search ----
 
+// Array.BinarySearch calls the count of a range length. The functions of this module report it as count, the name of
+// their own parameter, with the type and the message of the BCL; the check of a range beyond the end stays with the BCL
+let private checkBinarySearchRange index count =
+    if index < 0 then
+        raise (ArgumentOutOfRangeException (nameof index, ErrorStrings.NeedNonNegativeNumber))
+
+    if count < 0 then
+        raise (ArgumentOutOfRangeException (nameof count, ErrorStrings.NeedNonNegativeNumber))
+
 [<CompiledName "BinarySearch">]
 let binarySearch (value : 'T) (array : FlatList<'T>) =
     checkNotDefault (nameof array) array
     ImmutableArray.BinarySearch (array, value, DefaultComparer<'T>.Instance)
+
+[<CompiledName "BinarySearchRange">]
+let binarySearchRange index count (value : 'T) (array : FlatList<'T>) =
+    checkNotDefault (nameof array) array
+    checkBinarySearchRange index count
+    ImmutableArray.BinarySearch (array, index, count, value, DefaultComparer<'T>.Instance)
+
+[<CompiledName "BinarySearchRangeWithComparer">]
+let binarySearchRangeWithComparer (comparer : IComparer<'T>) index count (value : 'T) (array : FlatList<'T>) =
+    checkNotDefault (nameof array) array
+    checkBinarySearchRange index count
+    ImmutableArray.BinarySearch (array, index, count, value, comparer)
+
+[<CompiledName "BinarySearchWithComparer">]
+let binarySearchWithComparer (comparer : IComparer<'T>) (value : 'T) (array : FlatList<'T>) =
+    checkNotDefault (nameof array) array
+    ImmutableArray.BinarySearch (array, value, comparer)
 
 [<CompiledName "Contains">]
 let contains (value : 'T) (array : FlatList<'T>) = Array.contains value (unwrapArray (nameof array) array)
@@ -206,6 +235,16 @@ let indexOf (value : 'T) (array : FlatList<'T>) =
     checkNotDefault (nameof array) array
     array.IndexOf value
 
+[<CompiledName "IndexOfRange">]
+let indexOfRange (startIndex : int) (count : int) (value : 'T) (array : FlatList<'T>) =
+    checkNotDefault (nameof array) array
+    array.IndexOf (value, startIndex, count)
+
+[<CompiledName "IndexOfRangeWith">]
+let indexOfRangeWith (comparer : IEqualityComparer<'T>) (startIndex : int) (count : int) (value : 'T) (array : FlatList<'T>) =
+    checkNotDefault (nameof array) array
+    array.IndexOf (value, startIndex, count, comparer)
+
 [<CompiledName "IndexOfWith">]
 let indexOfWith (comparer : IEqualityComparer<'T>) (value : 'T) (array : FlatList<'T>) =
     checkNotDefault (nameof array) array
@@ -215,6 +254,16 @@ let indexOfWith (comparer : IEqualityComparer<'T>) (value : 'T) (array : FlatLis
 let lastIndexOf (value : 'T) (array : FlatList<'T>) =
     checkNotDefault (nameof array) array
     array.LastIndexOf value
+
+[<CompiledName "LastIndexOfRange">]
+let lastIndexOfRange (startIndex : int) (count : int) (value : 'T) (array : FlatList<'T>) =
+    checkNotDefault (nameof array) array
+    array.LastIndexOf (value, startIndex, count)
+
+[<CompiledName "LastIndexOfRangeWith">]
+let lastIndexOfRangeWith (comparer : IEqualityComparer<'T>) (startIndex : int) (count : int) (value : 'T) (array : FlatList<'T>) =
+    checkNotDefault (nameof array) array
+    array.LastIndexOf (value, startIndex, count, comparer)
 
 [<CompiledName "LastIndexOfWith">]
 let lastIndexOfWith (comparer : IEqualityComparer<'T>) (value : 'T) (array : FlatList<'T>) =
@@ -462,6 +511,16 @@ let removeManyWith (comparer : IEqualityComparer<'T>) (items : seq<'T>) (source 
 let removeWith (comparer : IEqualityComparer<'T>) (item : 'T) (source : FlatList<'T>) =
     checkNotDefault (nameof source) source
     source.Remove (item, comparer)
+
+[<CompiledName "Replace">]
+let replace (oldValue : 'T) (newValue : 'T) (array : FlatList<'T>) =
+    checkNotDefault (nameof array) array
+    array.Replace (oldValue, newValue)
+
+[<CompiledName "ReplaceWith">]
+let replaceWith (comparer : IEqualityComparer<'T>) (oldValue : 'T) (newValue : 'T) (array : FlatList<'T>) =
+    checkNotDefault (nameof array) array
+    array.Replace (oldValue, newValue, comparer)
 
 [<CompiledName "Reverse">]
 let rev (array : FlatList<'T>) = Array.rev (unwrapArray (nameof array) array) |> wrapArray
