@@ -17,6 +17,17 @@ type FlatListTests () =
     /// The array under a flat list, to tell whether two flat lists share their storage.
     static let underlying (array : FlatList<int>) = ImmutableCollectionsMarshal.AsArray array
 
+    /// Asserts that an action rejects a default flat list with an ArgumentNullException that names the parameter.
+    static let assertRejectsDefault (name : string) (paramName : string) (actual : unit -> unit) =
+        let ex =
+            Assert.ThrowsExactly<ArgumentNullException>(Action actual, $"FlatList.%s{name} must reject a default flat list")
+
+        Assert.AreEqual<string | null>(
+            paramName,
+            ex.ParamName,
+            $"FlatList.%s{name} must name the parameter of the default flat list"
+        )
+
     /// The functions that mirror an Array function, by name, with that function on a null array and the function on a
     /// default flat list. The rows of the test are the names: a function has no readable name in a row.
     static let arrayRejections =
@@ -209,6 +220,52 @@ type FlatListTests () =
         |> Array.map (fun struct (name, paramName, actual) -> name, struct (paramName, actual))
         |> Map.ofArray
 
+    /// The functions that take a sequence, by name, with the parameter that names a default flat list given as the
+    /// sequence and the function on such a flat list. A default flat list converts to a sequence without a check and
+    /// fails when the sequence is enumerated, so the other inputs are valid and the function would enumerate it.
+    static let sequenceRejections =
+        let defaultOuter = Unchecked.defaultof<FlatList<FlatList<int>>>
+
+        [|
+            struct (nameof FlatList.concat, "arrays", (fun () -> FlatList.concat (defaultOuter :> seq<_>) |> ignore))
+            struct (nameof FlatList.transpose, "arrays", (fun () -> FlatList.transpose (defaultOuter :> seq<_>) |> ignore))
+            struct (nameof FlatList.insertManyAt,
+                    "values",
+                    (fun () ->
+                        FlatList.insertManyAt 1 (defaultArray :> seq<_>) (FlatList.ofArray Inputs.Several)
+                        |> ignore
+                    ))
+            // Array.insertManyAt checks the source before the values
+            struct ($"%s{nameof FlatList.insertManyAt} (default source)",
+                    "source",
+                    (fun () ->
+                        FlatList.insertManyAt 1 (defaultArray :> seq<_>) defaultArray
+                        |> ignore
+                    ))
+            struct (nameof FlatList.except,
+                    "itemsToExclude",
+                    (fun () ->
+                        FlatList.except (defaultArray :> seq<_>) (FlatList.ofArray Inputs.Several)
+                        |> ignore
+                    ))
+            // Array.except returns an empty input without enumerating the items, but it checks the items for null first
+            struct ($"%s{nameof FlatList.except} (empty array)",
+                    "itemsToExclude",
+                    (fun () ->
+                        FlatList.except (defaultArray :> seq<_>) FlatList.empty<int>
+                        |> ignore
+                    ))
+            // Array.except checks the items to exclude before the array
+            struct ($"%s{nameof FlatList.except} (default array)",
+                    "itemsToExclude",
+                    (fun () ->
+                        FlatList.except (defaultArray :> seq<_>) defaultArray
+                        |> ignore
+                    ))
+        |]
+        |> Array.map (fun struct (name, paramName, actual) -> name, struct (paramName, actual))
+        |> Map.ofArray
+
     /// The functions that take a range, by name, on the whole range of the input with several elements.
     static let wholeRanges : Map<string, FlatList<int> -> FlatList<int>> =
         Map.ofArray [|
@@ -244,6 +301,9 @@ type FlatListTests () =
 
     /// The names of the functions without an Array counterpart, as the rows of their test.
     static member OtherRejections = otherRejections.Keys
+
+    /// The names of the functions that take a sequence, as the rows of the test of a default flat list given as the sequence.
+    static member SequenceRejections = sequenceRejections.Keys
 
     /// The names of the functions that take a range, as the rows of the test of the whole range.
     static member WholeRanges = wholeRanges.Keys
@@ -287,14 +347,28 @@ type FlatListTests () =
     [<TestMethod; DynamicData(nameof FlatListTests.OtherRejections)>]
     member _.``functions without an Array counterpart reject a default flat list`` (name : string) =
         let struct (paramName, actual) = otherRejections[name]
+        assertRejectsDefault name paramName actual
 
-        let ex =
-            Assert.ThrowsExactly<ArgumentNullException>(Action actual, $"FlatList.%s{name} must reject a default flat list")
+    [<TestMethod; DynamicData(nameof FlatListTests.SequenceRejections)>]
+    member _.``functions that take a sequence reject a default flat list given as the sequence`` (name : string) =
+        let struct (paramName, actual) = sequenceRejections[name]
+        assertRejectsDefault name paramName actual
 
-        Assert.AreEqual<string | null>(
-            paramName,
-            ex.ParamName,
-            $"FlatList.%s{name} must name the parameter of the default flat list"
+    [<TestMethod; DataRow -1; DataRow 9>]
+    member _.``insertManyAt rejects an index out of range before default values as Array.insertManyAt does`` (index : int) =
+        // The input has 8 elements, so the indices -1 and 9 are out of range. Array.insertManyAt checks the index
+        // before it enumerates the values
+        ExceptionAssert.Same (
+            id,
+            (fun () ->
+                Array.insertManyAt index Unchecked.defaultof<seq<int>> Inputs.Several
+                |> ignore
+            ),
+            (fun () ->
+                FlatList.insertManyAt index (defaultArray :> seq<_>) (FlatList.ofArray Inputs.Several)
+                |> ignore
+            ),
+            "FlatList.insertManyAt must check the index before the values as Array.insertManyAt does"
         )
 
     [<TestMethod>]

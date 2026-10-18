@@ -78,6 +78,22 @@ type FlatListComputationExpressionTests () =
         CollectionAssert.AreEqual ([| 10; 20; 30 |], FlatList.toArray array, "flatList must run the body of for for each item")
 
     [<TestMethod>]
+    member _.``for rejects a default flat list, which it takes as a sequence`` () =
+        let ex =
+            Assert.ThrowsExactly<ArgumentNullException>(
+                Action (fun () ->
+                    flatList {
+                        for item in defaultArray do
+                            yield item
+                    }
+                    |> ignore
+                ),
+                "flatList must reject a default flat list in for"
+            )
+
+        Assert.AreEqual<string | null>("source", ex.ParamName, "flatList must name the parameter of the default flat list")
+
+    [<TestMethod>]
     member _.``while adds the elements while the guard holds`` () =
         let mutable count = 0
 

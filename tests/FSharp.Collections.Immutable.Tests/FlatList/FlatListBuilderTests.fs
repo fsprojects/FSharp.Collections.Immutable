@@ -21,6 +21,23 @@ type FlatListBuilderTests () =
         CollectionAssert.AreEqual (Inputs.Several, FlatList.toArray array, "FlatList.build must return the added elements")
 
     [<TestMethod>]
+    member _.``addRange rejects a default flat list, which it takes as a sequence`` () =
+        let ex =
+            Assert.ThrowsExactly<ArgumentNullException>(
+                Action (fun () ->
+                    FlatListBuilder.addRange (Unchecked.defaultof<FlatList<int>> :> seq<_>) (FlatList.builder<int>())
+                    |> ignore
+                ),
+                "FlatListBuilder.addRange must reject a default flat list"
+            )
+
+        Assert.AreEqual<string | null>(
+            "values",
+            ex.ParamName,
+            "FlatListBuilder.addRange must name the parameter of the default flat list"
+        )
+
+    [<TestMethod>]
     member _.``builder starts empty`` () =
         let builder = FlatList.builder<int>()
         Assert.AreEqual<int>(0, builder.Count, "FlatList.builder must start without elements")
