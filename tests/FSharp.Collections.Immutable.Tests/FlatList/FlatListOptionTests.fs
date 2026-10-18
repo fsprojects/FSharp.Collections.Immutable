@@ -31,35 +31,39 @@ type FlatListOptionTests () =
     member _.``tryExactlyOne returns an option`` () =
         let found : int option = FlatList.tryExactlyOne (FlatList.singleton 5)
 
-        OverrideAssert.optionMatches
-            (FSharp.Collections.Immutable.FlatList.tryExactlyOne (FlatList.singleton 5))
-            found
+        OverrideAssert.OptionMatches (
+            FSharp.Collections.Immutable.FlatList.tryExactlyOne (FlatList.singleton 5),
+            found,
             "Option.FlatList.tryExactlyOne must match the default after conversion"
+        )
 
     [<TestMethod>]
     member _.``tryHead returns an option`` () =
         let found : int option = FlatList.tryHead array
-        OverrideAssert.optionMatches
-            (FSharp.Collections.Immutable.FlatList.tryHead array)
-            found
+        OverrideAssert.OptionMatches (
+            FSharp.Collections.Immutable.FlatList.tryHead array,
+            found,
             "Option.FlatList.tryHead must match the default"
+        )
 
     [<TestMethod; DataRow -1; DataRow 2; DataRow 8>]
     member _.``tryItem returns an option`` (index : int) =
         let found : int option = FlatList.tryItem index array
 
-        OverrideAssert.optionMatches
-            (FSharp.Collections.Immutable.FlatList.tryItem index array)
-            found
+        OverrideAssert.OptionMatches (
+            FSharp.Collections.Immutable.FlatList.tryItem index array,
+            found,
             "Option.FlatList.tryItem must match the default"
+        )
 
     [<TestMethod>]
     member _.``tryLast returns an option`` () =
         let found : int option = FlatList.tryLast array
-        OverrideAssert.optionMatches
-            (FSharp.Collections.Immutable.FlatList.tryLast array)
-            found
+        OverrideAssert.OptionMatches (
+            FSharp.Collections.Immutable.FlatList.tryLast array,
+            found,
             "Option.FlatList.tryLast must match the default"
+        )
 
     [<TestMethod>]
     member _.``tryTail returns an option`` () =
@@ -90,37 +94,41 @@ type FlatListOptionTests () =
     member _.``tryFind returns an option`` () =
         let found : int option = FlatList.tryFind (fun item -> item > 6) array
 
-        OverrideAssert.optionMatches
-            (FSharp.Collections.Immutable.FlatList.tryFind (fun item -> item > 6) array)
-            found
+        OverrideAssert.OptionMatches (
+            FSharp.Collections.Immutable.FlatList.tryFind (fun item -> item > 6) array,
+            found,
             "Option.FlatList.tryFind must match the default"
+        )
 
     [<TestMethod>]
     member _.``tryFindBack returns an option`` () =
         let found : int option = FlatList.tryFindBack (fun item -> item > 6) array
 
-        OverrideAssert.optionMatches
-            (FSharp.Collections.Immutable.FlatList.tryFindBack (fun item -> item > 6) array)
-            found
+        OverrideAssert.OptionMatches (
+            FSharp.Collections.Immutable.FlatList.tryFindBack (fun item -> item > 6) array,
+            found,
             "Option.FlatList.tryFindBack must match the default"
+        )
 
     [<TestMethod>]
     member _.``tryFindIndex returns an option`` () =
         let found : int option = FlatList.tryFindIndex (fun item -> item > 6) array
 
-        OverrideAssert.optionMatches
-            (FSharp.Collections.Immutable.FlatList.tryFindIndex (fun item -> item > 6) array)
-            found
+        OverrideAssert.OptionMatches (
+            FSharp.Collections.Immutable.FlatList.tryFindIndex (fun item -> item > 6) array,
+            found,
             "Option.FlatList.tryFindIndex must match the default"
+        )
 
     [<TestMethod>]
     member _.``tryFindIndexBack returns an option`` () =
         let found : int option = FlatList.tryFindIndexBack (fun item -> item > 6) array
 
-        OverrideAssert.optionMatches
-            (FSharp.Collections.Immutable.FlatList.tryFindIndexBack (fun item -> item > 6) array)
-            found
+        OverrideAssert.OptionMatches (
+            FSharp.Collections.Immutable.FlatList.tryFindIndexBack (fun item -> item > 6) array,
+            found,
             "Option.FlatList.tryFindIndexBack must match the default"
+        )
 
     [<TestMethod>]
     member _.``tryPick takes a chooser of options and returns an option`` () =

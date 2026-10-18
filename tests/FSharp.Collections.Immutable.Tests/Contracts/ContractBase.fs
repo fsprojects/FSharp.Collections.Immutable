@@ -15,10 +15,11 @@ type ContractBase (name : string, mirror : Mirror, paramName : string -> string)
 
     /// Asserts that a function of the module throws what the same function of the mirrored FSharp.Core module throws.
     member _.ThrowsLikeFSharpCore (arrayOracle : unit -> 'A, listOracle : unit -> 'L, actual : unit -> 'R, message : string) =
-        ExceptionAssert.mirrored
-            mirror
-            paramName
-            (arrayOracle >> ignore)
-            (listOracle >> ignore)
-            (actual >> ignore)
+        ExceptionAssert.Mirrored (
+            mirror,
+            paramName,
+            arrayOracle >> ignore,
+            listOracle >> ignore,
+            actual >> ignore,
             $"%s{name}: %s{message}"
+        )

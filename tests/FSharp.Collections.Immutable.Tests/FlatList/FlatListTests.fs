@@ -261,11 +261,12 @@ type FlatListTests () =
 
     [<TestMethod>]
     member _.``create throws for a negative count as Array does`` () =
-        ExceptionAssert.same
-            id
-            (fun () -> Array.create -1 7 |> ignore)
-            (fun () -> FlatList.create -1 7 |> ignore)
+        ExceptionAssert.Same (
+            id,
+            (fun () -> Array.create -1 7 |> ignore),
+            (fun () -> FlatList.create -1 7 |> ignore),
             "FlatList.create -1 must throw as Array.create does"
+        )
 
     [<TestMethod>]
     member _.``isDefault and isDefaultOrEmpty tell a default value from an empty one`` () =
@@ -281,7 +282,7 @@ type FlatListTests () =
     [<TestMethod; DynamicData(nameof FlatListTests.ArrayRejections)>]
     member _.``functions reject a default flat list as Array rejects a null array`` (name : string) =
         let struct (oracle, actual) = arrayRejections[name]
-        ExceptionAssert.same id oracle actual $"FlatList.%s{name} must reject a default flat list"
+        ExceptionAssert.Same (id, oracle, actual, $"FlatList.%s{name} must reject a default flat list")
 
     [<TestMethod; DynamicData(nameof FlatListTests.OtherRejections)>]
     member _.``functions without an Array counterpart reject a default flat list`` (name : string) =
@@ -359,11 +360,12 @@ type FlatListTests () =
     member _.``blit throws for a range out of range as Array does`` () =
         let source = Inputs.Several
 
-        ExceptionAssert.same
-            id
-            (fun () -> Array.blit source 6 (Array.zeroCreate 5) 0 3)
-            (fun () -> FlatList.blit (FlatList.ofArray source) 6 (Array.zeroCreate 5) 0 3)
+        ExceptionAssert.Same (
+            id,
+            (fun () -> Array.blit source 6 (Array.zeroCreate 5) 0 3),
+            (fun () -> FlatList.blit (FlatList.ofArray source) 6 (Array.zeroCreate 5) 0 3),
             "FlatList.blit beyond the source must throw as Array.blit does"
+        )
 
     [<TestMethod>]
     member _.``ofSeq of a flat list shares its storage`` () =
