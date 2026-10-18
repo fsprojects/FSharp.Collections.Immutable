@@ -33,3 +33,17 @@ val flatList : FlatListCE
 /// Evaluates to an indexed list of 0, 1, 4, 9, 100 and 200.
 /// </example>
 val indexedList : IndexedListCE
+
+/// <summary>Builds a queue.</summary>
+/// <example id="queue-1">
+/// <code lang="fsharp">
+/// let squares = queue {
+///     yield 0
+///     for i in 1..3 do
+///         yield i * i
+///     yield! [ 100; 200 ]
+/// }
+/// </code>
+/// Evaluates to a queue of 0, 1, 4, 9, 100 and 200, from which 0 leaves first.
+/// </example>
+val queue : QueueCE
