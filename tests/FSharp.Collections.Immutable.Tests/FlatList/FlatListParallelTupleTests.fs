@@ -60,6 +60,27 @@ type FlatListParallelTupleTests () =
                 $"Tuple.FlatList.Parallel.groupBy of %d{source.Length} elements must group as List.groupBy does"
             )
 
+    [<TestMethod; TestCategory(nameof FlatList.Parallel.groupBy)>]
+    member _.``groupBy puts the NaN keys of type float and float32 in one group as Array.Parallel does`` () =
+        // The keys are compared as text, because NaN is not equal to itself
+        let check (source : 'Key array) =
+            let groups : FlatList<'Key * FlatList<'Key>> = FlatList.Parallel.groupBy id (FlatList.ofArray source)
+
+            Assert.AreEqual<(string * int) list>(
+                Array.Parallel.groupBy id source
+                |> Seq.map (fun (key, items) -> string key, items.Length)
+                |> Seq.sort
+                |> Seq.toList,
+                groups
+                |> Seq.map (fun (key, items) -> string key, items.Length)
+                |> Seq.sort
+                |> Seq.toList,
+                $"Tuple.FlatList.Parallel.groupBy of %A{source}"
+            )
+
+        check [| nan; 1.0; nan; 2.0; nan |]
+        check [| nanf; 1.0f; nanf; 2.0f; nanf |]
+
     [<TestMethod; TestCategory(nameof FlatList.Parallel.partition)>]
     member _.``partition returns a reference tuple`` () =
         for source in [ array; large ] do

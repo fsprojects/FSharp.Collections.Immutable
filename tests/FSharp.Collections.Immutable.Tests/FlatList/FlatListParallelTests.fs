@@ -268,6 +268,44 @@ type FlatListParallelTests () =
                 )
                 $"FlatList.Parallel.zip of %d{first.Length} and %d{second.Length} elements must throw as Array.Parallel.zip does"
 
+    [<TestMethod; TestCategory(nameof FlatList.Parallel.zip)>]
+    member _.``zip divides every array length into chunks without overflow`` () =
+        // The chunks of the parallel loop of zip are checked directly: arrays of these lengths do not fit into the memory of
+        // a test run. The length plus the chunk length overflowed for 1.5 billion elements, so the loop did nothing.
+        let cases = [
+            struct (4, 0, [])
+            struct (4, 255, [ struct (0, 255) ])
+            struct (3, 1_000, [ struct (0, 334); struct (334, 668); struct (668, 1_000) ])
+            struct (2, 1_500_000_000, [ struct (0, 750_000_000); struct (750_000_000, 1_500_000_000) ])
+        ]
+
+        for struct (processors, length, expected) in cases do
+            Assert.AreEqual<struct (int * int) list>(
+                expected,
+                ParallelArrays.chunks processors length |> Array.toList,
+                $"The chunks of %d{length} elements on %d{processors} processors"
+            )
+
+        // On 64 processors, the first index plus the chunk length of the last chunk of the longest array is more than
+        // Int32.MaxValue, so the chunk must be cut to the length before the addition
+        let bounds = ParallelArrays.chunks 64 Array.MaxLength
+        Assert.HasCount (64, bounds, "The longest array on 64 processors must have one chunk per processor")
+
+        Assert.AreEqual<struct (int * int)>(
+            struct (2_113_929_216, Array.MaxLength),
+            Array.last bounds,
+            "The last chunk of the longest array must end at its length"
+        )
+
+        for index = 1 to bounds.Length - 1 do
+            let struct (_, previousEnd) = bounds[index - 1]
+            let struct (first, _) = bounds[index]
+            Assert.AreEqual<int>(
+                previousEnd,
+                first,
+                $"Chunk %d{index} of the longest array must start where the chunk before it ends"
+            )
+
     // ---- Folding ----
 
     [<TestMethod; TestCategory(nameof FlatList.Parallel.average)>]
@@ -553,6 +591,26 @@ type FlatListParallelTests () =
                     $"FlatList.Parallel.groupBy with null keys of %s{description}"
                 )
             )
+
+    [<TestMethod; TestCategory(nameof FlatList.Parallel.groupBy)>]
+    member _.``groupBy puts the NaN keys of type float and float32 in one group as Array.Parallel does`` () =
+        // Array.Parallel.groupBy compares these keys with ER semantics, while the sequential Array.groupBy makes a group of
+        // each NaN. The keys are compared as text, because NaN is not equal to itself.
+        let check (source : 'Key array) =
+            Assert.AreEqual<(string * int) list>(
+                Array.Parallel.groupBy id source
+                |> Seq.map (fun (key, items) -> string key, items.Length)
+                |> Seq.sort
+                |> Seq.toList,
+                FlatList.Parallel.groupBy id (FlatList.ofArray source)
+                |> Seq.map (fun struct (key, items) -> string key, items.Length)
+                |> Seq.sort
+                |> Seq.toList,
+                $"FlatList.Parallel.groupBy of %A{source}"
+            )
+
+        check [| nan; 1.0; nan; 2.0; nan |]
+        check [| nanf; 1.0f; nanf; 2.0f; nanf |]
 
     [<TestMethod; TestCategory(nameof FlatList.Parallel.partition)>]
     member _.``partition splits the elements in their order`` () =
