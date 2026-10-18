@@ -90,10 +90,11 @@ would be `HashMap.HashMap<…>`. The type abbreviations of a folder therefore ha
 signature file. A signature file alone does not compile: F# needs an implementation file for every signature file
 (FS0240). A file that holds only type abbreviations is its own signature, so it carries their XML documentation itself.
 
-Per folder, in compile order: `XTypes.fs`, `X.fsi`, `X.fs`, `XOption.fsi`, `XOption.fs`, `XTuple.fsi`, `XTuple.fs`,
-`CustomComparersX.fsi`/`.fs` (maps) or `CustomComparerX.fsi`/`.fs` (sets, D12), `XExtensions.fsi`, `XExtensions.fs`
-(maps, D13), `IX.fsi`, `IX.fs` (plus their `Option`/`Tuple` files), `XBuilder.fs` (`FlatList` and `IndexedList` only),
-`XCE.fs`.
+Per folder, in compile order: `XTypes.fs`, `CustomComparersX.fsi`/`.fs` (maps) or `CustomComparerX.fsi`/`.fs` (sets,
+D12), `X.fsi`, `X.fs`, `XOption.fsi`, `XOption.fs`, `XTuple.fsi`, `XTuple.fs`, `XExtensions.fsi`, `XExtensions.fs` (maps,
+D13), `IX.fsi`, `IX.fs` (plus their `Option`/`Tuple` files), `XBuilder.fs` (`FlatList` and `IndexedList` only), `XCE.fs`.
+The struct comes before the module, because `forComparers`, `forKeyComparer` and `forComparer` return it, and the
+extension module after both, because its members are those of the struct with the default comparers.
 `Helper.fs` comes first and `ComputationExpressions.fs` last. Interface modules compile after the concrete type they return.
 
 Names: `IMap` module and `IMap<'Key, 'Value>` abbreviation for `IImmutableDictionary`; `ISet` module **without** an
