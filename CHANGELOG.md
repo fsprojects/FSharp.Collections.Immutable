@@ -27,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * `FlatList`: every function throws what the FSharp.Core `Array` function of the same name throws. `take` and `splitAt`
   throw for a count beyond the length, and a default `ImmutableArray` throws `ArgumentNullException`, also when it is
   given as a sequence.
-* `FlatList.sub` has the meaning of `Array.sub`: `sub list startIndex count` returns `count` elements from `startIndex`.
+* `FlatList.sub` has the meaning of `Array.sub`: `sub array startIndex count` returns `count` elements from `startIndex`.
   It was `sub start stop list`.
 
 ### Removed
