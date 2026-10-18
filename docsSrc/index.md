@@ -14,8 +14,9 @@ F# bindings for [System.Collections.Immutable](https://learn.microsoft.com/en-us
 | `Queue` | `ImmutableQueue<'T>` | – |
 | `HashMap` | `ImmutableDictionary<'Key, 'Value>` | – |
 | `SortedMap` | `ImmutableSortedDictionary<'Key, 'Value>` | – |
-| `HashSet` | `ImmutableHashSet<'T>` | – |
+| `HashSet` | `ImmutableHashSet<'T>` | `hashSet { }` |
 | `SortedSet` | `ImmutableSortedSet<'T>` | – |
+| `ISet` | `IImmutableSet<'T>` | – |
 | `IIndexedSeq` | `IReadOnlyList<'T>` | – |
 
 ---
