@@ -19,7 +19,7 @@ Please also join the [F# Open Source Group](http://fsharp.github.com)
 | `HashMap` | `ImmutableDictionary<'Key, 'Value>` | – |
 | `SortedMap` | `ImmutableSortedDictionary<'Key, 'Value>` | – |
 | `HashSet` | `ImmutableHashSet<'T>` | `hashSet { }` |
-| `SortedSet` | `ImmutableSortedSet<'T>` | – |
+| `SortedSet` | `ImmutableSortedSet<'T>` | `sortedSet { }` |
 | `ISet` | `IImmutableSet<'T>` | – |
 | `IIndexedSeq` | `IReadOnlyList<'T>` | – |
 
