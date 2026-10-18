@@ -92,6 +92,7 @@ Agents discover servers from #file:'.mcp.json'; these are only hints on when to 
 * Always use the latest F# 10 features over old syntax.
 * If you are running outside of an IDE, or the IDE does not provide F# semantic tools, use FsLangMCP as the primary tool for F# code navigation, symbol discovery, diagnostics, usage search and refactoring preview. Prefer its semantic tools over plain text search.
 * The compiler generates `IsCaseName` instance properties (for example `IsOk`, `IsNotFound`) for each DU case – use them when a single-case check is needed.
+* Write at most one level of a type in the postfix ML style: `int[] seq`, `int voption[]`, `seq<int list>` – never `int array seq` or `int list list`. An array inside another type is `'T[]`.
 
 ### Asynchrony and Cancellation
 
@@ -161,6 +162,20 @@ Agents discover servers from #file:'.mcp.json'; these are only hints on when to 
   // ✅ any tag present, so the comment is explicit XML throughout
   /// <summary>Reads an item.</summary>
   /// <param name="id">Item Id</param>
+  ```
+
+* Keep `<summary>` and `<remarks>` on one line each only when both are short – up to 60 characters of text each. When either is longer, write both over several lines, with each opening and closing tag on a line of its own:
+
+  ```fsharp
+  /// <summary>Returns the number of elements.</summary>
+  /// <remarks>This is an O(1) operation.</remarks>
+
+  /// <summary>
+  /// The inputs of the set contracts as rows of <c>DynamicData</c>: none, one and several elements.
+  /// </summary>
+  /// <remarks>
+  /// The property builds new arrays on each read, so that no test sees a row that another one changed.
+  /// </remarks>
   ```
 
 * Every public API must have XML documentation.
