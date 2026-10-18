@@ -33,6 +33,8 @@
     <Compile Include="Helper\ArrayChecks.fs" />
     <Compile Include="Helper\Arrays.fs" />
     <Compile Include="Helper\ParallelArrays.fs" />
+    <Compile Include="Helper\Sets.fs" />
+    <Compile Include="Helper\HashSets.fs" />
     <Compile Include="FlatList\FlatListTypes.fs" />
     <Compile Include="FlatList\FlatList.fsi" />
     <Compile Include="FlatList\FlatList.fs" />
@@ -44,6 +46,27 @@
     <Compile Include="FlatList\FlatListBuilder.fs" />
     <Compile Include="FlatList\FlatListCE.fsi" />
     <Compile Include="FlatList\FlatListCE.fs" />
+    <Compile Include="HashSet\HashSetTypes.fs" />
+    <Compile Include="HashSet\HashSet.CustomComparer.fsi">
+      <DependentUpon>HashSet.fsi</DependentUpon>
+    </Compile>
+    <Compile Include="HashSet\HashSet.CustomComparer.fs">
+      <DependentUpon>HashSet.fs</DependentUpon>
+    </Compile>
+    <Compile Include="HashSet\HashSet.fsi" />
+    <Compile Include="HashSet\HashSet.fs" />
+    <Compile Include="HashSet\HashSetOption.fsi" />
+    <Compile Include="HashSet\HashSetOption.fs" />
+    <Compile Include="HashSet\HashSetTuple.fsi" />
+    <Compile Include="HashSet\HashSetTuple.fs" />
+    <Compile Include="HashSet\ISet.fsi" />
+    <Compile Include="HashSet\ISet.fs" />
+    <Compile Include="HashSet\ISetOption.fsi" />
+    <Compile Include="HashSet\ISetOption.fs" />
+    <Compile Include="HashSet\ISetTuple.fsi" />
+    <Compile Include="HashSet\ISetTuple.fs" />
+    <Compile Include="HashSet\HashSetCE.fsi" />
+    <Compile Include="HashSet\HashSetCE.fs" />
     <Compile Include="Stack.fs" />
     <Compile Include="ImmutableList.fs" />
     <Compile Include="Queue.fs" />
