@@ -19,3 +19,17 @@ module FSharp.Collections.Immutable.ComputationExpressions
 /// Evaluates to a flat list of 0, 1, 4, 9, 100 and 200.
 /// </example>
 val flatList : FlatListCE
+
+/// <summary>Builds an indexed list.</summary>
+/// <example id="indexedList-1">
+/// <code lang="fsharp">
+/// let squares = indexedList {
+///     yield 0
+///     for i in 1..3 do
+///         yield i * i
+///     yield! [ 100; 200 ]
+/// }
+/// </code>
+/// Evaluates to an indexed list of 0, 1, 4, 9, 100 and 200.
+/// </example>
+val indexedList : IndexedListCE
