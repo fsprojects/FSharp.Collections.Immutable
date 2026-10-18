@@ -256,10 +256,11 @@ indexed collections. Collection-specific behaviour
 (`isDefault`, spans, builders, `Stack.cons` direction, comparers, sorted-only functions, null inputs) lives in a per-collection
 file. Expected exceptions come from the same oracle: the test calls the function of the mirrored FSharp.Core module (D6)
 on the same input and asserts the same type and message with `Assert.ThrowsExactly`; `ParamName` is checked against the
-ops record. Every assertion carries a message; categories come from `TestCategories.fs` attributes (collection level) and
-`TestCategory (nameof …)` (operation level), never from string literals. In a contract base, the function of any module
-gives the name, for example `nameof FlatList.map`. Dedicated files per collection prove that opening the `Option`/`Tuple`
-namespaces shadows the default functions and that the override functions are equivalent to the defaults after conversion.
+ops record. Every assertion carries a message. Categories are the `TestCategoryBaseAttribute` descendants of
+`TestCategories.fs` on the test classes: the collection and the component or area that the class examines, such as
+`[<TestClass; FlatListTestCategory; BuilderTestCategory>]`. They are never strings, and test methods carry none. Dedicated
+files per collection prove that opening the `Option`/`Tuple` namespaces shadows the default functions and that the override
+functions are equivalent to the defaults after conversion.
 
 ### D9. Delivery: one pull request per collection, stacked
 
