@@ -10,7 +10,7 @@
   <PropertyGroup Label="NuGet">
     <PackageId>FSharp.Collections.Immutable</PackageId>
     <Title>FSharp.Collections.Immutable</Title>
-    <Description>F# bindings for System.Collections.Immutable</Description>
+    <Description>F# bindings for System.Collections.Immutable and System.Collections.Frozen</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
@@ -72,6 +72,27 @@
     <Compile Include="HashMap\IMapTuple.fs" />
     <Compile Include="HashMap\HashMapCE.fsi" />
     <Compile Include="HashMap\HashMapCE.fs" />
+    <Compile Include="FrozenMap\FrozenMapTypes.fs" />
+    <Compile Include="FrozenMap\FrozenMap.CustomComparers.fsi">
+      <DependentUpon>FrozenMap.fsi</DependentUpon>
+    </Compile>
+    <Compile Include="FrozenMap\FrozenMap.CustomComparers.fs">
+      <DependentUpon>FrozenMap.fs</DependentUpon>
+    </Compile>
+    <Compile Include="FrozenMap\FrozenMap.fsi" />
+    <Compile Include="FrozenMap\FrozenMap.fs" />
+    <Compile Include="FrozenMap\FrozenMapOption.fsi" />
+    <Compile Include="FrozenMap\FrozenMapOption.fs" />
+    <Compile Include="FrozenMap\FrozenMapTuple.fsi" />
+    <Compile Include="FrozenMap\FrozenMapTuple.fs" />
+    <Compile Include="FrozenMap\FrozenMap.Extensions.fsi">
+      <DependentUpon>FrozenMap.fsi</DependentUpon>
+    </Compile>
+    <Compile Include="FrozenMap\FrozenMap.Extensions.fs">
+      <DependentUpon>FrozenMap.fs</DependentUpon>
+    </Compile>
+    <Compile Include="FrozenMap\FrozenMapCE.fsi" />
+    <Compile Include="FrozenMap\FrozenMapCE.fs" />
     <Compile Include="Stack.fs" />
     <Compile Include="ImmutableList.fs" />
     <Compile Include="Queue.fs" />
