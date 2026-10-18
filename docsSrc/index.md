@@ -17,6 +17,7 @@ F# bindings for [System.Collections.Immutable](https://learn.microsoft.com/en-us
 | `HashSet` | `ImmutableHashSet<'T>` | `hashSet { }` |
 | `SortedSet` | `ImmutableSortedSet<'T>` | – |
 | `ISet` | `IImmutableSet<'T>` | – |
+| `FrozenSet` | `FrozenSet<'T>` | `frozenSet { }` |
 | `IIndexedSeq` | `IReadOnlyList<'T>` | – |
 
 ---

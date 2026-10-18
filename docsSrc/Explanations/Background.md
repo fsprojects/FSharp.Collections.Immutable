@@ -35,6 +35,7 @@ While F# has its own built-in immutable collections, System.Collections.Immutabl
 | `HashSet` | `ImmutableHashSet<'T>` | `hashSet { }` |
 | `SortedSet` | `ImmutableSortedSet<'T>` | – |
 | `ISet` | `IImmutableSet<'T>` | – |
+| `FrozenSet` | `FrozenSet<'T>` | `frozenSet { }` |
 | `IIndexedSeq` | `IReadOnlyList<'T>` | – |
 
 ---
