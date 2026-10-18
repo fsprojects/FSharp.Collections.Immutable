@@ -653,11 +653,17 @@ val collect : mapping : ('T -> FlatList<'U>) -> array : FlatList<'T> -> FlatList
 [<CompiledName "Concat">]
 val concat : arrays : seq<FlatList<'T>> -> FlatList<'T>
 
-/// <summary>Returns the elements that satisfy the predicate.</summary>
+/// <summary>
+/// Returns the elements that satisfy the predicate.
+/// </summary>
 /// <param name="predicate">The function to test the elements.</param>
 /// <param name="array">The input flat list.</param>
 /// <returns>The elements that satisfy the predicate, in their order.</returns>
-/// <remarks>O(n).</remarks>
+/// <remarks>
+/// O(n). To remove the elements that satisfy a predicate, as
+/// <see cref="M:System.Collections.Immutable.ImmutableArray`1.RemoveAll(System.Predicate{`0})"/> does, filter with the
+/// negated predicate.
+/// </remarks>
 [<CompiledName "Filter">]
 val filter : predicate : ('T -> bool) -> array : FlatList<'T> -> FlatList<'T>
 
@@ -777,6 +783,32 @@ val pairwise : array : FlatList<'T> -> FlatList<struct ('T * 'T)>
 [<CompiledName "Permute">]
 val permute : indexMap : (int -> int) -> array : FlatList<'T> -> FlatList<'T>
 
+/// <summary>
+/// Returns the flat list without the first element that equals a value, in
+/// <see cref="P:System.Collections.Generic.EqualityComparer`1.Default"/>.
+/// </summary>
+/// <param name="item">The value to remove.</param>
+/// <param name="list">The input flat list.</param>
+/// <returns>The flat list without the element; the input itself when no element equals the value.</returns>
+/// <remarks>
+/// <para>
+/// O(n). The function wraps <see cref="M:System.Collections.Immutable.ImmutableArray`1.Remove(`0)"/>.
+/// </para>
+/// <para>
+/// To remove several values, use
+/// <see cref="M:FSharp.Collections.Immutable.FlatList.RemoveMany``1(System.Collections.Generic.IEnumerable{``0},System.Collections.Immutable.ImmutableArray{``0})"/>;
+/// to remove by index, use
+/// <see cref="M:FSharp.Collections.Immutable.FlatList.RemoveAt``1(System.Int32,System.Collections.Immutable.ImmutableArray{``0})"/>
+/// or
+/// <see cref="M:FSharp.Collections.Immutable.FlatList.RemoveManyAt``1(System.Int32,System.Int32,System.Collections.Immutable.ImmutableArray{``0})"/>;
+/// to remove the elements that satisfy a predicate, use
+/// <see cref="M:FSharp.Collections.Immutable.FlatList.Filter``1(Microsoft.FSharp.Core.FSharpFunc{``0,System.Boolean},System.Collections.Immutable.ImmutableArray{``0})"/>
+/// with the negated predicate.
+/// </para>
+/// </remarks>
+[<CompiledName "Remove">]
+val remove : item : 'T -> list : FlatList<'T> -> FlatList<'T>
+
 /// <summary>Returns a flat list without the element at an index.</summary>
 /// <param name="index">The index of the removed element.</param>
 /// <param name="source">The input flat list.</param>
@@ -786,15 +818,68 @@ val permute : indexMap : (int -> int) -> array : FlatList<'T> -> FlatList<'T>
 [<CompiledName "RemoveAt">]
 val removeAt : index : int -> source : FlatList<'T> -> FlatList<'T>
 
-/// <summary>Returns a flat list without a range of elements.</summary>
+/// <summary>
+/// Returns the flat list without one element for each of the given values, in
+/// <see cref="P:System.Collections.Generic.EqualityComparer`1.Default"/>.
+/// </summary>
+/// <param name="items">The values to remove.</param>
+/// <param name="list">The input flat list.</param>
+/// <returns>The flat list without the elements; the input itself when no element equals any of the values.</returns>
+/// <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="items"/> is <see langword="null"/> or a default flat list.</exception>
+/// <remarks>
+/// O(n * m) for m values. Each value removes the first element that equals it and that no earlier value has removed; a
+/// value that equals no remaining element removes nothing. The function wraps
+/// <see cref="M:System.Collections.Immutable.ImmutableArray`1.RemoveRange(System.Collections.Generic.IEnumerable{`0})"/>.
+/// </remarks>
+[<CompiledName "RemoveMany">]
+val removeMany : items : seq<'T> -> list : FlatList<'T> -> FlatList<'T>
+
+/// <summary>
+/// Returns a flat list without a range of elements.
+/// </summary>
 /// <param name="index">The index of the first removed element.</param>
 /// <param name="count">The number of removed elements.</param>
 /// <param name="source">The input flat list.</param>
 /// <returns>The flat list without the range.</returns>
 /// <exception cref="T:System.ArgumentException">Thrown when the range is out of range.</exception>
-/// <remarks>O(n).</remarks>
+/// <remarks>
+/// O(n). The function corresponds to
+/// <see cref="M:System.Collections.Immutable.ImmutableArray`1.RemoveRange(System.Int32,System.Int32)"/>. To remove the
+/// elements that equal given values, use
+/// <see cref="M:FSharp.Collections.Immutable.FlatList.RemoveMany``1(System.Collections.Generic.IEnumerable{``0},System.Collections.Immutable.ImmutableArray{``0})"/>.
+/// </remarks>
 [<CompiledName "RemoveManyAt">]
 val removeManyAt : index : int -> count : int -> source : FlatList<'T> -> FlatList<'T>
+
+/// <summary>
+/// Returns the flat list without one element for each of the given values, in a given equality comparer.
+/// </summary>
+/// <param name="comparer">The equality comparer.</param>
+/// <param name="items">The values to remove.</param>
+/// <param name="list">The input flat list.</param>
+/// <returns>The flat list without the elements; the input itself when no element equals any of the values.</returns>
+/// <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="items"/> is <see langword="null"/> or a default flat list.</exception>
+/// <remarks>
+/// O(n * m) for m values. Each value removes the first element that equals it and that no earlier value has removed; a
+/// value that equals no remaining element removes nothing. The function wraps
+/// <see cref="M:System.Collections.Immutable.ImmutableArray`1.RemoveRange(System.Collections.Generic.IEnumerable{`0},System.Collections.Generic.IEqualityComparer{`0})"/>.
+/// </remarks>
+[<CompiledName "RemoveManyWith">]
+val removeManyWith : comparer : IEqualityComparer<'T> -> items : seq<'T> -> list : FlatList<'T> -> FlatList<'T>
+
+/// <summary>
+/// Returns the flat list without the first element that equals a value in a given equality comparer.
+/// </summary>
+/// <param name="comparer">The equality comparer.</param>
+/// <param name="item">The value to remove.</param>
+/// <param name="list">The input flat list.</param>
+/// <returns>The flat list without the element; the input itself when no element equals the value.</returns>
+/// <remarks>
+/// O(n). The function wraps
+/// <see cref="M:System.Collections.Immutable.ImmutableArray`1.Remove(`0,System.Collections.Generic.IEqualityComparer{`0})"/>.
+/// </remarks>
+[<CompiledName "RemoveWith">]
+val removeWith : comparer : IEqualityComparer<'T> -> item : 'T -> list : FlatList<'T> -> FlatList<'T>
 
 /// <summary>Returns the elements in reverse order.</summary>
 /// <param name="array">The input flat list.</param>
@@ -1317,6 +1402,29 @@ val splitAt : index : int -> array : FlatList<'T> -> struct (FlatList<'T> * Flat
 val splitInto : count : int -> array : FlatList<'T> -> FlatList<FlatList<'T>>
 
 /// <summary>
+/// Returns the elements of a range of the flat list.
+/// </summary>
+/// <param name="list">The input flat list.</param>
+/// <param name="startIndex">The index of the first element of the range.</param>
+/// <param name="count">The number of elements of the range.</param>
+/// <returns>The elements of the range, in their order.</returns>
+/// <exception cref="T:System.ArgumentException">Thrown when <paramref name="startIndex"/> or <paramref name="count"/> is negative.</exception>
+/// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when the range extends beyond the end of the flat list.</exception>
+/// <remarks>
+/// <para>
+/// O(count). The result is a copy, unless it is empty or the whole flat list. To view a range without a copy, use
+/// <see cref="M:FSharp.Collections.Immutable.FlatList.AsSpan``1(System.Collections.Immutable.ImmutableArray{``0})"/> or
+/// <see cref="M:FSharp.Collections.Immutable.FlatList.AsMemory``1(System.Collections.Immutable.ImmutableArray{``0})"/>.
+/// </para>
+/// <para>
+/// The function mirrors <see cref="M:Microsoft.FSharp.Collections.ArrayModule.GetSubArray``1(``0[],System.Int32,System.Int32)"/>
+/// and wraps <see cref="M:System.Collections.Immutable.ImmutableArray`1.Slice(System.Int32,System.Int32)"/>.
+/// </para>
+/// </remarks>
+[<CompiledName "GetSubArray">]
+val sub : list : FlatList<'T> -> startIndex : int -> count : int -> FlatList<'T>
+
+/// <summary>
 /// Returns the first elements of the flat list.
 /// </summary>
 /// <param name="count">The number of elements to take.</param>
@@ -1415,6 +1523,56 @@ val sortByDescending : projection : ('T -> 'Key) -> array : FlatList<'T> -> Flat
 /// </remarks>
 [<CompiledName "SortDescending">]
 val sortDescending : array : FlatList<'T> -> FlatList<'T> when 'T : comparison
+
+/// <summary>
+/// Sorts a range of the elements in the order of F# generic comparison.
+/// </summary>
+/// <param name="index">The index of the first element of the range.</param>
+/// <param name="count">The number of elements of the range.</param>
+/// <param name="list">The input flat list.</param>
+/// <returns>The flat list with the sorted range; the input itself when the range needs no sorting.</returns>
+/// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when <paramref name="index"/> or <paramref name="count"/> is negative, or the range extends beyond the end of the flat list.</exception>
+/// <remarks>
+/// O(count log count). This is not a stable sort. The elements outside the range keep their places. The function wraps
+/// <see cref="M:System.Collections.Immutable.ImmutableArray`1.Sort(System.Int32,System.Int32,System.Collections.Generic.IComparer{`0})"/>
+/// and throws what that member throws for a range out of range.
+/// </remarks>
+[<CompiledName "SortRange">]
+val sortRange : index : int -> count : int -> list : FlatList<'T> -> FlatList<'T> when 'T : comparison
+
+/// <summary>
+/// Sorts a range of the elements with a comparison function.
+/// </summary>
+/// <param name="comparison">The function that compares two elements.</param>
+/// <param name="index">The index of the first element of the range.</param>
+/// <param name="count">The number of elements of the range.</param>
+/// <param name="list">The input flat list.</param>
+/// <returns>The flat list with the sorted range; the input itself when the range needs no sorting.</returns>
+/// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when <paramref name="index"/> or <paramref name="count"/> is negative, or the range extends beyond the end of the flat list.</exception>
+/// <remarks>
+/// O(count log count). This is not a stable sort. The elements outside the range keep their places. The function wraps
+/// <see cref="M:System.Collections.Immutable.ImmutableArray`1.Sort(System.Int32,System.Int32,System.Collections.Generic.IComparer{`0})"/>
+/// and throws what that member throws for a range out of range.
+/// </remarks>
+[<CompiledName "SortRangeWith">]
+val sortRangeWith : comparison : ('T -> 'T -> int) -> index : int -> count : int -> list : FlatList<'T> -> FlatList<'T>
+
+/// <summary>
+/// Sorts a range of the elements with a comparer.
+/// </summary>
+/// <param name="comparer">The comparer.</param>
+/// <param name="index">The index of the first element of the range.</param>
+/// <param name="count">The number of elements of the range.</param>
+/// <param name="list">The input flat list.</param>
+/// <returns>The flat list with the sorted range; the input itself when the range needs no sorting.</returns>
+/// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when <paramref name="index"/> or <paramref name="count"/> is negative, or the range extends beyond the end of the flat list.</exception>
+/// <remarks>
+/// O(count log count). This is not a stable sort. The elements outside the range keep their places. The function wraps
+/// <see cref="M:System.Collections.Immutable.ImmutableArray`1.Sort(System.Int32,System.Int32,System.Collections.Generic.IComparer{`0})"/>
+/// and throws what that member throws for a range out of range.
+/// </remarks>
+[<CompiledName "SortRangeWithComparer">]
+val sortRangeWithComparer : comparer : IComparer<'T> -> index : int -> count : int -> list : FlatList<'T> -> FlatList<'T>
 
 /// <summary>Sorts the elements with a comparison function.</summary>
 /// <param name="comparer">The function that compares two elements.</param>

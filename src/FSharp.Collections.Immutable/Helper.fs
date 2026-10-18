@@ -33,16 +33,18 @@ module internal ImmutableCollectionUtil =
             nullArg name
 
     /// <summary>
-    /// Throws <see cref="T:System.ArgumentNullException"/> for a default <see cref="T:System.Collections.Immutable.ImmutableArray`1"/>
-    /// that is given as a sequence.
+    /// Throws <see cref="T:System.ArgumentNullException"/> for a <see langword="null"/> sequence and for a default
+    /// <see cref="T:System.Collections.Immutable.ImmutableArray`1"/> that is given as a sequence.
     /// </summary>
     /// <remarks>
     /// A default immutable array converts to a sequence without a check, and the sequence fails with
-    /// <see cref="T:System.InvalidOperationException"/> when a function enumerates it, so a function that takes a sequence
-    /// calls this check next to its <see langword="null"/> check (ADR 0001, D6). Any other sequence passes, a
-    /// <see langword="null"/> sequence included.
+    /// <see cref="T:System.InvalidOperationException"/> when a function enumerates it. A function that takes a sequence
+    /// calls this check, which treats a default immutable array as FSharp.Core treats a <see langword="null"/> sequence
+    /// (ADR 0001, D6). Any other sequence passes.
     /// </remarks>
-    let inline checkNotDefaultSeq name (source : seq<'T>) =
+    let inline checkNotNullOrDefaultSeq name (source : seq<'T>) =
+        checkNotNull name source
+
         match source with
         | :? ImmutableArray<'T> as array -> checkNotDefault name array
         | _ -> ()

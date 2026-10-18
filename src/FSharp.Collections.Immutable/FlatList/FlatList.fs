@@ -359,8 +359,7 @@ let collect (mapping : 'T -> FlatList<'U>) (array : FlatList<'T>) =
 
 [<CompiledName "Concat">]
 let concat (arrays : seq<FlatList<'T>>) =
-    checkNotNull (nameof arrays) arrays
-    checkNotDefaultSeq (nameof arrays) arrays
+    checkNotNullOrDefaultSeq (nameof arrays) arrays
 
     arrays
     |> Seq.map (fun array -> unwrapArray (nameof arrays) array)
@@ -386,9 +385,10 @@ let insertAt index (value : 'T) (source : FlatList<'T>) =
 let insertManyAt index (values : seq<'T>) (source : FlatList<'T>) =
     let array = unwrapArray (nameof source) source
 
-    // Array.insertManyAt checks the index before it enumerates the values, so the check of the values comes after it
+    // Array.insertManyAt checks the index before it enumerates the values, and it names the values source then, as
+    // Seq.toArray does; the check of the values comes after the one of the index and names the parameter of this function
     if index >= 0 && index <= array.Length then
-        checkNotDefaultSeq (nameof values) values
+        checkNotNullOrDefaultSeq (nameof values) values
 
     Array.insertManyAt index values array |> wrapArray
 
@@ -431,23 +431,44 @@ let permute indexMap (array : FlatList<'T>) =
     Array.permute indexMap (unwrapArray (nameof array) array)
     |> wrapArray
 
+[<CompiledName "Remove">]
+let remove (item : 'T) (list : FlatList<'T>) =
+    checkNotDefault (nameof list) list
+    list.Remove item
+
 [<CompiledName "RemoveAt">]
 let removeAt index (source : FlatList<'T>) =
     Array.removeAt index (unwrapArray (nameof source) source)
     |> wrapArray
+
+[<CompiledName "RemoveMany">]
+let removeMany (items : seq<'T>) (list : FlatList<'T>) =
+    checkNotDefault (nameof list) list
+    checkNotNullOrDefaultSeq (nameof items) items
+    list.RemoveRange items
 
 [<CompiledName "RemoveManyAt">]
 let removeManyAt index count (source : FlatList<'T>) =
     Array.removeManyAt index count (unwrapArray (nameof source) source)
     |> wrapArray
 
+[<CompiledName "RemoveManyWith">]
+let removeManyWith (comparer : IEqualityComparer<'T>) (items : seq<'T>) (list : FlatList<'T>) =
+    checkNotDefault (nameof list) list
+    checkNotNullOrDefaultSeq (nameof items) items
+    list.RemoveRange (items, comparer)
+
+[<CompiledName "RemoveWith">]
+let removeWith (comparer : IEqualityComparer<'T>) (item : 'T) (list : FlatList<'T>) =
+    checkNotDefault (nameof list) list
+    list.Remove (item, comparer)
+
 [<CompiledName "Reverse">]
 let rev (array : FlatList<'T>) = Array.rev (unwrapArray (nameof array) array) |> wrapArray
 
 [<CompiledName "Transpose">]
 let transpose (arrays : seq<FlatList<'T>>) =
-    checkNotNull (nameof arrays) arrays
-    checkNotDefaultSeq (nameof arrays) arrays
+    checkNotNullOrDefaultSeq (nameof arrays) arrays
 
     arrays
     |> Seq.map (fun array -> unwrapArray (nameof arrays) array)
@@ -649,8 +670,7 @@ let distinctBy (projection : 'T -> 'Key) (array : FlatList<'T>) =
 [<CompiledName "Except">]
 let except (itemsToExclude : seq<'T>) (array : FlatList<'T>) =
     // FSharp.Core checks the items to exclude first
-    checkNotNull (nameof itemsToExclude) itemsToExclude
-    checkNotDefaultSeq (nameof itemsToExclude) itemsToExclude
+    checkNotNullOrDefaultSeq (nameof itemsToExclude) itemsToExclude
     Array.except itemsToExclude (unwrapArray (nameof array) array)
     |> wrapArray
 
@@ -725,6 +745,23 @@ let splitInto count (array : FlatList<'T>) =
     |> Array.map wrapArray
     |> wrapArray
 
+[<CompiledName "GetSubArray">]
+let sub (list : FlatList<'T>) startIndex count =
+    checkNotDefault (nameof list) list
+
+    if startIndex < 0 then
+        Raise.invalidArgInputMustBeNonNegative (nameof startIndex) startIndex
+
+    if count < 0 then
+        Raise.invalidArgInputMustBeNonNegative (nameof count) count
+
+    // Array.sub compares the sum of the start index and the count with the length, which can overflow; the difference
+    // cannot, because the start index is not negative
+    if count > list.Length - startIndex then
+        Raise.invalidArgOutOfRange (nameof count) count "list.Length" list.Length
+
+    list.Slice (startIndex, count)
+
 [<CompiledName "Take">]
 let take count (array : FlatList<'T>) =
     checkNotDefault (nameof array) array
@@ -793,6 +830,21 @@ let sortByDescending (projection : 'T -> 'Key) (array : FlatList<'T>) =
 let sortDescending (array : FlatList<'T>) =
     Array.sortDescending (unwrapArray (nameof array) array)
     |> wrapArray
+
+[<CompiledName "SortRange">]
+let sortRange index count (list : FlatList<'T>) =
+    checkNotDefault (nameof list) list
+    list.Sort (index, count, DefaultComparer<'T>.Instance)
+
+[<CompiledName "SortRangeWith">]
+let sortRangeWith (comparison : 'T -> 'T -> int) index count (list : FlatList<'T>) =
+    checkNotDefault (nameof list) list
+    list.Sort (index, count, Comparer<'T>.Create(Comparison<'T> comparison))
+
+[<CompiledName "SortRangeWithComparer">]
+let sortRangeWithComparer (comparer : IComparer<'T>) index count (list : FlatList<'T>) =
+    checkNotDefault (nameof list) list
+    list.Sort (index, count, comparer)
 
 [<CompiledName "SortWith">]
 let sortWith comparer (array : FlatList<'T>) =

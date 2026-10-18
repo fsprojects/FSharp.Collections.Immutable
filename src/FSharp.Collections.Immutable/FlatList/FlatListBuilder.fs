@@ -38,7 +38,7 @@ let add (value : 'T) (builder : FlatList<'T>.Builder) =
 
 [<CompiledName "AddRange">]
 let addRange (values : seq<'T>) (builder : FlatList<'T>.Builder) =
-    checkNotDefaultSeq (nameof values) values
+    checkNotNullOrDefaultSeq (nameof values) values
     builder.AddRange values
     builder
 
