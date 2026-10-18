@@ -424,11 +424,12 @@ ADR 0001 proposes to rewrite them in a chain of pull requests with no release be
 Under the repository's rules: MSTest 4, a failure message on every assert, categories from `TestCategories.fs`,
 attributes sorted by type name.
 
-* **Categories.** `EquatableArrayTestCategory` on every test class. `TestCategory (nameof EquatableArray.ofSeq)` and the
-  like on tests of module functions. For the behaviour of the type itself: `AllocationTestCategory`,
-  `ComparisonTestCategory`, `DefaultValueTestCategory`, `EqualityTestCategory`, `FormattingTestCategory`,
-  `InteropTestCategory`, `JsonTestCategory` and `PatternMatchingTestCategory`, in the `TestCategories.fs` that step 1
-  adds. `BuilderTestCategory` and `ComputationExpressionTestCategory` come with step 2.
+* **Categories.** The `TestCategoryBaseAttribute` descendants of `TestCategories.fs`, on the test classes only, as in
+  ADR 0001 D8: `EquatableArrayTestCategory` on every test class, and the area that the class examines –
+  `AllocationTestCategory`, `ComparisonTestCategory`, `DefaultValueTestCategory`, `EqualityTestCategory`,
+  `FormattingTestCategory`, `InteropTestCategory`, `JsonTestCategory`, `ModuleFunctionsTestCategory` or
+  `PatternMatchingTestCategory`. Categories are never strings, and test methods carry none. Step 1 adds
+  `TestCategories.fs`; `BuilderTestCategory` and `ComputationExpressionTestCategory` come with step 2.
 * **Equality under every caller**: `=`, `.Equals`, `EqualityComparer<_>.Default`, `HashIdentity.Structural`, a default
   `Dictionary` and `HashSet`, `ValueTuple.Equals`, a record field, a recursive union.
 * **The defects of `ImmutableArray` as regression tests**: arrays of different length compare, sort and build a `Set`;
