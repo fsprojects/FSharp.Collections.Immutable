@@ -84,6 +84,68 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `tryGetValue` with options, and `partition` and `partitionWith` with reference tuples.
 * `hashSet { }` builds a hash set, and `HashSetCE` created with an equality comparer builds hash sets that compare with it;
   a `null` comparer throws `ArgumentNullException`.
+* `SortedSet` has every function of the FSharp.Core `Set` module, with its semantics, argument order and exceptions, plus
+  `addRange`, `build`, `builder`, `choose`, `clear`, `comparer`, `forComparer`, `indexOf`, `item`, `ofBuilder`,
+  `ofReadOnlySpan`, `ofSpan`, `overlaps`, `removeRange`, `rev`, `setEquals`, `symmetricDifference`, `toBuilder`,
+  `tryGetValue`, `tryItem` and `update`.
+* `SortedSet.addRange elements set` and `removeRange elements set` take the place of the `Union` and `Except` members that
+  take a sequence. The result keeps the comparer of the sorted set, and the input itself comes back when nothing changes.
+  `removeRange` wraps `Except`. `addRange` adds the elements one by one, so an element of the sequence that the comparer
+  finds equal to an element of the sorted set never replaces it, and of several equal elements of the sequence the first
+  is added. `Union` does not promise that: when the sequence is large against the sorted set, it refills the tree from an
+  unstable sort and can keep an element of the sequence instead.
+* `SortedSet.ofReadOnlySpan` and `ofSpan` create a sorted set from a span and keep the first of the elements that the
+  comparer finds equal, where `ImmutableSortedSet.Create` with a span keeps an arbitrary one of them. `build` fills a
+  builder with an action, and `update` applies an action to a builder of a sorted set and returns its contents, so that
+  the in-place operations of the builder, such as `IntersectWith`, are one expression.
+* `SortedSet.forComparer comparer` creates the `CustomComparerSortedSet` struct, whose members `build`, `builder`, `empty`,
+  `ofArray`, `ofList`, `ofReadOnlySpan`, `ofSeq`, `ofSpan` and `singleton` create sorted sets and builders that order
+  their elements with the comparer, as in `(SortedSet.forComparer StringComparer.OrdinalIgnoreCase).ofSeq names`. They
+  replace the BCL members `Create(comparer, ...)`, `CreateRange(comparer, items)`, `ToImmutableSortedSet(items, comparer)`
+  and `CreateBuilder(comparer)`. `ofSeq` also gives an existing sorted set the comparer, as `WithComparer` does: the
+  sorted set itself comes back for the same comparer instance, and an equal but distinct instance rebuilds it, keeping the
+  first of the elements that the comparer finds equal. A `null` comparer throws `ArgumentNullException`.
+  The element type needs no F# comparison. The default value of the struct orders with `Comparer<'T>.Default`, as the BCL
+  does for a `null` comparer, so `WithComparer(null)` is `ofSeq` of the default value, where `SortedSet.ofSeq set` orders
+  with F# generic comparison.
+* `SortedSet.add` and `remove` return the input itself when nothing changes, so a reference comparison of the input and
+  the result tells whether `Add` changed anything, as the `bool` result of `Builder.Add` does. Sorted sets have no builder
+  module: `builder`, `toBuilder` and `ofBuilder` are `CreateBuilder`, `ToBuilder` and `ToImmutable`, and the builder is
+  used directly. The mutating members of the BCL interfaces, such as `ISet<T>.UnionWith` and `ICollection<T>.Add`, throw
+  `NotSupportedException` on a sorted set and have no function.
+* `add`, `addRange`, `remove`, `removeRange`, `clear`, `update`, `filter` and `partition` of `SortedSet` keep the comparer
+  of their input, and the set algebra keeps the comparer of the first sorted set. Every function throws
+  `ArgumentNullException` for a `null` sorted set, sequence or array, and for a default flat list that is given as a
+  sequence; `yield!` and `for` of `sortedSet { }` do the same. `unionMany` of an empty sequence returns an empty sorted
+  set, as `Set.unionMany` does. `tryGetValue` returns a `voption`, `choose` takes a function that returns a `voption`,
+  and `partition` and `partitionWith` return struct tuples.
+* The functions of `SortedSet` that create a sorted set without a comparer, `builder`, `build`, `unionMany` of no sets,
+  `map`, `choose`, `partitionWith` and `sortedSet { }` order with F# generic comparison, as `Set` does, where the BCL
+  orders with `Comparer<'T>.Default`. A sorted set thus enumerates its elements in the order of the F# set of the same
+  elements: strings, and tuples and other values that contain strings, compare ordinally instead of in the order of the
+  current culture. `SortedSet.forComparer Comparer<'T>.Default` orders as the BCL does.
+* The set algebra and the relations of `SortedSet` take sorted sets, as the `Set` functions do. The BCL members that take
+  a sequence map as follows: `Union` and `Except` are `addRange` and `removeRange`, `Overlaps` and `IsSupersetOf` are
+  `Seq.exists` and `Seq.forall` with `contains`, and the others take `SortedSet.ofSeq elements`, or
+  `(SortedSet.forComparer (SortedSet.comparer set)).ofSeq elements` to give the elements the comparer of the first sorted
+  set.
+* The element that stays when the comparer finds two elements equal follows the BCL: `union` keeps the element of the
+  first sorted set, or of the larger one when both have the same comparer, `intersect` keeps the elements of the second
+  one, and the creation functions keep the first element of their input, where `CreateRange` and `Create` with a span keep
+  any of them. When the second sorted set of `union` has another comparer and is much larger, the BCL refills the tree
+  from an unstable sort and either element can stay; only `addRange` keeps the element of the sorted set in every case.
+  `isProperSuperset` is the exception: it counts the elements of the second sorted set that the comparer of the first one
+  finds equal once, as the documentation of `IsProperSupersetOf` says, where the member counts each of them.
+* `SortedSet.minElement` and `maxElement` take the place of the properties `Min` and `Max`: they read the first and the
+  last element in O(log n) and throw `ArgumentException` for an empty sorted set, as `Set.minElement` and
+  `Set.maxElement` do, where the properties return `default`. `tryItem 0` and `tryItem (count - 1)` return a `voption`
+  instead. `rev` is `Reverse`, `item` is the indexer and throws `ArgumentOutOfRangeException` like it, and `indexOf` is
+  `IndexOf`, with the bitwise complement for a missing element. `ItemRef` has no function, because a curried function
+  cannot return a `byref`.
+* The `FSharp.Collections.Immutable.Option.SortedSet` and `FSharp.Collections.Immutable.Tuple.SortedSet` modules repeat
+  `choose`, `tryGetValue` and `tryItem` with options, and `partition` and `partitionWith` with reference tuples.
+* `sortedSet { }` builds a sorted set, and `SortedSetCE` created with a comparer builds sorted sets that order their
+  elements with it; a `null` comparer throws `ArgumentNullException`.
 
 ### Changed
 
