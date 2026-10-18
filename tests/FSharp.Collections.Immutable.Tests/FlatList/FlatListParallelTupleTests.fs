@@ -11,25 +11,40 @@ open Microsoft.VisualStudio.TestTools.UnitTesting
 [<TestClass; FlatListTestCategory; TupleNamespaceTestCategory; ParallelTestCategory>]
 type FlatListParallelTupleTests () =
 
-    static let array = FlatList.ofList Inputs.several
+    static let array = FlatList.ofArray Inputs.Several
 
-    static let other = FlatList.ofList Inputs.other
-
-    /// A flat list long enough for the functions to split their work among several threads.
-    static let large = FlatList.init 10_000 (fun index -> index % 1_000 - 500)
+    /// The elements of a flat list long enough for the functions to split their work among several threads.
+    static let large () = Array.init 10_000 (fun index -> index % 1_000 - 500)
 
     static let isPositive (item : int) = item > 0
 
-    [<TestMethod>]
-    member _.``zip returns reference tuples`` () =
-        for struct (first, second) in [ struct (array, other); struct (large, FlatList.rev large) ] do
-            let pairs : FlatList<int * int> = FlatList.Parallel.zip first second
+    /// The flat list of the elements of an input.
+    static let flatListOf (input : ParallelInput) = FlatList.ofArray (input.Elements large)
 
-            Assert.AreEqual<(int * int) list>(
-                List.zip (FlatList.toList first) (FlatList.toList second),
-                FlatList.toList pairs,
-                $"Tuple.FlatList.Parallel.zip of %d{first.Length} elements must zip as List.zip does"
-            )
+    /// The input with several elements of the contracts and the larger input.
+    static member Sources = seq {
+        ParallelInput.Several
+        ParallelInput.Large
+    }
+
+    [<TestMethod; DynamicData(nameof FlatListParallelTupleTests.Sources)>]
+    member _.``zip returns reference tuples`` (input : ParallelInput) =
+        let first = flatListOf input
+
+        // The input with several elements is zipped with the second input of the contracts, the larger input with its
+        // reverse
+        let second =
+            match input with
+            | ParallelInput.Several -> FlatList.ofArray Inputs.Other
+            | _ -> FlatList.rev first
+
+        let pairs : FlatList<int * int> = FlatList.Parallel.zip first second
+
+        CollectionAssert.AreEqual (
+            Array.zip (FlatList.toArray first) (FlatList.toArray second),
+            FlatList.toArray pairs,
+            "Tuple.FlatList.Parallel.zip must zip as Array.zip does"
+        )
 
     [<TestMethod>]
     member _.``zip throws for different lengths as the default does`` () =
@@ -42,23 +57,35 @@ type FlatListParallelTupleTests () =
             (fun () -> FlatList.Parallel.zip array (FlatList.singleton 1) |> ignore)
             "Tuple.FlatList.Parallel.zip must throw as the default zip does"
 
-    [<TestMethod>]
-    member _.``groupBy returns reference tuples`` () =
-        for source in [ array; large ] do
-            let groups : FlatList<int * FlatList<int>> = FlatList.Parallel.groupBy (fun item -> item % 3) source
+    [<TestMethod; DynamicData(nameof FlatListParallelTupleTests.Sources)>]
+    member _.``groupBy returns reference tuples`` (input : ParallelInput) =
+        let source = flatListOf input
+        let groups : FlatList<int * FlatList<int>> = FlatList.Parallel.groupBy (fun item -> item % 3) source
 
-            // The order of the keys and of the elements of a key is open, so both are sorted
-            Assert.AreEqual<(int * int list) list>(
-                List.groupBy (fun item -> item % 3) (FlatList.toList source)
-                |> Seq.map (fun (key, items) -> key, List.sort items)
-                |> Seq.sortBy fst
-                |> Seq.toList,
-                groups
-                |> Seq.map (fun (key, items) -> key, items |> Seq.sort |> Seq.toList)
-                |> Seq.sortBy fst
-                |> Seq.toList,
-                $"Tuple.FlatList.Parallel.groupBy of %d{source.Length} elements must group as List.groupBy does"
-            )
+        // The order of the keys and of the elements of a key is open, so both are sorted; a group pairs its key with its
+        // elements, which a pair compares by reference, so the keys and the elements are compared apart
+        let expected =
+            Array.groupBy (fun item -> item % 3) (FlatList.toArray source)
+            |> Array.map (fun (key, items) -> key, Array.sort items)
+            |> Array.sortBy fst
+
+        let actual =
+            groups
+            |> Seq.map (fun (key, items) -> key, items |> Seq.sort |> Seq.toArray)
+            |> Seq.sortBy fst
+            |> Seq.toArray
+
+        CollectionAssert.AreEqual (
+            Array.map fst expected,
+            Array.map fst actual,
+            "Tuple.FlatList.Parallel.groupBy must find the keys as Array.groupBy does"
+        )
+
+        CollectionAssert.AreEqual (
+            Array.map snd expected,
+            Array.map snd actual,
+            "Tuple.FlatList.Parallel.groupBy must group the elements of each key as Array.groupBy does"
+        )
 
     [<TestMethod>]
     member _.``groupBy puts the NaN keys of type float and float32 in one group as Array.Parallel does`` () =
@@ -66,64 +93,65 @@ type FlatListParallelTupleTests () =
         let check (source : 'Key array) =
             let groups : FlatList<'Key * FlatList<'Key>> = FlatList.Parallel.groupBy id (FlatList.ofArray source)
 
-            Assert.AreEqual<(string * int) list>(
+            CollectionAssert.AreEqual (
                 Array.Parallel.groupBy id source
                 |> Seq.map (fun (key, items) -> string key, items.Length)
                 |> Seq.sort
-                |> Seq.toList,
+                |> Seq.toArray,
                 groups
                 |> Seq.map (fun (key, items) -> string key, items.Length)
                 |> Seq.sort
-                |> Seq.toList,
-                $"Tuple.FlatList.Parallel.groupBy of %A{source}"
+                |> Seq.toArray,
+                $"Tuple.FlatList.Parallel.groupBy of %A{source} must group as Array.Parallel.groupBy does"
             )
 
         check [| nan; 1.0; nan; 2.0; nan |]
         check [| nanf; 1.0f; nanf; 2.0f; nanf |]
 
-    [<TestMethod>]
-    member _.``partition returns a reference tuple`` () =
-        for source in [ array; large ] do
-            let (accepted : FlatList<int>), (rejected : FlatList<int>) =
-                FlatList.Parallel.partition isPositive source
-            let expectedAccepted, expectedRejected = List.partition isPositive (FlatList.toList source)
+    [<TestMethod; DynamicData(nameof FlatListParallelTupleTests.Sources)>]
+    member _.``partition returns a reference tuple`` (input : ParallelInput) =
+        let source = flatListOf input
+        let (accepted : FlatList<int>), (rejected : FlatList<int>) =
+            FlatList.Parallel.partition isPositive source
+        let expectedAccepted, expectedRejected = Array.partition isPositive (FlatList.toArray source)
 
-            Assert.AreEqual<int list>(
-                expectedAccepted,
-                FlatList.toList accepted,
-                $"Tuple.FlatList.Parallel.partition of %d{source.Length} elements must return the accepted elements"
-            )
+        CollectionAssert.AreEqual (
+            expectedAccepted,
+            FlatList.toArray accepted,
+            "Tuple.FlatList.Parallel.partition must return the accepted elements"
+        )
 
-            Assert.AreEqual<int list>(
-                expectedRejected,
-                FlatList.toList rejected,
-                $"Tuple.FlatList.Parallel.partition of %d{source.Length} elements must return the rejected elements"
-            )
+        CollectionAssert.AreEqual (
+            expectedRejected,
+            FlatList.toArray rejected,
+            "Tuple.FlatList.Parallel.partition must return the rejected elements"
+        )
 
-    [<TestMethod>]
-    member _.``partitionWith returns a reference tuple`` () =
+    [<TestMethod; DynamicData(nameof FlatListParallelTupleTests.Sources)>]
+    member _.``partitionWith returns a reference tuple`` (input : ParallelInput) =
+        let source = flatListOf input
+
         let partitioner (item : int) =
             if item > 0 then
                 Choice1Of2 item
             else
                 Choice2Of2 (string item)
 
-        for source in [ array; large ] do
-            let (first : FlatList<int>), (second : FlatList<string>) =
-                FlatList.Parallel.partitionWith partitioner source
-            let expectedFirst, expectedSecond = List.partitionWith partitioner (FlatList.toList source)
+        let (first : FlatList<int>), (second : FlatList<string>) =
+            FlatList.Parallel.partitionWith partitioner source
+        let expectedFirst, expectedSecond = Array.partitionWith partitioner (FlatList.toArray source)
 
-            Assert.AreEqual<int list>(
-                expectedFirst,
-                FlatList.toList first,
-                $"Tuple.FlatList.Parallel.partitionWith of %d{source.Length} elements must return the first choices"
-            )
+        CollectionAssert.AreEqual (
+            expectedFirst,
+            FlatList.toArray first,
+            "Tuple.FlatList.Parallel.partitionWith must return the first choices"
+        )
 
-            Assert.AreEqual<string list>(
-                expectedSecond,
-                FlatList.toList second,
-                $"Tuple.FlatList.Parallel.partitionWith of %d{source.Length} elements must return the second choices"
-            )
+        CollectionAssert.AreEqual (
+            expectedSecond,
+            FlatList.toArray second,
+            "Tuple.FlatList.Parallel.partitionWith must return the second choices"
+        )
 
     [<TestMethod>]
     member _.``the functions without a tuple keep resolving to the default module`` () =
