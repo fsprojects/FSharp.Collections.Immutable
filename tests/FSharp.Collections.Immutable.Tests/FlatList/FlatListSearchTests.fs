@@ -17,8 +17,8 @@ type FlatListSearchTests () =
     /// no input has.
     static let valuesToFind = [| "B"; "b"; "Z" |]
 
-    /// Every valid range for the searches from the front. The start index is less than the length, as the BCL requires,
-    /// except for the empty range at the start index 0.
+    /// Every valid range for the searches from the front. The start index is less than the length, as the BCL of .NET 8
+    /// and .NET 10 requires, except for the empty range at the start index 0.
     static let frontRanges (length : int) = seq {
         for startIndex in 0 .. max 0 (length - 1) do
             for count in 0 .. length - startIndex do
@@ -156,7 +156,9 @@ type FlatListSearchTests () =
     }
 
     /// The ranges that the searches from the front reject: a start index that is negative or not less than the length,
-    /// except for the range 0, 0, and a count that is negative or beyond the end.
+    /// except for the range 0, 0, and a count that is negative or beyond the end. The BCL of .NET 11 accepts an empty
+    /// range at a start index that equals the length, so the rows with such a range do not throw there. The project
+    /// targets .NET 8 and .NET 10.
     static member FrontRangesOutOfRange = seq {
         let ranges = [|
             struct ([||], 0, 1)
