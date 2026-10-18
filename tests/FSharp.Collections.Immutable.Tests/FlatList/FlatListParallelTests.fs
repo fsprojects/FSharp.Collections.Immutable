@@ -5,7 +5,9 @@ open System.Collections.Concurrent
 open FSharp.Collections.Immutable
 open Microsoft.VisualStudio.TestTools.UnitTesting
 
-/// <summary>The inputs of the tests of <c>FlatList.Parallel</c>, as the cases of their rows.</summary>
+/// <summary>
+/// The inputs of the tests of <c>FlatList.Parallel</c>, as the cases of their rows.
+/// </summary>
 /// <remarks>
 /// MSTest names a row after its values, and the larger input would write ten thousand numbers into the name of each of
 /// its rows, so a row holds a case and the test takes the elements of the case.
