@@ -4,7 +4,7 @@ applyTo: "tests/**/*.fs"
 
 # Test category attributes
 
-* Do not write the category as a string in `[<TestCategory "...">]`.
+* Declare each test category as a `TestCategoryBaseAttribute` descendant. Do not write the category as a string in `[<TestCategory "...">]`.
 * Make each attribute give one category. Do not put two categories into one attribute.
 * Use the `TestCategoryAttribute` suffix in the name of each attribute.
 * The category is the name without the suffix, written as separate words. Start the category with a capital letter. Write the other words in lower case.

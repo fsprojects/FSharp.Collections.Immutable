@@ -261,11 +261,6 @@ module MyTypeExtensions =
 ## Testing
 
 * Tests use MSTest 4.
-* Each test must have category applied:
-  * Add a collection-level category on each test class (for example: `[<TestClass; QueueTestCategory>]`, `[<TestClass; IndexedListTestCategory>]`).
-  * Add operation-level categories on each test method using `nameof` (for example: `[<TestMethod; TestCategory(nameof Queue.enqueue)>]`).
-  * For specialized areas, add dedicated category attributes together with operation categories (for example: `[<TestMethod; BuilderTestCategory; TestCategory(nameof IndexedList.ofBuilder)>]`).
-* Keep category names centralized in `TestCategories.fs` via custom `TestCategoryBaseAttribute` types; prefer attributes over repeating string literals.
 * `CollectionAssert` cannot work with F# lists – use F# array syntax (`[| ... |]`) instead.
 * `StringAssert` has overloads with `StringComparison`.
 * Use `Assert.Contains` instead of `Assert.IsTrue (str.Contains ..., "message")`, and do not put the actual value into the message.
