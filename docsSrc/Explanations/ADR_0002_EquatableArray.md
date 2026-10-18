@@ -179,7 +179,10 @@ persisted.
 
 `%A` is produced through `StructuredFormatDisplay` with a property that returns text. A property that returns a list was
 tried: `%A` then prints an `EquatableArray` nested in another one as `...` *(verified)*, which hides the children of a
-syntax tree. The price of text is that a value too wide for one line loses its indentation.
+syntax tree. The price of text is that a value too wide for one line loses its indentation. Each nested display also
+starts a new formatter, which resets the depth limit and the cycle check of `%A`. A depth guard that the nested
+displays share therefore shows `...` at a nesting of 100, the default limit of `%A`. Without it, a cycle through a
+mutable record or a very deep tree overflows the stack.
 
 **Where it differs from F# lists and arrays.** Elements are compared with `EqualityComparer<'T>.Default`, not with F#
 equality:
