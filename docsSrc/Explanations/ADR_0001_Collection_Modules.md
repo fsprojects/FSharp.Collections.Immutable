@@ -53,21 +53,34 @@ creation, lookup, iteration, folds, conversions **and** whole-collection transfo
 ADR 0002 – EquatableArray (`ADR_0002_EquatableArray.md`) adds `EquatableArray<'T>`, an immutable array with value
 semantics, whose module mirrors `FlatList`.
 
-Curated extras kept beyond FSharp.Core: `indexOf`/`indexOfWith`/`lastIndexOf`/`lastIndexOfWith`, `binarySearch`,
-`sortWithComparer`, `isDefault`/`isDefaultOrEmpty`, `asSpan`/`asMemory`/`ofSpan`/`ofReadOnlySpan`, the builder family
-(`builder`, `builderWith`, `ofBuilder`, `toBuilder`, `moveFromBuilder`, `build`, `update`), `blit`, `add`,
-`cons`/`uncons`/`tryUncons`, the struct partial patterns `(|Cons|_|)`/`(|Nil|_|)`, `tryTail`, `enqueue`/`enqueueMany`,
-`consMany`, `takeLast`/`skipLast`, `clear` on interface modules, `tryGetKey`/`tryGetValue`,
-`setItem`/`setItems`/`addRange`/`removeRange`, `containsValue`, `symmetricDifference`, `overlaps`/`setEquals`, comparer
-accessors, the `CustomComparers*`/`CustomComparer*` structs that create collections with comparers and the
+Curated extras kept beyond FSharp.Core: `indexOf`/`indexOfWith`/`lastIndexOf`/`lastIndexOfWith` and their range forms
+`indexOfRange`/`indexOfRangeWith`/`lastIndexOfRange`/`lastIndexOfRangeWith`, `binarySearch` and its forms with a comparer
+and a range, `sortWithComparer`, `sortRange`/`sortRangeWith`/`sortRangeWithComparer`, `sub`, `revRange`,
+`remove`/`removeWith`/`removeMany`/`removeManyWith`, `replace`/`replaceWith`, `tryFindIndexRange`/`tryFindIndexBackRange`,
+`isDefault`/`isDefaultOrEmpty`, `asSpan`/`asMemory`/`ofSpan`/`ofReadOnlySpan`, the builder family (`builder`,
+`builderWith`, `ofBuilder`, `toBuilder`, `moveFromBuilder`, `build`, `update`) and the modules `FlatListBuilder` and
+`IndexedListBuilder`, which mirror the members of the BCL builders, `blit`, `copyTo`, `add`, `cons`/`uncons`/`tryUncons`,
+the struct partial patterns `(|Cons|_|)`/`(|Nil|_|)`, `tryTail`, `enqueue`/`enqueueMany`, `consMany`,
+`takeLast`/`skipLast`, `clear` on interface modules, `tryGetKey`/`tryGetValue`, `setItem`/`setItems`/`addRange`/
+`removeRange`, `containsValue`, `containsBinding`, `symmetricDifference`, `overlaps`/`setEquals`, comparer accessors, the
+`CustomComparers*`/`CustomComparer*` structs that create collections with comparers and the
 `forComparers`/`forKeyComparer`/`forComparer` functions that create the structs (D12), and the map functions for every
 binding shape (D13).
 
+Coverage rule (decided by the maintainer, 2026-10-18): a public member of the BCL type that a module wraps has a function
+in the module, unless one function of the module does the same work at the same cost without an extra copy (`RemoveAll
+(predicate)` is `filter` with the negated predicate, `Clear ()` is `empty`), or the member is enumeration plumbing, an
+explicit interface implementation, a `ref` return or a variance helper. The builder modules follow the rule for the
+members of the BCL builder. The map and set modules have no builder module: their builders are called directly (D2).
+
 Removed from the started branch: `iter3`/`iteri3`/`exists3`/`forall3`/`mapi3`/`foldBack3`, `foldi`/`foldi2`/`foldBacki`/
-`foldBacki2`, `findDup`/`findDupBy`, `pickBack`/`tryPickBack`/`chooseBack`, the `From`/`Range` variants of `index*`/
-`lastIndex*`, `removeAll*`, `sortRange*`, `fill`, `zeroCreate`, `copy`, `ofOption`/`toOption`/`ofValueOption`/
-`toValueOption`, `tryHeadAndTail`/`tryLastAndInit`, `enqueueArray`/`enqueueList`/`consArray`/`consList`, `unconsMany`,
-and the modules `Seq` (cross conversions) and `IndexedSeq` (`IReadOnlyList`).
+`foldBacki2`, `findDup`/`findDupBy`, `pickBack`/`tryPickBack`/`chooseBack`, `fill`, `zeroCreate`, `copy`,
+`ofOption`/`toOption`/`ofValueOption`/`toValueOption`, `tryHeadAndTail`/`tryLastAndInit`,
+`enqueueArray`/`enqueueList`/`consArray`/`consList`, `unconsMany`, and the modules `Seq` (cross conversions) and
+`IndexedSeq` (`IReadOnlyList`). Three groups have new names and keep their functions: the `From`/`Range` variants of
+`index*`/`lastIndex*` are `indexOfRange*`/`lastIndexOfRange*`, `removeAll*` (which removed given values, not the elements
+that satisfy a predicate) is `removeMany*`, and `removeRange` is `removeManyAt`. `sortRange*` and `sub` stay: they wrap
+`Sort (index, count, comparer)` and `Slice`.
 
 ### D2. Layout
 
@@ -250,7 +263,10 @@ deviations, each documented on the function:
 - `ParamName` is the name of the parameter in this library's signature, such as `list`, `queue` or `map`. FSharp.Core uses
   `array`, `list`, `source` or `s`.
 - The extras of D1 have no FSharp.Core counterpart. `takeLast` and `skipLast` follow `take` and `skip`; the others throw
-  what the BCL member that they wrap throws.
+  what the BCL member that they wrap throws, with the type, the message and the order of the checks of the BCL.
+- `HashMap.add`, `SortedMap.add` and `IMap.add` wrap `Add` of the BCL, as the released 1.0.0 `HashMap.add` did: they throw
+  `ArgumentException` for a key that is bound to another value, where `Map.add` replaces it. `setItem` is the function
+  that replaces (D14).
 
 ### D7. Computation expressions
 
@@ -360,8 +376,9 @@ and take the comparers in the order of the constructors: `forComparers keyCompar
 `(HashMap.forKeyComparer StringComparer.OrdinalIgnoreCase).ofSeq pairs`.
 
 The members of a struct are the creation functions of the module with the comparers applied, under the names of those
-functions: `empty`, `singleton`, `ofArray`, `ofList` and `ofSeq` (for maps with the overloads of D13), `ofSeqBy` (maps) and
-`builder` (all collections except the frozen ones, which have no builder). The member names stay lowercase, so that a call
+functions: `empty`, `singleton`, `ofArray`, `ofList` and `ofSeq` (for maps with the overloads of D13), `ofSeqBy` (maps),
+`ofReadOnlySpan` and `ofSpan` (hash maps, frozen maps and all sets) and `builder` and `build` (all collections except the
+frozen ones, which have no builder). The member names stay lowercase, so that a call
 reads like the module function that it stands for. Their compiled names are PascalCase (`[<CompiledName "OfSeq">]`), as
 for module functions. The structs are `[<Struct; NoComparison; NoEquality>]`: they only carry comparers, which have no
 meaningful equality, and creating one allocates nothing.
@@ -417,10 +434,12 @@ modules answer as the documentation says.
 | Case | Behaviour | .NET source |
 |---|---|---|
 | `intersect` of two elements that the comparer finds equal | the element of the second set | `ImmutableHashSet.Intersect`, `ImmutableSortedSet.Intersect`; `FrozenSet` has no member and follows them |
-| `union` of two such elements | the element of the first set; `SortedSet` keeps the one of the larger set when both sets have the same comparer, because `ImmutableSortedSet.Union` then adds the smaller set to the larger one | `ImmutableHashSet.Union`, `ImmutableSortedSet.Union` |
+| `union` of two such elements | the element of the first set; `SortedSet` keeps the one of the larger set when both sets have the same comparer, because `ImmutableSortedSet.Union` then adds the smaller set to the larger one; when the second set has at least six times as many elements as the first and the comparers are different instances, `ImmutableSortedSet.Union` refills its tree from an unstable sort and the result holds elements of both sets | `ImmutableHashSet.Union`, `ImmutableSortedSet.Union` |
 | `append` of the interface modules | the implementation of the collection that receives the elements: the first list or queue, the second stack | `IImmutableList.AddRange`, `IImmutableQueue.Enqueue`, `IImmutableStack.Push` |
 | A repeated key in `ofSeqBy` | `HashMap` and `SortedMap` accept a repeated key with an equal value and reject another value; `FrozenMap` rejects every repeated key | `ToImmutableDictionary`, `ToImmutableSortedDictionary`, `ToFrozenDictionary` |
-| A new value that the value comparer finds equal to the stored one (`add`, `change`, `setItem`, `setItems`, `addRange`, `ofSeqBy`, creation) | the stored binding stays, its key included; another value replaces the key and the value | `SetItem`, `SetItems`, `AddRange` and the builder indexers of `ImmutableDictionary` and `ImmutableSortedDictionary` |
+| A new value that the value comparer finds equal to the stored one (`add`, `change`, `setItem`, `setItems`, `addRange`, `ofSeqBy`, creation) | the stored binding stays, its key included; another value replaces the key and the value, except in `add` and `addRange`, which throw (next row) | `SetItem`, `SetItems`, `AddRange` and the builder indexers of `ImmutableDictionary` and `ImmutableSortedDictionary` |
+| `add` of a key that is bound to another value | `ArgumentException`; the input itself when the binding exists with an equal value. `setItem` is the function that replaces | `Add` of `ImmutableDictionary`, `ImmutableSortedDictionary` and `IImmutableDictionary`; `Map.add` replaces |
+| `addRange` of a sequence to a set, when the comparer finds an element of the sequence equal to an element of the set | the element of the set stays, and the first of several equal elements of the sequence is added. `SortedSet.addRange` adds the elements one by one through a builder, because `ImmutableSortedSet.Union (IEnumerable)` lets a sequence with at least six times as many elements as the set replace them; the builder route takes 1.8 to 11 times as long for sequences of 10 000 to 1 000 000 elements and allocates a little less (measured, set of 1 000 elements) | `ImmutableHashSet.Union`, `ImmutableSortedSet.Union` |
 | An existing collection given to `ofSeq` of a struct of D12 | a frozen collection comes back when its comparer `Equals` the struct's; an immutable one only for the same comparer instance | `ToFrozenDictionary`, `ToFrozenSet`; `WithComparers`, `WithComparer` |
 | `isProperSuperset` when the second set holds elements that the first set's comparer finds equal | set semantics under the comparer of the first set | the documentation of `IsProperSupersetOf`, as the mutable `HashSet` and `FrozenSet` answer; `ImmutableHashSet` and `ImmutableSortedSet` count such elements once each, so `{1, 2}.IsProperSupersetOf [1; 1]` is `false` |
 | The default value of a struct of D12 | the comparer that the BCL takes for `null`: `EqualityComparer<'T>.Default`, `Comparer<'T>.Default` | the BCL constructors |
@@ -520,16 +539,20 @@ their element-type-changing transformations return the concrete type.
 | `(\|Nil\|_\|)` | | – | ᵃ | ᵃ | ᵃ | ᵃ | ᵃ | ᵃ | returns `bool` |
 | **Search** | | | | | | | | | |
 | `binarySearch` | | ᵇ | ᵇ | – | – | – | – | – | BCL bitwise-complement contract |
+| `binarySearchRange` / `binarySearchRangeWithComparer` / `binarySearchWithComparer` | | ᵇ | ᵇ | – | – | – | – | – | `BinarySearch` with a comparer and a range; `null` comparer is `Comparer<'T>.Default`; a range beyond the end throws `ArgumentException` (D14) |
 | `contains` | | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
 | `exists` / `exists2` | | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
 | `find` / `findBack` | | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | `KeyNotFoundException` |
 | `findIndex` / `findIndexBack` | | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
 | `forall` / `forall2` | | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
-| `indexOf` / `indexOfWith` | | ᵇ | ᵇ | ᵇ | – | – | – | – | `-1` when absent |
+| `indexOf` / `indexOfWith` | | ᵇ | ᵇ | ᵇ | – | – | – | – | `-1` when absent; `EqualityComparer<'T>.Default` |
+| `indexOfRange` / `indexOfRangeWith` | | ᵇ | ᵇ | ᵇ | – | – | – | – | `IndexOf (item, startIndex, count[, comparer])`; the result is an index of the whole list |
 | `lastIndexOf` / `lastIndexOfWith` | | ᵇ | ᵇ | ᵇ | – | – | – | – | |
+| `lastIndexOfRange` / `lastIndexOfRangeWith` | | ᵇ | ᵇ | ᵇ | – | – | – | – | `LastIndexOf (item, startIndex, count[, comparer])`; goes down from `startIndex` |
 | `pick` | Ⓥ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
 | `tryFind` / `tryFindBack` | Ⓥ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
 | `tryFindIndex` / `tryFindIndexBack` | Ⓥ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
+| `tryFindIndexRange` / `tryFindIndexBackRange` | Ⓥ | – | ᵇ | – | – | – | – | – | `FindIndex` and `FindLastIndex` with a start index and a count; only `ImmutableList` has them |
 | `tryPick` | Ⓥ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
 | **Transformation** | | | | | | | | | |
 | `add` | | ᵇ | ᵇ | ᵇ | – | – | – | – | append one |
@@ -547,8 +570,12 @@ their element-type-changing transformations return the concrete type.
 | `map` / `map2` / `map3` / `mapi` / `mapi2` | | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
 | `pairwise` | Ⓣ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
 | `permute` | | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
+| `remove` / `removeWith` | | ᵇ | ᵇ | ᵇ | – | – | – | – | removes the first element that equals the item; the input itself when none does |
 | `removeAt` / `removeManyAt` | | ✓ | ✓ | ✓ | – | – | – | – | |
+| `removeMany` / `removeManyWith` | | ᵇ | ᵇ | ᵇ | – | – | – | – | `RemoveRange (items[, comparer])`: each item removes one element; the 1.0.0 `removeAll` |
+| `replace` / `replaceWith` | | ᵇ | ᵇ | ᵇ | – | – | – | – | `Replace`; `ArgumentException` when no element equals the old value |
 | `rev` | | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | IndexedList: array copy, `Array.Reverse`, `CreateRange`, measured faster than `ImmutableList.Reverse` (D5) |
+| `revRange` | | – | ᵇ | – | – | – | – | – | `Reverse (index, count)` |
 | `transpose` | | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
 | `unzip` / `unzip3` | Ⓣ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
 | `updateAt` | | ✓ | ✓ | ✓ | – | – | – | – | |
@@ -574,9 +601,11 @@ their element-type-changing transformations return the concrete type.
 | `skipLast` / `takeLast` | | ᵃ | ᵃ | ᵃ | ᵃ | ᵃ | ᵃ | ᵃ | |
 | `splitAt` | Ⓣ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
 | `splitInto` | | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | FSharp.Core chunk sizes |
+| `sub` | | ✓ | ᵇ | – | – | – | – | – | `sub list startIndex count` as `Array.sub`; FlatList wraps `Slice`, IndexedList `GetRange` |
 | `take` / `takeWhile` / `truncate` | | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | `take` throws when short |
 | **Sorting** | | | | | | | | | |
 | `sort` / `sortBy` / `sortByDescending` / `sortDescending` / `sortWith` | | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | FlatList unstable like `Array.sort*`; the others stable like `List.sort*` (LINQ `OrderBy`) |
+| `sortRange` / `sortRangeWith` / `sortRangeWithComparer` | | ᵇ | ᵇ | – | – | – | – | – | `Sort (index, count, comparer)`; FlatList is unstable, as the BCL member; IndexedList is stable (`GetRange`, a stable sort, `RemoveRange`, `InsertRange`) |
 | `sortWithComparer` | | ᵇ | ᵇ | ᵇ | ᵇ | ᵇ | ᵇ | ᵇ | `IComparer<'T>`; same stability rule |
 | **Random** | | | | | | | | | |
 | `randomChoice`, `randomChoices`, `randomSample`, `randomShuffle` (+ `By`, `With`) | | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | 12 functions |
@@ -599,6 +628,23 @@ their element-type-changing transformations return the concrete type.
 `Tuple.*`: `allPairs`, `countBy`, `groupBy`, `indexed`, `mapFold`, `mapFoldBack`, `pairwise`, `partition`, `partitionWith`,
 `splitAt`, `unfold`, `unzip`, `unzip3`, `zip`, `zip3`, `uncons`, `tryUncons`, `(|Cons|_|)` where present.
 
+Builder modules. `FlatListBuilder` (`ImmutableArray<'T>.Builder`) and `IndexedListBuilder` (`ImmutableList<'T>.Builder`)
+mirror the members of the BCL builders (D1, coverage rule). The functions that change the builder return it, so that
+they chain; `remove` and `removeWith` return whether an element was removed, and the searches return an index.
+`replace` and `replaceWith` keep the behaviour of the BCL builder: the array builder leaves the builder as it is when no
+element equals the old value, and the list builder throws `ArgumentException` (D14).
+
+| Module | Functions |
+|---|---|
+| `FlatListBuilder` (36) | `add`, `addRange`, `blit`, `capacity`, `clear`, `contains`, `drainToFlatList`, `indexOf`, `indexOfRange`, `indexOfRangeWith`, `insertAt`, `insertManyAt`, `item`, `lastIndexOf`, `lastIndexOfRange`, `lastIndexOfRangeWith`, `length`, `remove`, `removeAll`, `removeAt`, `removeMany`, `removeManyAt`, `removeManyWith`, `removeWith`, `replace`, `replaceWith`, `rev`, `setCapacity`, `sort`, `sortRange`, `sortRangeWith`, `sortRangeWithComparer`, `sortWith`, `sortWithComparer`, `toArray`, `updateAt` |
+| `IndexedListBuilder` (37) | `add`, `addRange`, `binarySearch`, `binarySearchRangeWithComparer`, `binarySearchWithComparer`, `blit`, `clear`, `contains`, `indexOf`, `indexOfRange`, `indexOfRangeWith`, `insertAt`, `insertManyAt`, `item`, `lastIndexOf`, `lastIndexOfRange`, `lastIndexOfRangeWith`, `length`, `remove`, `removeAll`, `removeAt`, `removeMany`, `removeManyAt`, `removeManyWith`, `removeWith`, `replace`, `replaceWith`, `rev`, `revRange`, `sort`, `sortRange`, `sortRangeWith`, `sortRangeWithComparer`, `sortWith`, `sortWithComparer`, `toArray`, `updateAt` |
+
+The range sorts of `FlatListBuilder` are unstable, as `Sort (index, count, comparer)` is; those of `IndexedListBuilder` are
+stable, as every sort of the list modules. A range that the BCL does not check, or checks wrongly (`index + count`
+overflow in `IndexOf` and `Reverse`, a last element at or after the end in `LastIndexOf` and `FindLastIndex`, a
+`BinarySearch` range beyond the end), is rejected by the list functions with `ArgumentOutOfRangeException`, and by the
+binary searches with `ArgumentException`, as the documentation of the BCL says (D14).
+
 `EquatableArray<'T>` of ADR 0002 mirrors the `FlatList` column, without `isDefault` and `isDefaultOrEmpty`, and adds
 `ofImmutableArray`, `toImmutableArray` and `unsafeOfArray`.
 
@@ -613,9 +659,11 @@ their element-type-changing transformations return the concrete type.
 | `empty` | | ✓ | ✓ | – | ✓ | |
 | `forComparers` / `forKeyComparer` | | ᵃ | ᵃ | – | –/ᵃ | create the `CustomComparers*` struct of D12 |
 | `ofArray` / `ofList` / `ofSeq` | | ✓ | ✓ | – | ✓ | static extension members (D13), each overloaded for `KeyValuePair`, `'Key * 'Value` and `struct ('Key * 'Value)` |
+| `ofReadOnlySpan` / `ofSpan` | | ᵇ | – | – | ᵇ | `CreateRangeWithOverwrite (ReadOnlySpan)`, `FrozenDictionary.Create (ReadOnlySpan)`; `ofSpan` converts its `Span`; the last binding of a key wins; also members of the structs; the BCL has no span creation for sorted dictionaries |
 | `ofSeqBy` | | ᵇ | ᵇ | – | ᵇ | key selector |
 | `singleton` | | ✓ | ✓ | – | ✓ | curried `key value` |
 | **Builder** | | | | | | |
+| `build` / `update` | | ᵃ | ᵃ | – | – | `CreateBuilder`, or `ToBuilder`, then the action, then `ToImmutable`; `build` is also a member of the structs |
 | `builder` / `ofBuilder` / `toBuilder` | | ᵇ | ᵇ | – | – | |
 | **Properties** | | | | | | |
 | `count` / `isEmpty` | | ✓ | ✓ | ✓ | ✓ | |
@@ -627,12 +675,13 @@ their element-type-changing transformations return the concrete type.
 | `tryFind` | Ⓥ | ✓ | ✓ | ✓ | ✓ | |
 | `tryGetKey` | Ⓥ | ᵇ | ᵇ | ᵇ | – | |
 | **Search** | | | | | | |
+| `containsBinding` | | ᵇ | ᵇ | ᵇ | ᵇ | `Contains (KeyValuePair)`: the value comparer decides whether the values are equal (`FrozenMap`: `EqualityComparer<'Value>.Default`) |
 | `containsKey` / `containsValue` | | ✓/ᵇ | ✓/ᵇ | ✓/– | ✓/ᵃ | |
 | `exists` / `forall` | | ✓ | ✓ | ✓ | ✓ | |
 | `findKey` / `tryFindKey` | Ⓥ | ✓ | ✓ | ✓ | ✓ | |
 | `pick` / `tryPick` | Ⓥ | ✓ | ✓ | ✓ | ✓ | |
 | **Transformation** | | | | | | |
-| `add` / `addRange` | | ✓/ᵇ | ✓/ᵇ | ✓/ᵇ | – | `addRange` takes `KeyValuePair`s; `Tuple.addRange` and `ValueTuple.addRange` in the submodules (D13) |
+| `add` / `addRange` | | ᵇ/ᵇ | ᵇ/ᵇ | ᵇ/ᵇ | – | `add` is the BCL `Add`: `ArgumentException` for a key bound to another value, the input itself for an equal binding (D6, D14); `setItem` replaces. `addRange` takes `KeyValuePair`s; `Tuple.addRange` and `ValueTuple.addRange` in the submodules (D13) |
 | `change` | Ⓥ | ✓ | ✓ | ✓ | – | |
 | `choose` | Ⓥ | ᵃ | ᵃ | ᵃ | ᵃ | Frozen rebuild |
 | `clear` | | ᵇ | ᵇ | ᵇ | – | keeps comparers |
@@ -645,6 +694,7 @@ their element-type-changing transformations return the concrete type.
 | **Partitioning** | | | | | | |
 | `partition` | Ⓣ | ✓ | ✓ | ✓ | ✓ | |
 | **Conversion** | | | | | | |
+| `copyTo` | | – | – | – | ᵇ | `CopyTo (KeyValuePair[], int)`; for the other maps `CopyTo` is an explicit interface implementation |
 | `toArray` / `toList` / `toSeq` | Ⓣ | ✓ | ✓ | ✓ | ✓ | `struct ('Key * 'Value)` |
 | **Type-specific** | | | | | | |
 | `alternateLookup<'Alternate>` | | – | – | – | ᵇ | `GetAlternateLookup`; `#if NET10_0_OR_GREATER` |
@@ -664,7 +714,8 @@ The structs of D12:
 | `empty` / `singleton` | ✓ | ✓ | ✓ |
 | `ofArray` / `ofList` / `ofSeq`, each in the three shapes of D13 | ✓ | ✓ | ✓ |
 | `ofSeqBy` | ✓ | ✓ | ✓ |
-| `builder` | ✓ | ✓ | – |
+| `ofReadOnlySpan` / `ofSpan` | ✓ | – | ✓ |
+| `builder` / `build` | ✓ | ✓ | – |
 
 ## Appendix C – sets
 
@@ -676,8 +727,10 @@ The structs of D12:
 | `empty` | | ✓ | ✓ | – | ✓ | |
 | `forComparer` | | ᵃ | ᵃ | – | ᵃ | creates the `CustomComparer*` struct of D12 |
 | `ofArray` / `ofList` / `ofSeq` | | ✓ | ✓ | – | ✓ | |
+| `ofReadOnlySpan` / `ofSpan` | | ᵇ | ᵇ | – | ᵇ | `Create (ReadOnlySpan)`; `ofSpan` converts its `Span`; the first of equal elements stays, `SortedSet` through a builder loop (D14); also members of the structs |
 | `singleton` | | ✓ | ✓ | – | ✓ | |
 | **Builder** | | | | | | |
+| `build` / `update` | | ᵃ | ᵃ | – | – | `CreateBuilder`, or `ToBuilder`, then the action, then `ToImmutable`; `build` is also a member of the structs |
 | `builder` / `ofBuilder` / `toBuilder` | | ᵇ | ᵇ | – | – | |
 | **Properties** | | | | | | |
 | `comparer` | | ᵇ | ᵇ | – | ᵇ | |
@@ -692,6 +745,7 @@ The structs of D12:
 | `overlaps` / `setEquals` | | ᵇ | ᵇ | ᵇ | ᵇ | |
 | **Transformation** | | | | | | |
 | `add` / `remove` / `clear` | | ✓ | ✓ | ✓ | – | |
+| `addRange` / `removeRange` | | ᵇ | ᵇ | ᵇ | – | `Union (IEnumerable)` and `Except (IEnumerable)` without a temporary set; the comparer of the set is kept; the element of the set stays (D14) |
 | `choose` | Ⓥ | ᵃ | ᵃ | ᵃ | ᵃ | |
 | `difference` / `intersect` / `union` | | ✓ | ✓ | ✓ | ✓ | FSharp.Core argument order |
 | `filter` / `map` | | ✓ | ✓ | ✓ | ✓ | comparer kept where the element type allows |
@@ -720,4 +774,5 @@ The structs of D12:
 | `Comparer` | ✓ | ✓ | ✓ |
 | `empty` / `singleton` | ✓ | ✓ | ✓ |
 | `ofArray` / `ofList` / `ofSeq` | ✓ | ✓ | ✓ |
-| `builder` | ✓ | ✓ | – |
+| `ofReadOnlySpan` / `ofSpan` | ✓ | ✓ | ✓ |
+| `builder` / `build` | ✓ | ✓ | – |
