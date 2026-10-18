@@ -788,7 +788,7 @@ val permute : indexMap : (int -> int) -> array : FlatList<'T> -> FlatList<'T>
 /// <see cref="P:System.Collections.Generic.EqualityComparer`1.Default"/>.
 /// </summary>
 /// <param name="item">The value to remove.</param>
-/// <param name="list">The input flat list.</param>
+/// <param name="source">The input flat list.</param>
 /// <returns>The flat list without the element; the input itself when no element equals the value.</returns>
 /// <remarks>
 /// <para>
@@ -807,7 +807,7 @@ val permute : indexMap : (int -> int) -> array : FlatList<'T> -> FlatList<'T>
 /// </para>
 /// </remarks>
 [<CompiledName "Remove">]
-val remove : item : 'T -> list : FlatList<'T> -> FlatList<'T>
+val remove : item : 'T -> source : FlatList<'T> -> FlatList<'T>
 
 /// <summary>Returns a flat list without the element at an index.</summary>
 /// <param name="index">The index of the removed element.</param>
@@ -823,7 +823,7 @@ val removeAt : index : int -> source : FlatList<'T> -> FlatList<'T>
 /// <see cref="P:System.Collections.Generic.EqualityComparer`1.Default"/>.
 /// </summary>
 /// <param name="items">The values to remove.</param>
-/// <param name="list">The input flat list.</param>
+/// <param name="source">The input flat list.</param>
 /// <returns>The flat list without the elements; the input itself when no element equals any of the values.</returns>
 /// <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="items"/> is <see langword="null"/> or a default flat list.</exception>
 /// <remarks>
@@ -832,7 +832,7 @@ val removeAt : index : int -> source : FlatList<'T> -> FlatList<'T>
 /// <see cref="M:System.Collections.Immutable.ImmutableArray`1.RemoveRange(System.Collections.Generic.IEnumerable{`0})"/>.
 /// </remarks>
 [<CompiledName "RemoveMany">]
-val removeMany : items : seq<'T> -> list : FlatList<'T> -> FlatList<'T>
+val removeMany : items : seq<'T> -> source : FlatList<'T> -> FlatList<'T>
 
 /// <summary>
 /// Returns a flat list without a range of elements.
@@ -856,7 +856,7 @@ val removeManyAt : index : int -> count : int -> source : FlatList<'T> -> FlatLi
 /// </summary>
 /// <param name="comparer">The equality comparer.</param>
 /// <param name="items">The values to remove.</param>
-/// <param name="list">The input flat list.</param>
+/// <param name="source">The input flat list.</param>
 /// <returns>The flat list without the elements; the input itself when no element equals any of the values.</returns>
 /// <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="items"/> is <see langword="null"/> or a default flat list.</exception>
 /// <remarks>
@@ -865,21 +865,21 @@ val removeManyAt : index : int -> count : int -> source : FlatList<'T> -> FlatLi
 /// <see cref="M:System.Collections.Immutable.ImmutableArray`1.RemoveRange(System.Collections.Generic.IEnumerable{`0},System.Collections.Generic.IEqualityComparer{`0})"/>.
 /// </remarks>
 [<CompiledName "RemoveManyWith">]
-val removeManyWith : comparer : IEqualityComparer<'T> -> items : seq<'T> -> list : FlatList<'T> -> FlatList<'T>
+val removeManyWith : comparer : IEqualityComparer<'T> -> items : seq<'T> -> source : FlatList<'T> -> FlatList<'T>
 
 /// <summary>
 /// Returns the flat list without the first element that equals a value in a given equality comparer.
 /// </summary>
 /// <param name="comparer">The equality comparer.</param>
 /// <param name="item">The value to remove.</param>
-/// <param name="list">The input flat list.</param>
+/// <param name="source">The input flat list.</param>
 /// <returns>The flat list without the element; the input itself when no element equals the value.</returns>
 /// <remarks>
 /// O(n). The function wraps
 /// <see cref="M:System.Collections.Immutable.ImmutableArray`1.Remove(`0,System.Collections.Generic.IEqualityComparer{`0})"/>.
 /// </remarks>
 [<CompiledName "RemoveWith">]
-val removeWith : comparer : IEqualityComparer<'T> -> item : 'T -> list : FlatList<'T> -> FlatList<'T>
+val removeWith : comparer : IEqualityComparer<'T> -> item : 'T -> source : FlatList<'T> -> FlatList<'T>
 
 /// <summary>Returns the elements in reverse order.</summary>
 /// <param name="array">The input flat list.</param>
@@ -1404,7 +1404,7 @@ val splitInto : count : int -> array : FlatList<'T> -> FlatList<FlatList<'T>>
 /// <summary>
 /// Returns the elements of a range of the flat list.
 /// </summary>
-/// <param name="list">The input flat list.</param>
+/// <param name="array">The input flat list.</param>
 /// <param name="startIndex">The index of the first element of the range.</param>
 /// <param name="count">The number of elements of the range.</param>
 /// <returns>The elements of the range, in their order.</returns>
@@ -1422,7 +1422,7 @@ val splitInto : count : int -> array : FlatList<'T> -> FlatList<FlatList<'T>>
 /// </para>
 /// </remarks>
 [<CompiledName "GetSubArray">]
-val sub : list : FlatList<'T> -> startIndex : int -> count : int -> FlatList<'T>
+val sub : array : FlatList<'T> -> startIndex : int -> count : int -> FlatList<'T>
 
 /// <summary>
 /// Returns the first elements of the flat list.
@@ -1529,7 +1529,7 @@ val sortDescending : array : FlatList<'T> -> FlatList<'T> when 'T : comparison
 /// </summary>
 /// <param name="index">The index of the first element of the range.</param>
 /// <param name="count">The number of elements of the range.</param>
-/// <param name="list">The input flat list.</param>
+/// <param name="array">The input flat list.</param>
 /// <returns>The flat list with the sorted range; the input itself when the range needs no sorting.</returns>
 /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when <paramref name="index"/> or <paramref name="count"/> is negative, or the range extends beyond the end of the flat list.</exception>
 /// <remarks>
@@ -1538,7 +1538,7 @@ val sortDescending : array : FlatList<'T> -> FlatList<'T> when 'T : comparison
 /// and throws what that member throws for a range out of range.
 /// </remarks>
 [<CompiledName "SortRange">]
-val sortRange : index : int -> count : int -> list : FlatList<'T> -> FlatList<'T> when 'T : comparison
+val sortRange : index : int -> count : int -> array : FlatList<'T> -> FlatList<'T> when 'T : comparison
 
 /// <summary>
 /// Sorts a range of the elements with a comparison function.
@@ -1546,7 +1546,7 @@ val sortRange : index : int -> count : int -> list : FlatList<'T> -> FlatList<'T
 /// <param name="comparison">The function that compares two elements.</param>
 /// <param name="index">The index of the first element of the range.</param>
 /// <param name="count">The number of elements of the range.</param>
-/// <param name="list">The input flat list.</param>
+/// <param name="array">The input flat list.</param>
 /// <returns>The flat list with the sorted range; the input itself when the range needs no sorting.</returns>
 /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when <paramref name="index"/> or <paramref name="count"/> is negative, or the range extends beyond the end of the flat list.</exception>
 /// <remarks>
@@ -1555,7 +1555,7 @@ val sortRange : index : int -> count : int -> list : FlatList<'T> -> FlatList<'T
 /// and throws what that member throws for a range out of range.
 /// </remarks>
 [<CompiledName "SortRangeWith">]
-val sortRangeWith : comparison : ('T -> 'T -> int) -> index : int -> count : int -> list : FlatList<'T> -> FlatList<'T>
+val sortRangeWith : comparison : ('T -> 'T -> int) -> index : int -> count : int -> array : FlatList<'T> -> FlatList<'T>
 
 /// <summary>
 /// Sorts a range of the elements with a comparer.
@@ -1563,7 +1563,7 @@ val sortRangeWith : comparison : ('T -> 'T -> int) -> index : int -> count : int
 /// <param name="comparer">The comparer.</param>
 /// <param name="index">The index of the first element of the range.</param>
 /// <param name="count">The number of elements of the range.</param>
-/// <param name="list">The input flat list.</param>
+/// <param name="array">The input flat list.</param>
 /// <returns>The flat list with the sorted range; the input itself when the range needs no sorting.</returns>
 /// <exception cref="T:System.ArgumentOutOfRangeException">Thrown when <paramref name="index"/> or <paramref name="count"/> is negative, or the range extends beyond the end of the flat list.</exception>
 /// <remarks>
@@ -1572,7 +1572,7 @@ val sortRangeWith : comparison : ('T -> 'T -> int) -> index : int -> count : int
 /// and throws what that member throws for a range out of range.
 /// </remarks>
 [<CompiledName "SortRangeWithComparer">]
-val sortRangeWithComparer : comparer : IComparer<'T> -> index : int -> count : int -> list : FlatList<'T> -> FlatList<'T>
+val sortRangeWithComparer : comparer : IComparer<'T> -> index : int -> count : int -> array : FlatList<'T> -> FlatList<'T>
 
 /// <summary>Sorts the elements with a comparison function.</summary>
 /// <param name="comparer">The function that compares two elements.</param>
