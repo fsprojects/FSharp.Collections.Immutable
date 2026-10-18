@@ -72,11 +72,31 @@
     <Compile Include="HashMap\IMapTuple.fs" />
     <Compile Include="HashMap\HashMapCE.fsi" />
     <Compile Include="HashMap\HashMapCE.fs" />
+    <Compile Include="SortedMap\SortedMapTypes.fs" />
+    <Compile Include="SortedMap\SortedMap.CustomComparers.fsi">
+      <DependentUpon>SortedMap.fsi</DependentUpon>
+    </Compile>
+    <Compile Include="SortedMap\SortedMap.CustomComparers.fs">
+      <DependentUpon>SortedMap.fs</DependentUpon>
+    </Compile>
+    <Compile Include="SortedMap\SortedMap.fsi" />
+    <Compile Include="SortedMap\SortedMap.fs" />
+    <Compile Include="SortedMap\SortedMapOption.fsi" />
+    <Compile Include="SortedMap\SortedMapOption.fs" />
+    <Compile Include="SortedMap\SortedMapTuple.fsi" />
+    <Compile Include="SortedMap\SortedMapTuple.fs" />
+    <Compile Include="SortedMap\SortedMap.Extensions.fsi">
+      <DependentUpon>SortedMap.fsi</DependentUpon>
+    </Compile>
+    <Compile Include="SortedMap\SortedMap.Extensions.fs">
+      <DependentUpon>SortedMap.fs</DependentUpon>
+    </Compile>
+    <Compile Include="SortedMap\SortedMapCE.fsi" />
+    <Compile Include="SortedMap\SortedMapCE.fs" />
     <Compile Include="Stack.fs" />
     <Compile Include="ImmutableList.fs" />
     <Compile Include="Queue.fs" />
     <Compile Include="IndexedSeq.fs" />
-    <Compile Include="Maps.fs" />
     <Compile Include="Sets.fs" />
     <Compile Include="ComputationExpressions.fsi" />
     <Compile Include="ComputationExpressions.fs" />
