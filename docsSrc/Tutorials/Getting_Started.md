@@ -27,13 +27,19 @@ let list1 = ImmutableList.ofSeq [1; 2; 3]
 // Create an immutable hash set
 let set1 = HashSet.ofSeq ["a"; "b"]
 
-// Create an immutable dictionary
-let dict1 = HashMap.ofSeq [KeyValuePair ("key1", 42); KeyValuePair ("key2", 100)]
+// Create an immutable dictionary from tuples, key/value pairs or struct tuples
+let dict1 = HashMap.ofSeq [ "key1", 42; "key2", 100 ]
+
+// Create an immutable dictionary whose keys ignore the case; the later binding of "KEY1" wins
+let dict2 = (HashMap.forKeyComparer System.StringComparer.OrdinalIgnoreCase).ofSeq [ "key1", 42; "KEY1", 100 ]
 
 
 printfn "List: %A" (list1 |> Seq.toList)
 printfn "Set: %A" (set1 |> Seq.toList)
 printfn "Dict: %A" (dict1 |> Seq.toList)
+printfn "Dict ignoring the case: %A" (dict2 |> Seq.toList)
+```
+
 ## Next Steps
 
 - Check out the [How-To Guides](../How_Tos/Doing_A_Thing.html) for common scenarios
