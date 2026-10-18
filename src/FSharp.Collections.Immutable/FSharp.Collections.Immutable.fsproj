@@ -28,7 +28,9 @@
     <Compile Include="FlatList\FlatListOption.fs" />
     <Compile Include="FlatList\FlatListTuple.fsi" />
     <Compile Include="FlatList\FlatListTuple.fs" />
+    <Compile Include="FlatList\FlatListBuilder.fsi" />
     <Compile Include="FlatList\FlatListBuilder.fs" />
+    <Compile Include="FlatList\FlatListCE.fsi" />
     <Compile Include="FlatList\FlatListCE.fs" />
     <Compile Include="Stack.fs" />
     <Compile Include="ImmutableList.fs" />
@@ -36,6 +38,7 @@
     <Compile Include="IndexedSeq.fs" />
     <Compile Include="Maps.fs" />
     <Compile Include="Sets.fs" />
+    <Compile Include="ComputationExpressions.fsi" />
     <Compile Include="ComputationExpressions.fs" />
   </ItemGroup>
 
