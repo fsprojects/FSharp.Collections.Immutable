@@ -49,6 +49,12 @@
     <Compile Include="Contracts\SeqLike\SeqLikeContract.fs" />
     <Compile Include="Contracts\SeqCreationContract.fs" />
     <Compile Include="Contracts\IndexedContract.fs" />
+    <Compile Include="Contracts\MapOps.fs" />
+    <Compile Include="Contracts\MapInputs.fs" />
+    <Compile Include="Contracts\MapContract.fs" />
+    <Compile Include="Contracts\MapTransformContract.fs" />
+    <Compile Include="Contracts\MapMutationContract.fs" />
+    <Compile Include="Contracts\MapCreationContract.fs" />
     <Compile Include="TestCategoriesTests.fs" />
     <Compile Include="FlatList\FlatListOps.fs" />
     <Compile Include="FlatList\FlatListAssert.fs" />
@@ -63,6 +69,20 @@
     <Compile Include="FlatList\FlatListParallelTests.fs" />
     <Compile Include="FlatList\FlatListParallelOptionTests.fs" />
     <Compile Include="FlatList\FlatListParallelTupleTests.fs" />
+    <Compile Include="HashMap\HashMapOps.fs" />
+    <Compile Include="HashMap\HashMapContractTests.fs" />
+    <Compile Include="HashMap\HashMapTests.fs" />
+    <Compile Include="HashMap\HashMapExtensionsTests.fs" />
+    <Compile Include="HashMap\CustomComparersHashMapTests.fs" />
+    <Compile Include="HashMap\HashMapBuilderTests.fs" />
+    <Compile Include="HashMap\HashMapComputationExpressionTests.fs" />
+    <Compile Include="HashMap\HashMapOptionTests.fs" />
+    <Compile Include="HashMap\HashMapTupleTests.fs" />
+    <Compile Include="HashMap\IMapOps.fs" />
+    <Compile Include="HashMap\IMapContractTests.fs" />
+    <Compile Include="HashMap\IMapTests.fs" />
+    <Compile Include="HashMap\IMapOptionTests.fs" />
+    <Compile Include="HashMap\IMapTupleTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
