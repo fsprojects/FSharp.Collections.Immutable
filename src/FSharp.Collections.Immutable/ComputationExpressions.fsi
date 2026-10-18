@@ -21,6 +21,29 @@ module FSharp.Collections.Immutable.ComputationExpressions
 val flatList : FlatListCE
 
 /// <summary>
+/// Builds a frozen map with the default key comparer.
+/// </summary>
+/// <remarks>
+/// A later binding of a key replaces the value of an earlier one, and the key of the earlier binding stays, as in
+/// <see cref="M:System.Collections.Frozen.FrozenDictionary.ToFrozenDictionary``2(System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{``0,``1}},System.Collections.Generic.IEqualityComparer{``0})"/>
+/// (ADR 0001, D14). The expression freezes its bindings once, when it runs. The instance is generic in the type of the
+/// keys, which each expression infers; <see cref="T:FSharp.Collections.Immutable.FrozenMapCE`1"/> takes a key comparer.
+/// </remarks>
+/// <example id="frozenMap-1">
+/// <code lang="fsharp">
+/// let squares = frozenMap {
+///     for i in 1..3 do
+///         yield struct (i, i * i)
+///     yield KeyValuePair (10, 100)
+///     yield struct (1, -1)
+/// }
+/// </code>
+/// Evaluates to a frozen map of 1 to -1, 2 to 4, 3 to 9 and 10 to 100.
+/// </example>
+[<GeneralizableValue>]
+val frozenMap<'Key when 'Key : not null> : FrozenMapCE<'Key>
+
+/// <summary>
 /// Builds a hash map with the default comparers.
 /// </summary>
 /// <remarks>
