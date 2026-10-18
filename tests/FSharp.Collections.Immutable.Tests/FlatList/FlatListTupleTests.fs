@@ -1,5 +1,6 @@
 namespace FSharp.Collections.Immutable.Tests
 
+open System.Linq
 open FSharp.Collections.Immutable
 open FSharp.Collections.Immutable.Tuple
 open Microsoft.VisualStudio.TestTools.UnitTesting
@@ -161,15 +162,15 @@ type FlatListTupleTests () =
         // compared apart
         CollectionAssert.AreEqual (
             Array.map fst expected,
-            groups |> FlatList.toArray |> Array.map fst,
+            groups |> _.Select(fst) |> Seq.toArray,
             "Tuple.FlatList.groupBy must return the keys as Array.groupBy does"
         )
 
         CollectionAssert.AreEqual (
             Array.map snd expected,
             groups
-            |> FlatList.toArray
-            |> Array.map (fun (_, items) -> FlatList.toArray items),
+            |> _.Select(fun (_, items) -> FlatList.toArray items)
+            |> Seq.toArray,
             "Tuple.FlatList.groupBy must group the elements as Array.groupBy does"
         )
 

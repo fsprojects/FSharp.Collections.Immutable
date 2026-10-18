@@ -38,6 +38,23 @@ type FlatListBuilderTests () =
         )
 
     [<TestMethod>]
+    member _.``addRange rejects a null sequence and names the parameter of the function`` () =
+        let ex =
+            Assert.ThrowsExactly<ArgumentNullException>(
+                Action (fun () ->
+                    FlatListBuilder.addRange Unchecked.defaultof<seq<int>> (FlatList.builder<int>())
+                    |> ignore
+                ),
+                "FlatListBuilder.addRange must reject a null sequence"
+            )
+
+        Assert.AreEqual<string | null>(
+            "values",
+            ex.ParamName,
+            "FlatListBuilder.addRange must name its own parameter, not the one of the BCL"
+        )
+
+    [<TestMethod>]
     member _.``builder starts empty`` () =
         let builder = FlatList.builder<int>()
         Assert.AreEqual<int>(0, builder.Count, "FlatList.builder must start without elements")

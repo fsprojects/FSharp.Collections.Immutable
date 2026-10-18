@@ -3,9 +3,10 @@
 module FSharp.Collections.Immutable.Tests.FlatListOps
 
 open System
+open System.Linq
 open FSharp.Collections.Immutable
 
-let private toArrays (arrays : FlatList<FlatList<int>>) = arrays |> FlatList.toArray |> Array.map FlatList.toArray
+let private toArrays (arrays : FlatList<FlatList<int>>) = arrays |> _.Select(FlatList.toArray) |> Seq.toArray
 
 let private toArrayPair (struct (first : FlatList<'T1>, second : FlatList<'T2>)) =
     struct (FlatList.toArray first, FlatList.toArray second)
@@ -110,8 +111,8 @@ let seqLike : SeqOps<FlatList<int>> = {
     GroupBy =
         fun projection array ->
             FlatList.groupBy projection array
-            |> FlatList.toArray
-            |> Array.map (fun struct (key, items) -> struct (key, FlatList.toArray items))
+            |> _.Select(fun struct (key, items) -> struct (key, FlatList.toArray items))
+            |> Seq.toArray
     Partition = FlatList.partition
     PartitionWith = fun partitioner array -> FlatList.partitionWith partitioner array |> toArrayPair
     Skip = FlatList.skip

@@ -69,6 +69,16 @@ type FlatListComputationExpressionTests () =
         Assert.AreEqual<string | null>("items", ex.ParamName, "flatList must name the parameter of the default flat list")
 
     [<TestMethod>]
+    member _.``yield! rejects a null sequence`` () =
+        let ex =
+            Assert.ThrowsExactly<ArgumentNullException>(
+                Action (fun () -> flatList { yield! Unchecked.defaultof<seq<int>> } |> ignore),
+                "flatList must reject a null sequence in yield!"
+            )
+
+        Assert.AreEqual<string | null>("items", ex.ParamName, "flatList must name the parameter of the null sequence")
+
+    [<TestMethod>]
     member _.``for adds the elements of the body for each item`` () =
         let array = flatList {
             for item in 1..3 do
@@ -92,6 +102,22 @@ type FlatListComputationExpressionTests () =
             )
 
         Assert.AreEqual<string | null>("source", ex.ParamName, "flatList must name the parameter of the default flat list")
+
+    [<TestMethod>]
+    member _.``for rejects a null sequence`` () =
+        let ex =
+            Assert.ThrowsExactly<ArgumentNullException>(
+                Action (fun () ->
+                    flatList {
+                        for item in Unchecked.defaultof<seq<int>> do
+                            yield item
+                    }
+                    |> ignore
+                ),
+                "flatList must reject a null sequence in for"
+            )
+
+        Assert.AreEqual<string | null>("source", ex.ParamName, "flatList must name the parameter of the null sequence")
 
     [<TestMethod>]
     member _.``while adds the elements while the guard holds`` () =
