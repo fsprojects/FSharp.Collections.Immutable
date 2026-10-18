@@ -20,7 +20,9 @@ let private invariant (action : unit -> 'T) =
         CultureInfo.CurrentCulture <- culture
         CultureInfo.CurrentUICulture <- uiCulture
 
-/// <summary>The first line of a message, without the parameter suffix of <see cref="T:System.ArgumentException"/>.</summary>
+/// <summary>
+/// The first line of a message, without the parameter suffix of <see cref="T:System.ArgumentException"/>.
+/// </summary>
 /// <remarks>
 /// FSharp.Core writes parameter names into the lines after the first one ("list1 is 2 elements shorter than list2"),
 /// and this library writes the names of its own parameters there, so only the first line is compared.
