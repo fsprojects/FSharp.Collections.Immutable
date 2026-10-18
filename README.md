@@ -12,7 +12,7 @@ Please also join the [F# Open Source Group](http://fsharp.github.com)
 
 | Module | .NET type | Computation expression |
 |---|---|---|
-| `FlatList` | `ImmutableArray<'T>` | – |
+| `FlatList` | `ImmutableArray<'T>` | `flatList { }` |
 | `ImmutableList` | `ImmutableList<'T>` | – |
 | `Stack` | `ImmutableStack<'T>` | – |
 | `Queue` | `ImmutableQueue<'T>` | – |
