@@ -59,7 +59,8 @@ Curated extras kept beyond FSharp.Core: `indexOf`/`indexOfWith`/`lastIndexOf`/`l
 `cons`/`uncons`/`tryUncons`, the struct partial patterns `(|Cons|_|)`/`(|Nil|_|)`, `tryTail`, `enqueue`/`enqueueMany`,
 `consMany`, `takeLast`/`skipLast`, `clear` on interface modules, `tryGetKey`/`tryGetValue`,
 `setItem`/`setItems`/`addRange`/`removeRange`, `containsValue`, `symmetricDifference`, `overlaps`/`setEquals`, comparer
-accessors and `with*Comparer` functions.
+accessors, the `Comparable*` structs that create collections with comparers (D12) and the overloads of map creation for
+every binding shape (D13).
 
 Removed from the started branch: `iter3`/`iteri3`/`exists3`/`forall3`/`mapi3`/`foldBack3`, `foldi`/`foldi2`/`foldBacki`/
 `foldBacki2`, `findDup`/`findDupBy`, `pickBack`/`tryPickBack`/`chooseBack`, the `From`/`Range` variants of `index*`/
@@ -70,7 +71,23 @@ and the modules `Seq` (cross conversions) and `IndexedSeq` (`IReadOnlyList`).
 ### D2. Layout
 
 One folder per collection; every implementation file with public API has a signature file that carries the XML
-documentation. Per folder, in compile order: `X.fsi`, `X.fs`, `XOption.fsi`, `XOption.fs`, `XTuple.fsi`, `XTuple.fs`,
+documentation.
+
+**Root modules.** A source file that holds exactly one module declares it as the root module of the file, instead of a
+namespace with one nested module: `[<RequireQualifiedAccess>] module FSharp.Collections.Immutable.FlatList`,
+`module FSharp.Collections.Immutable.Option.FlatList`, `module FSharp.Collections.Immutable.FlatListBuilder`,
+`[<AutoOpen>] module FSharp.Collections.Immutable.HashMapExtensions`. The rule applies to the library and the tests (the ops
+modules, `ExceptionAssert`, `Inputs`). A nested module such as `FlatList.Parallel` (D11) stays inside its root module. A
+file with several modules (`Helper.fs`) or with types only (the type abbreviations, the `Comparable*` structs of D12, the
+computation expression classes, the test classes) declares the namespace. Modules compile under their F# names
+(`FSharp.Collections.Immutable.FlatList`, `FSharp.Collections.Immutable.Option.FlatList`): F# ignores `[<CompiledName>]` on
+a module, so no module carries it.
+
+A root module cannot declare a type of its namespace: `type HashMap<…>` inside `module FSharp.Collections.Immutable.HashMap`
+would be `HashMap.HashMap<…>`. The type abbreviations of a folder therefore have their own file, `XTypes.fsi`/`XTypes.fs`.
+
+Per folder, in compile order: `XTypes.fsi`, `XTypes.fs`, `X.fsi`, `X.fs`, `XOption.fsi`, `XOption.fs`, `XTuple.fsi`,
+`XTuple.fs`, `ComparableX.fsi`, `ComparableX.fs` (maps and sets, D12), `XExtensions.fsi`, `XExtensions.fs` (maps, D13),
 `IX.fsi`, `IX.fs` (plus their `Option`/`Tuple` files), `XBuilder.fs` (`FlatList` and `IndexedList` only), `XCE.fs`.
 `Helper.fs` comes first and `ComputationExpressions.fs` last. Interface modules compile after the concrete type they return.
 
@@ -79,14 +96,18 @@ Names: `IMap` module and `IMap<'Key, 'Value>` abbreviation for `IImmutableDictio
 Maps and sets measure their size with `count` (FSharp.Core `Map.count`/`Set.count`), sequences with `length`. `Queue` keeps
 `enqueue`/`head`/`tail`/`uncons` (compiled `Enqueue`/`Peek`/`Dequeue`/`PeekDequeue`), `Stack` keeps `cons`/`head`/`tail`/
 `uncons` (`Push`/`Peek`/`Pop`/`PeekPop`). Computation expression instances: `flatList`, `indexedList`, `queue`, `stack`,
-`hashMap`, `sortedMap`, `hashSet`, `sortedSet`, `frozenMap`, `frozenSet`, and `equatableArray` of ADR 0002.
+`hashMap`, `sortedMap`, `hashSet`, `sortedSet`, `frozenMap`, `frozenSet`, and `equatableArray` of ADR 0002. The structs of
+D12 are `ComparableHashMap`, `ComparableSortedMap`, `ComparableFrozenMap`, `ComparableHashSet`, `ComparableSortedSet` and
+`ComparableFrozenSet`; the extension modules of D13 are `HashMapExtensions`, `SortedMapExtensions` and
+`FrozenMapExtensions`.
 
 ### D3. Value-type defaults and the `Option`/`Tuple` override namespaces
 
 * Every `try*` function returns `voption`; `choose`, `pick`, `tryPick`, `unfold` and `change` take or return `voption`.
 * Every tuple in a signature is a struct tuple: `zip`, `zip3`, `unzip`, `unzip3`, `pairwise`, `indexed`, `allPairs`,
   `groupBy`, `countBy`, `partition`, `partitionWith`, `splitAt`, `mapFold`, `mapFoldBack`, `unfold`, `uncons`, map
-  `ofSeq`/`toSeq`/`addRange`/`minKeyValue`/`maxKeyValue`, and so on.
+  `toSeq`/`addRange`/`setItems`/`minKeyValue`/`maxKeyValue`, and so on. Map creation takes bindings in every shape
+  instead (D13), so it has no `Tuple` counterpart.
 * The namespace `FSharp.Collections.Immutable.Option` contains, per collection, a module with the same name holding every
   function whose signature mentions `voption`, converted to the FSharp.Core representation: `voption` becomes `option`, and
   a struct tuple inside an option payload becomes a reference tuple (`unfold : ('State -> ('T * 'State) option) -> …`).
@@ -105,7 +126,8 @@ falls through otherwise (`CollectAtMostOneResult`), and module search precedes t
 `open FSharp.Collections.Immutable` and `open FSharp.Collections.Immutable.Option`, `FlatList.tryFind` returns an `option`
 while `FlatList.map` still resolves to the default module; `Option.map` keeps resolving to FSharp.Core; a module named
 `FrozenSet` coexists with the BCL static class `FrozenSet`, exactly like the existing `Stack`, `Queue` and `HashSet` modules
-coexist with `System.Collections.Generic`.
+coexist with `System.Collections.Generic`. The overloads of D13 depend on the same order: `HashMap.ofSeq` reaches the static
+members of the type only because the module `HashMap` has no `ofSeq`.
 
 The override modules delegate to the default modules and convert (`ValueOption.toOption`, `ValueOption.ofOption`, struct
 pattern repacking). Per-element tuple producers (`zip`, `pairwise`, `indexed`, `allPairs`, `groupBy`, `countBy`) do not
@@ -123,7 +145,8 @@ signature and the implementation file; each category is a banner comment. The ca
 `Random`, `Conversion`, `Type-specific`; an empty category is omitted, an active pattern is the last row of its category.
 A script `build/check-order.fsx` parses every `.fsi`, verifies the banner sequence and the alphabetical order, checks that
 the sibling `.fs` has the same banners and the same sequence of `[<CompiledName>]` bindings, and runs as the FAKE target
-`CheckOrder` before `DotnetBuild`.
+`CheckOrder` before `DotnetBuild`. The members of the `Comparable*` structs (D12) and of the extension modules (D13) follow
+the same category order; the script checks the values of modules only.
 
 ### D5. Implementation principle: BCL members and System.Linq first
 
@@ -171,10 +194,13 @@ because the keys keep their type (`CreateRange(keyComparer, …)`, `CreateBuilde
 and the element comparer of a set are kept by `filter`, `partition` and set algebra. `map` and `choose` change the value or
 element type, so their result gets the default comparer of the new type. The interface modules cannot read the comparers
 of their input, so their type-changing transformations return concrete collections with default comparers. The defaults,
-which creation functions without a comparer argument also use, are `EqualityComparer<'T>.Default` for hash-based
-collections, as ADR 0002 uses for equality, and the order of F# generic comparison
-(`LanguagePrimitives.FastGenericComparer<'T>`) for sorted collections. Thus `SortedSet<string>` is ordinal by default, as
-F# `Set<string>` is.
+which every module function and extension member that creates a collection uses (comparers come in through the
+`Comparable*` structs of D12 only), are `EqualityComparer<'T>.Default` for hash-based collections, as ADR 0002 uses for
+equality, and the order of F# generic comparison (`LanguagePrimitives.FastGenericComparer<'T>`) for sorted collections.
+Thus `SortedSet<string>` is ordinal by default, as F# `Set<string>` is. The sorted modules therefore require
+`'T : comparison` and `'Key : comparison` in the functions that create a collection, as `Set` and `Map` do. The default
+sorted comparer is one cached instance per type: `FastGenericComparer` creates a new comparer per call for some types, such
+as tuples, and the BCL takes its fast paths for equal comparers (`Union`, `WithComparer`) only for the same instance.
 
 ### D6. Exceptions mirror FSharp.Core
 
@@ -211,8 +237,11 @@ One `<Name>CE` class per collection with the delayed-function design (`Buffer<'T
 `YieldFrom` (sequence, array, same collection, buffer), `Combine`, `Delay`, `For`, `While`, `Run`, `TryWith`, `TryFinally`,
 `Using`. Buffers are the BCL builders where they exist (`ImmutableArray.Builder` with `DrainToImmutable`,
 `ImmutableList.Builder`, dictionary and set builders) and a `ResizeArray` otherwise. Map expressions accept
-`yield struct (key, value)` and `yield KeyValuePair`; map and set expression classes take an optional comparer. The
-duplicate `FlatListBuilderCE` is dropped.
+`yield struct (key, value)` and `yield KeyValuePair`. Map and set expression classes have a constructor without arguments,
+for the default comparers, and one that takes the key or element comparer, as the `Comparable*` structs (D12) do. Their
+instances are type functions, `[<GeneralizableValue>] let hashSet<'T> = HashSetCE<'T> ()`, because the class holds a
+comparer of the element type; the sorted ones require `'T : comparison` for their default comparer (D5). The duplicate
+`FlatListBuilderCE` is dropped.
 
 ### D8. Tests: shared contract suites
 
@@ -221,8 +250,9 @@ class without `[<TestClass>]` (MSTEST0085/MSTEST0002) that takes an immutable re
 collection derives one closed `[<TestClass>]` per capability it supports, so inapplicable tests do not exist rather than
 being skipped. Facets: `SeqLike`, `SeqCreation`, `Indexed`, `StableSort` (every sequence-like module except `FlatList`,
 which sorts unstably, see D5); `Map`, `MapTransform`, `MapMutation`, `MapCreation`; `Set`, `SetTransform`, `SetMutation`,
-`SetCreation`. Expectations are computed with FSharp.Core `List` over the collection's
-observed enumeration order, so one test body serves FIFO, LIFO and indexed collections. Collection-specific behaviour
+`SetCreation`. The creation facets run every binding shape of D13 and the `Comparable*` structs of D12. Expectations are
+computed with FSharp.Core `List` over the collection's observed enumeration order, so one test body serves FIFO, LIFO and
+indexed collections. Collection-specific behaviour
 (`isDefault`, spans, builders, `Stack.cons` direction, comparers, sorted-only functions, null inputs) lives in a per-collection
 file. Expected exceptions come from the same oracle: the test calls the function of the mirrored FSharp.Core module (D6)
 on the same input and asserts the same type and message with `Assert.ThrowsExactly`; `ParamName` is checked against the
@@ -262,10 +292,13 @@ lives in `FlatList.fsi`/`FlatList.fs` (as `Array.Parallel` lives in `array.fs`) 
 
 `FrozenMap` and `FrozenSet` expose `alternateLookup<'Alternate>` (`GetAlternateLookup`) and `tryAlternateLookup<'Alternate>`
 (`TryGetAlternateLookup`, returning `voption`) under `#if NET10_0_OR_GREATER`, because the API exists only in the `net9.0`
-and later assets of the package. They return the BCL `AlternateLookup<'Alternate>` struct, whose `ContainsKey`, `TryGetValue`
-and indexer (map) or `Contains` and `TryGetValue` (set) do the lookups; no `findAlternate`-style wrappers over those members
-are added. The comparer must implement `IAlternateEqualityComparer<'Alternate, 'Key>`; `tryAlternateLookup` returns
-`ValueNone` otherwise. The tests for these functions compile only for `net10.0`.
+and later assets of the package. Their type parameters are `<'Alternate, 'Key, 'Value>` (map) and `<'Alternate, 'T>` (set),
+`'Alternate` first: F# does not accept explicit type arguments for only some of the type parameters (FS0687), so a call
+reads `FrozenMap.alternateLookup<int, _, _> table`. They return the BCL `AlternateLookup<'Alternate>` struct, whose
+`ContainsKey`, `TryGetValue` and indexer (map) or `Contains` and `TryGetValue` (set) do the lookups; no
+`findAlternate`-style wrappers over those members are added. The comparer must implement
+`IAlternateEqualityComparer<'Alternate, 'Key>`; `tryAlternateLookup` returns `ValueNone` otherwise. The tests for these
+functions compile only for `net10.0`.
 
 The wrappers cannot serve `ReadOnlySpan<char>`, the alternate key type that string keys use with `StringComparer.Ordinal`.
 Since F# 9, F# can instantiate generic parameters that C# declares with the `allows ref struct` anti-constraint, so
@@ -280,22 +313,91 @@ the anti-constraint. When that ships, the wrappers declare `'Alternate : allows 
 documentation of both functions points span users to the BCL methods, and the wrappers serve alternate key types that are
 not byref-like, such as an `int` alternate for `int64` keys with a custom comparer.
 
+### D12. Comparers: one `Comparable*` struct per collection
+
+No module function takes the comparers that a map or a set keeps. Every collection that can be created with comparers gets
+a struct, in its own file of the collection's folder, that holds the comparers and creates the collection with them.
+Functions that use a comparer for one operation only, such as `sortWithComparer`, `indexOfWith` and `lastIndexOfWith`,
+keep their comparer argument.
+
+| Struct | Constructors | Comparer properties |
+|---|---|---|
+| `ComparableHashMap<'Key, 'Value>` | `(keyComparer : IEqualityComparer<'Key>, valueComparer : IEqualityComparer<'Value>)`, `(keyComparer)` | `KeyComparer`, `ValueComparer` |
+| `ComparableSortedMap<'Key, 'Value>` | `(keyComparer : IComparer<'Key>, valueComparer : IEqualityComparer<'Value>)`, `(keyComparer)` | `KeyComparer`, `ValueComparer` |
+| `ComparableFrozenMap<'Key, 'Value>` | `(keyComparer : IEqualityComparer<'Key>)` | `KeyComparer` |
+| `ComparableHashSet<'T>` | `(comparer : IEqualityComparer<'T>)` | `Comparer` |
+| `ComparableSortedSet<'T>` | `(comparer : IComparer<'T>)` | `Comparer` |
+| `ComparableFrozenSet<'T>` | `(comparer : IEqualityComparer<'T>)` | `Comparer` |
+
+A map constructor with the key comparer alone gives the values `EqualityComparer<'Value>.Default`; a frozen dictionary has
+no value comparer, so `ComparableFrozenMap` has one constructor.
+
+The members are the creation functions of the module with the comparers applied, under the names of those functions:
+`empty`, `singleton`, `ofArray`, `ofList` and `ofSeq` (for maps with the overloads of D13), `ofSeqBy` (maps) and `builder`
+(all collections except the frozen ones, which have no builder). The member names stay lowercase, so that a call reads
+like the module function that it stands for: `(ComparableHashMap StringComparer.OrdinalIgnoreCase).ofSeq pairs`. Their
+compiled names are PascalCase (`[<CompiledName "OfSeq">]`), as for module functions. The structs are
+`[<Struct; NoComparison; NoEquality>]`: they only carry comparers, which have no meaningful equality, and creating one
+allocates nothing.
+
+The structs replace the comparer variants of the creation functions: `emptyWithComparers`, `emptyWithKeyComparer`,
+`emptyWithComparer`, `ofSeqWithComparer`, `ofSeqWithKeyComparer`, `ofKeyValuePairsWithKeyComparer`,
+`builderWithComparers`, `builderWithKeyComparer`, `builderWithComparer`, `withComparers`, `withKeyComparer` and
+`withComparer`. `ofSeq` of a struct also takes an existing collection, because a map is a sequence of `KeyValuePair`s and a
+set a sequence of elements, so it gives that collection other comparers. The comparer properties of the modules
+(`keyComparer`, `valueComparer`, `comparer`) stay: they read the comparers of a collection.
+
+### D13. Map creation takes bindings in every shape
+
+A map binding comes in three shapes: `KeyValuePair<'Key, 'Value>`, which every .NET dictionary enumerates (`dict` and
+`Map` included); the reference tuple `'Key * 'Value` of most F# code (`Map.toList`); and the struct tuple of D3. A module
+function takes one shape. F# types a tuple literal that is written as the argument as struct tuples, but a list of reference
+tuples that is bound before, or any sequence of `KeyValuePair`s, needs a conversion first.
+
+Each map folder therefore has an `[<AutoOpen>]` root module `XExtensions` in its own file. It extends the BCL type
+(`ImmutableDictionary<'Key, 'Value>`, `ImmutableSortedDictionary<'Key, 'Value>`, `FrozenDictionary<'Key, 'Value>`) with
+the static members `ofArray`, `ofList` and `ofSeq`, each overloaded for the three shapes. Through the type abbreviation,
+`HashMap.ofSeq pairs` reaches them and overload resolution picks the shape; a pipeline `pairs |> HashMap.ofSeq` works too.
+This was checked with lists, arrays, `dict` and an existing map. The rules that follow from F#:
+
+* The map modules have no `ofArray`, `ofList` or `ofSeq`: module search precedes type search (D3), so a module function
+  with the same name hides the extension members.
+* Only functions with one argument get overloads, because F# does not overload curried members (FS0816). `addRange` and
+  `setItems`, which take the bindings and the map, stay module functions over struct tuples, with reference-tuple
+  counterparts in `Tuple.*`.
+* `SortedMapExtensions` members declare type parameters of their own (`ofSeq<'K, 'V when 'K : comparison>`): F# generic
+  comparison needs `comparison`, and a member cannot add a constraint to the type parameters of the extended type
+  (FS0340). The extensions repeat the constraints of the BCL types (`'Key : not null`).
+* Every overload has the semantics of `Map.ofSeq`: a later binding of a key replaces an earlier one. The extension members
+  are the members of the `Comparable*` struct of D12 with the default comparers, so each shape has one implementation.
+  `ofKeyValuePairs` disappears: it is the `KeyValuePair` overload of `ofSeq`.
+* Overload resolution needs the shape. Inside generic code, such as `let build pairs = HashMap.ofSeq pairs`, the argument
+  needs a type annotation (FS0041).
+
+Static extension members are an F# feature: C# does not see them as members of the BCL types. C# callers use the members
+of the `Comparable*` structs, whose compiled names are PascalCase, or the BCL itself. Sets need no extensions, because
+their elements have one shape.
+
 ## Consequences
 
 Breaking changes (major version): `try*` return `voption`; tuples become struct tuples; `choose`/`pick`/`tryPick`/`unfold`/
 `change` callbacks use `voption`; `ImmutableList` module becomes `IndexedList`; `Seq`, `IndexedSeq`/`ReadOnlyList`, the
-`ISet<'T>` abbreviation and the extras listed in D1 are removed; map and set `length` becomes `count`; map `filter`/`map`
-follow FSharp.Core semantics; sorted maps and sets order by F# generic comparison unless a comparer is given; `Stack`
+`ISet<'T>` abbreviation and the extras listed in D1 are removed; the comparer variants of the creation functions and
+`ofKeyValuePairs` give way to the `Comparable*` structs (D12) and to the overloads of map creation, which C# does not see
+(D13); map and set `length` becomes `count`; map `filter`/`map` follow FSharp.Core semantics; sorted maps and sets order
+by F# generic comparison unless a comparer is given; `Stack`
 element order is defined (first element of `ofSeq` on top); `take`/`skip` throw on short input; `netstandard2.0` is not a
 target. The `Option` and `Tuple` namespaces give consumers a one-line migration path.
 
 Benefits: one vocabulary across ten modules, consistent with FSharp.Core 10.0.300; defects of the current map and set modules
 fixed by construction (comparer preservation, real `singleton`); fewer allocations (`voption`, struct tuples, span and memory views, zero-copy
-bridge); `Frozen*` support; tests that cannot drift between collections; machine-checked function order.
+bridge); `Frozen*` support; tests that cannot drift between collections; machine-checked function order; the comparers of a
+collection in one place; maps built from bindings of any shape without a conversion.
 
 Costs: about 150 sequence functions × 7 modules plus maps, sets and frozen collections to implement and document; the
 override namespaces double the number of signature files; contributors must learn the category order (enforced by the
-script, so mistakes fail fast).
+script, so mistakes fail fast); every folder gets a types file, and the map and set folders a struct file, the map folders
+also an extensions file; an overloaded map `ofSeq` needs a type annotation inside generic code.
 
 ## Alternatives considered
 
@@ -311,6 +413,15 @@ script, so mistakes fail fast).
   when a flag is forgotten; rejected in favour of one base class per capability.
 * **`netstandard2.0`** – would keep .NET Framework consumers but requires conditional LINQ fallbacks; not a regression
   because the published package is `net8.0` only; deferred.
+* **A comparer variant of every creation function** (`emptyWithComparers`, `emptyWithKeyComparer`, `ofSeqWithKeyComparer`,
+  `builderWithComparers`, `withComparers`, …), the first design of D12 – one more function per creation function and per
+  combination of comparers; replaced by one struct per collection that holds the comparers and offers every creation
+  function with them.
+* **One module function per binding shape** (`ofSeq` over struct tuples, `ofKeyValuePairs`, `Tuple.HashMap.ofSeq` over
+  reference tuples), the first design of D13 – three names or a namespace switch for one operation; replaced by overloads
+  on the type, which module functions cannot have.
+* **A namespace with one nested module in every file**, the first layout of D2 – one more level of indentation and the
+  type abbreviation next to the module; replaced by root modules and a types file per folder.
 
 ## Appendix A – sequence-like collections
 
@@ -453,21 +564,18 @@ their element-type-changing transformations return the concrete type.
 |---|---|---|---|---|---|---|
 | **Creation** | | | | | | |
 | `empty` | | ✓ | ✓ | – | ✓ | |
-| `emptyWithComparers` / `emptyWithKeyComparer` | | ᵇ | ᵇ | – | – | |
-| `ofArray` / `ofList` / `ofSeq` | Ⓣ | ✓ | ✓ | – | ✓ | `seq<struct ('Key * 'Value)>` |
-| `ofKeyValuePairs` / `ofKeyValuePairsWithKeyComparer` | | ᵇ | ᵇ | – | ᵇ | `seq<KeyValuePair>` |
+| `ofArray` / `ofList` / `ofSeq` | | ✓ | ✓ | – | ✓ | static extension members (D13), each overloaded for `KeyValuePair`, `'Key * 'Value` and `struct ('Key * 'Value)` |
 | `ofSeqBy` | | ᵇ | ᵇ | – | ᵇ | key selector |
-| `ofSeqWithKeyComparer` | Ⓣ | ᵇ | ᵇ | – | ᵇ | |
 | `singleton` | | ✓ | ✓ | – | ✓ | curried `key value` |
 | **Builder** | | | | | | |
-| `builder` / `builderWithComparers` / `builderWithKeyComparer` / `ofBuilder` / `toBuilder` | | ᵇ | ᵇ | – | – | |
+| `builder` / `ofBuilder` / `toBuilder` | | ᵇ | ᵇ | – | – | |
 | **Properties** | | | | | | |
 | `count` / `isEmpty` | | ✓ | ✓ | ✓ | ✓ | |
 | `keyComparer` / `valueComparer` | | ᵇ | ᵇ | – | ᵇ/– | |
-| `keys` / `values` | | ✓ | ✓ | ✓ | ✓ | Frozen → `FlatList` O(1) |
+| `keys` / `values` | | ✓ | ✓ | ✓ | ✓ | the cheapest view without a copy: `ICollection<_>` as `Map.keys` (hash, sorted), `seq<_>` (`IMap`: the interface has only `IReadOnlyDictionary.Keys`), `FlatList` O(1) (frozen) |
 | **Access** | | | | | | |
 | `find` | | ✓ | ✓ | ✓ | ✓ | `KeyNotFoundException` |
-| `maxKeyValue` / `minKeyValue` | Ⓣ | – | ✓ | – | – | sorted only |
+| `maxKeyValue` / `minKeyValue` | Ⓣ | – | ✓ | – | – | sorted only; `maxKeyValue` is O(n), because `ImmutableSortedDictionary` enumerates forwards only |
 | `tryFind` | Ⓥ | ✓ | ✓ | ✓ | ✓ | |
 | `tryGetKey` | Ⓥ | ᵇ | ᵇ | ᵇ | – | |
 | **Search** | | | | | | |
@@ -483,8 +591,7 @@ their element-type-changing transformations return the concrete type.
 | `filter` | | ✓ | ✓ | ✓ | ✓ | returns a map |
 | `map` | | ✓ | ✓ | ✓ | ✓ | keys kept |
 | `remove` / `removeRange` | | ✓/ᵇ | ✓/ᵇ | ✓/ᵇ | – | |
-| `setItem` / `setItems` | | ᵇ | ᵇ | ᵇ | – | add or replace |
-| `withComparers` / `withKeyComparer` | | ᵇ | ᵇ | – | – | |
+| `setItem` / `setItems` | Ⓣ (`setItems`) | ᵇ | ᵇ | ᵇ | – | add or replace |
 | **Folding** | | | | | | |
 | `fold` / `foldBack` / `iter` | | ✓ | ✓ | ✓ | ✓ | |
 | **Partitioning** | | | | | | |
@@ -496,9 +603,20 @@ their element-type-changing transformations return the concrete type.
 | `tryAlternateLookup<'Alternate>` | Ⓥ | – | – | – | ᵇ | `TryGetAlternateLookup`; `#if NET10_0_OR_GREATER` |
 
 `Option.*`: `change`, `choose`, `pick`, `tryFind`, `tryFindKey`, `tryGetKey`, `tryPick` (+ `tryAlternateLookup` for
-`FrozenMap`, `net10.0` only). `Tuple.*`: `addRange`, `ofArray`,
-`ofList`, `ofSeq`, `ofSeqWithKeyComparer`, `partition`, `toArray`, `toList`, `toSeq` (+ `maxKeyValue`, `minKeyValue` for
-`SortedMap`).
+`FrozenMap`, `net10.0` only). `Tuple.*`: `addRange`, `partition`, `setItems`, `toArray`, `toList`, `toSeq` (+ `maxKeyValue`,
+`minKeyValue` for `SortedMap`).
+
+The `Comparable*` structs of D12:
+
+| Member | `ComparableHashMap` | `ComparableSortedMap` | `ComparableFrozenMap` |
+|---|---|---|---|
+| constructor with both comparers | ✓ | ✓ | – |
+| constructor with the key comparer | ✓ | ✓ | ✓ |
+| `KeyComparer` / `ValueComparer` | ✓ | ✓ | `KeyComparer` |
+| `empty` / `singleton` | ✓ | ✓ | ✓ |
+| `ofArray` / `ofList` / `ofSeq`, each in the three shapes of D13 | ✓ | ✓ | ✓ |
+| `ofSeqBy` | ✓ | ✓ | ✓ |
+| `builder` | ✓ | ✓ | – |
 
 ## Appendix C – sets
 
@@ -507,12 +625,11 @@ their element-type-changing transformations return the concrete type.
 | Function | Shape | HashSet | SortedSet | ISet | FrozenSet | Note |
 |---|---|---|---|---|---|---|
 | **Creation** | | | | | | |
-| `empty` / `emptyWithComparer` | | ✓/ᵇ | ✓/ᵇ | – | ✓/– | |
+| `empty` | | ✓ | ✓ | – | ✓ | |
 | `ofArray` / `ofList` / `ofSeq` | | ✓ | ✓ | – | ✓ | |
-| `ofSeqWithComparer` | | ᵇ | ᵇ | – | ᵇ | |
 | `singleton` | | ✓ | ✓ | – | ✓ | |
 | **Builder** | | | | | | |
-| `builder` / `builderWithComparer` / `ofBuilder` / `toBuilder` | | ᵇ | ᵇ | – | – | |
+| `builder` / `ofBuilder` / `toBuilder` | | ᵇ | ᵇ | – | – | |
 | **Properties** | | | | | | |
 | `comparer` | | ᵇ | ᵇ | – | ᵇ | |
 | `count` / `isEmpty` | | ✓ | ✓ | ✓ | ✓ | |
@@ -532,7 +649,6 @@ their element-type-changing transformations return the concrete type.
 | `intersectMany` / `unionMany` | | ✓ | ✓ | ✓ | ✓ | |
 | `rev` | | – | ᵇ | – | – | |
 | `symmetricDifference` | | ᵇ | ᵇ | ᵇ | ᵃ | |
-| `withComparer` | | ᵇ | ᵇ | – | – | |
 | **Folding** | | | | | | |
 | `fold` / `foldBack` / `iter` | | ✓ | ✓ | ✓ | ✓ | |
 | **Partitioning** | | | | | | |
@@ -546,3 +662,13 @@ their element-type-changing transformations return the concrete type.
 
 `Option.*`: `choose`, `tryGetValue` (+ `tryItem` for `SortedSet`, `tryAlternateLookup` for `FrozenSet`, `net10.0` only).
 `Tuple.*`: `partition`, `partitionWith`.
+
+The `Comparable*` structs of D12:
+
+| Member | `ComparableHashSet` | `ComparableSortedSet` | `ComparableFrozenSet` |
+|---|---|---|---|
+| constructor with the comparer | `IEqualityComparer<'T>` | `IComparer<'T>` | `IEqualityComparer<'T>` |
+| `Comparer` | ✓ | ✓ | ✓ |
+| `empty` / `singleton` | ✓ | ✓ | ✓ |
+| `ofArray` / `ofList` / `ofSeq` | ✓ | ✓ | ✓ |
+| `builder` | ✓ | ✓ | – |
