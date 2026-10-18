@@ -417,7 +417,7 @@ modules answer as the documentation says.
 | Case | Behaviour | .NET source |
 |---|---|---|
 | `intersect` of two elements that the comparer finds equal | the element of the second set | `ImmutableHashSet.Intersect`, `ImmutableSortedSet.Intersect`; `FrozenSet` has no member and follows them |
-| `union` of two such elements | the element of the first set | `ImmutableHashSet.Union`, `ImmutableSortedSet.Union` |
+| `union` of two such elements | the element of the first set; `SortedSet` keeps the one of the larger set when both sets have the same comparer, because `ImmutableSortedSet.Union` then adds the smaller set to the larger one | `ImmutableHashSet.Union`, `ImmutableSortedSet.Union` |
 | `append` of the interface modules | the implementation of the collection that receives the elements: the first list or queue, the second stack | `IImmutableList.AddRange`, `IImmutableQueue.Enqueue`, `IImmutableStack.Push` |
 | A repeated key in `ofSeqBy` | `HashMap` and `SortedMap` accept a repeated key with an equal value and reject another value; `FrozenMap` rejects every repeated key | `ToImmutableDictionary`, `ToImmutableSortedDictionary`, `ToFrozenDictionary` |
 | A new value that the value comparer finds equal to the stored one (`add`, `change`, `setItem`, `setItems`, `addRange`, `ofSeqBy`, creation) | the stored binding stays, its key included; another value replaces the key and the value | `SetItem`, `SetItems`, `AddRange` and the builder indexers of `ImmutableDictionary` and `ImmutableSortedDictionary` |
