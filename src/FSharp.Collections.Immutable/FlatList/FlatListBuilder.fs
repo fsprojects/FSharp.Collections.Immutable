@@ -16,7 +16,9 @@ open System.Collections.Immutable
 
 // ---- Properties ----
 
-/// <summary>Returns the number of elements that the builder can hold without growing.</summary>
+/// <summary>
+/// Returns the number of elements that the builder can hold without growing.
+/// </summary>
 /// <param name="builder">The builder.</param>
 /// <returns>The capacity.</returns>
 [<CompiledName "Capacity">]
@@ -40,21 +42,27 @@ let item index (builder : FlatList<'T>.Builder) = builder[index]
 
 // ---- Search ----
 
-/// <summary>Returns whether the builder contains a value, in <see cref="P:System.Collections.Generic.EqualityComparer`1.Default"/>.</summary>
+/// <summary>
+/// Returns whether the builder contains a value, in <see cref="P:System.Collections.Generic.EqualityComparer`1.Default"/>.
+/// </summary>
 /// <param name="value">The value to find.</param>
 /// <param name="builder">The builder.</param>
 /// <returns><see langword="true"/> when an element equals the value.</returns>
 [<CompiledName "Contains">]
 let contains (value : 'T) (builder : FlatList<'T>.Builder) = builder.Contains value
 
-/// <summary>Returns the index of the first element equal to a value, or -1.</summary>
+/// <summary>
+/// Returns the index of the first element equal to a value, or -1.
+/// </summary>
 /// <param name="value">The value to find.</param>
 /// <param name="builder">The builder.</param>
 /// <returns>The index, or -1.</returns>
 [<CompiledName "IndexOf">]
 let indexOf (value : 'T) (builder : FlatList<'T>.Builder) = builder.IndexOf value
 
-/// <summary>Returns the index of the last element equal to a value, or -1.</summary>
+/// <summary>
+/// Returns the index of the last element equal to a value, or -1.
+/// </summary>
 /// <param name="value">The value to find.</param>
 /// <param name="builder">The builder.</param>
 /// <returns>The index, or -1.</returns>
@@ -100,7 +108,9 @@ let insertAt index (value : 'T) (builder : FlatList<'T>.Builder) =
     builder.Insert (index, value)
     builder
 
-/// <summary>Removes the first element equal to a value, in <see cref="P:System.Collections.Generic.EqualityComparer`1.Default"/>.</summary>
+/// <summary>
+/// Removes the first element equal to a value, in <see cref="P:System.Collections.Generic.EqualityComparer`1.Default"/>.
+/// </summary>
 /// <param name="value">The value to remove.</param>
 /// <param name="builder">The builder.</param>
 /// <returns><see langword="true"/> when an element was removed.</returns>
@@ -125,7 +135,9 @@ let rev (builder : FlatList<'T>.Builder) =
     builder.Reverse ()
     builder
 
-/// <summary>Sets the number of elements that the builder can hold without growing.</summary>
+/// <summary>
+/// Sets the number of elements that the builder can hold without growing.
+/// </summary>
 /// <param name="capacity">The new capacity, not less than the count.</param>
 /// <param name="builder">The builder.</param>
 /// <returns>The same builder.</returns>
@@ -179,7 +191,9 @@ let sortWithComparer (comparer : IComparer<'T>) (builder : FlatList<'T>.Builder)
 
 // ---- Conversion ----
 
-/// <summary>Returns the contents of the builder as a flat list and empties the builder.</summary>
+/// <summary>
+/// Returns the contents of the builder as a flat list and empties the builder.
+/// </summary>
 /// <param name="builder">The builder.</param>
 /// <returns>The flat list of the elements; without a copy when the count equals the capacity.</returns>
 [<CompiledName "DrainToFlatList">]

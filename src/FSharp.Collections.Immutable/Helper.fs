@@ -32,7 +32,9 @@ module internal ImmutableCollectionUtil =
         if array.IsDefault then
             nullArg name
 
-    /// <summary>The array under an immutable array, without a copy (ADR 0001, D5).</summary>
+    /// <summary>
+    /// The array under an immutable array, without a copy (ADR 0001, D5).
+    /// </summary>
     /// <remarks>
     /// The caller reads the array and never writes to it: the immutable array and every value that shares it see the same
     /// memory. A default immutable array throws <see cref="T:System.ArgumentNullException"/> for <paramref name="name"/>.
@@ -43,8 +45,12 @@ module internal ImmutableCollectionUtil =
         ImmutableCollectionsMarshal.AsArray array
         |> Unchecked.nonNull
 
-    /// <summary>An immutable array over an array, without a copy (ADR 0001, D5).</summary>
-    /// <remarks>Only an array that nobody can write to any more may be wrapped: a fresh result of a computation.</remarks>
+    /// <summary>
+    /// An immutable array over an array, without a copy (ADR 0001, D5).
+    /// </summary>
+    /// <remarks>
+    /// Only an array that nobody can write to any more may be wrapped: a fresh result of a computation.
+    /// </remarks>
     let inline wrapArray (array : 'T array) : ImmutableArray<'T> = ImmutableCollectionsMarshal.AsImmutableArray array
 
     /// The constructor of a struct pair, for the algorithms shared by the default and the `Tuple` modules.
@@ -87,7 +93,9 @@ module internal Comparers =
         /// The comparer of F# generic comparison for the type.
         static member Instance : IComparer<'T> = comparer
 
-/// <summary>The exception messages of FSharp.Core (<c>FSCore.resx</c>), in English.</summary>
+/// <summary>
+/// The exception messages of FSharp.Core (<c>FSCore.resx</c>), in English.
+/// </summary>
 /// <remarks>
 /// The modules throw what the FSharp.Core function that they mirror throws (ADR 0001, D6). FSharp.Core keeps its resources
 /// internal, so the texts are copied.
@@ -143,7 +151,9 @@ module internal ErrorStrings =
 /// <summary>
 /// The exceptions of the <c>DetailedExceptions</c> module of FSharp.Core, with the same types, messages and parameter names.
 /// </summary>
-/// <remarks>The callers pass the names of their own parameters (ADR 0001, D6).</remarks>
+/// <remarks>
+/// The callers pass the names of their own parameters (ADR 0001, D6).
+/// </remarks>
 module internal Raise =
 
     let inline private invalidArgFormat (arg : string) (format : string) (paramArray : obj array) =
@@ -271,8 +281,12 @@ module internal Arrays =
                 member _.GetHashCode key = structural.GetHashCode key.Key
         }
 
-    /// <summary>The keys of the projection in the order of their first occurrence, each with the number of its elements.</summary>
-    /// <remarks>The counting keeps one counter per key, not the elements, so it needs memory for the keys only.</remarks>
+    /// <summary>
+    /// The keys of the projection in the order of their first occurrence, each with the number of its elements.
+    /// </summary>
+    /// <remarks>
+    /// The counting keeps one counter per key, not the elements, so it needs memory for the keys only.
+    /// </remarks>
     let inline countBy
         ([<InlineIfLambda>] tuple : 'Key -> int -> 'R)
         (projection : 'T -> 'Key)

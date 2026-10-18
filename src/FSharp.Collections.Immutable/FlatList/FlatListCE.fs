@@ -3,10 +3,14 @@ namespace FSharp.Collections.Immutable
 open System
 open System.Collections.Immutable
 
-/// <summary>The body of a <c>flatList { }</c> expression: a function that adds the elements to a builder.</summary>
+/// <summary>
+/// The body of a <c>flatList { }</c> expression: a function that adds the elements to a builder.
+/// </summary>
 type FlatListBuffer<'T> = FlatList<'T>.Builder -> unit
 
-/// <summary>The builder of the <c>flatList { }</c> computation expression.</summary>
+/// <summary>
+/// The builder of the <c>flatList { }</c> computation expression.
+/// </summary>
 /// <remarks>
 /// The expression collects its elements in an <see cref="T:System.Collections.Immutable.ImmutableArray`1.Builder"/> and
 /// returns them without a copy when the builder is full (ADR 0001, D7).
@@ -38,7 +42,9 @@ type FlatListCE () =
             first builder
             second builder
 
-    /// <summary>Runs the body of the expression each time the elements are collected.</summary>
+    /// <summary>
+    /// Runs the body of the expression each time the elements are collected.
+    /// </summary>
     member inline _.Delay ([<InlineIfLambda>] delayed : unit -> FlatListBuffer<'T>) : FlatListBuffer<'T> =
         fun builder -> delayed () builder
 

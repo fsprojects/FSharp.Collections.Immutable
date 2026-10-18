@@ -1,4 +1,6 @@
-/// <summary>The computation expressions of the collections (ADR 0001, D7).</summary>
+/// <summary>
+/// The computation expressions of the collections (ADR 0001, D7).
+/// </summary>
 [<AutoOpen>]
 module FSharp.Collections.Immutable.ComputationExpressions
 
