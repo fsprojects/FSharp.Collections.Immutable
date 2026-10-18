@@ -56,3 +56,27 @@ let tryPick (chooser : 'T -> 'U option) (array : FlatList<'T>) = Array.tryPick c
 let choose (chooser : 'T -> 'U option) (array : FlatList<'T>) =
     Array.choose chooser (unwrapArray (nameof array) array)
     |> wrapArray
+
+// The functions call the Array.Parallel functions, which take and return options, over the underlying array
+[<RequireQualifiedAccess>]
+module Parallel =
+
+    // ---- Search ----
+
+    [<CompiledName "TryFind">]
+    let tryFind predicate (array : FlatList<'T>) = Array.Parallel.tryFind predicate (unwrapArray (nameof array) array)
+
+    [<CompiledName "TryFindIndex">]
+    let tryFindIndex predicate (array : FlatList<'T>) =
+        Array.Parallel.tryFindIndex predicate (unwrapArray (nameof array) array)
+
+    [<CompiledName "TryPick">]
+    let tryPick (chooser : 'T -> 'U option) (array : FlatList<'T>) =
+        Array.Parallel.tryPick chooser (unwrapArray (nameof array) array)
+
+    // ---- Transformation ----
+
+    [<CompiledName "Choose">]
+    let choose (chooser : 'T -> 'U option) (array : FlatList<'T>) =
+        Array.Parallel.choose chooser (unwrapArray (nameof array) array)
+        |> wrapArray

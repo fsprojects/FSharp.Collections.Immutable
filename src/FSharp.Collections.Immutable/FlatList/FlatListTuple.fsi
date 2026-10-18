@@ -169,3 +169,56 @@ val partitionWith : partitioner : ('T -> Choice<'T1, 'T2>) -> array : FlatList<'
 /// </remarks>
 [<CompiledName "SplitAt">]
 val splitAt : index : int -> array : FlatList<'T> -> FlatList<'T> * FlatList<'T>
+
+/// <summary>
+/// The functions of <see cref="T:FSharp.Collections.Immutable.FlatList.Parallel"/> that take or return tuples, with
+/// reference tuples instead of struct tuples.
+/// </summary>
+/// <remarks>
+/// The other functions of the default module stay available after <c>open FSharp.Collections.Immutable.Tuple</c>. Each
+/// function has the signature of the function with the same name in
+/// <see cref="T:Microsoft.FSharp.Collections.ArrayModule.Parallel"/>.
+/// </remarks>
+[<RequireQualifiedAccess>]
+module Parallel =
+
+    // ---- Transformation ----
+
+    /// <summary>Combines two flat lists into a flat list of pairs, in parallel.</summary>
+    /// <param name="array1">The first flat list.</param>
+    /// <param name="array2">The second flat list.</param>
+    /// <returns>The pairs of elements at the same index.</returns>
+    /// <exception cref="T:System.ArgumentException">Thrown when the flat lists have different lengths.</exception>
+    /// <remarks>O(n).</remarks>
+    [<CompiledName "Zip">]
+    val zip : array1 : FlatList<'T1> -> array2 : FlatList<'T2> -> FlatList<'T1 * 'T2>
+
+    // ---- Partitioning and grouping ----
+
+    /// <summary>Groups the elements by the key of a projection.</summary>
+    /// <param name="projection">The function that returns the key of an element, called in parallel.</param>
+    /// <param name="array">The input flat list.</param>
+    /// <returns>
+    /// The keys with their elements. The order of the keys and the order of the elements of a key are not specified.
+    /// </returns>
+    /// <remarks>O(n). The keys compare in F# structural equality.</remarks>
+    [<CompiledName "GroupBy">]
+    val groupBy : projection : ('T -> 'Key) -> array : FlatList<'T> -> FlatList<'Key * FlatList<'T>> when 'Key : equality
+
+    /// <summary>Splits the elements by a predicate.</summary>
+    /// <param name="predicate">The function to test the elements, called in parallel.</param>
+    /// <param name="array">The input flat list.</param>
+    /// <returns>The elements that satisfy the predicate and the other ones, both in their order.</returns>
+    /// <remarks>O(n).</remarks>
+    [<CompiledName "Partition">]
+    val partition : predicate : ('T -> bool) -> array : FlatList<'T> -> FlatList<'T> * FlatList<'T>
+
+    /// <summary>Splits the elements by the choice that a function returns for them.</summary>
+    /// <param name="partitioner">
+    /// The function that returns <c>Choice1Of2</c> or <c>Choice2Of2</c> for an element, called in parallel.
+    /// </param>
+    /// <param name="array">The input flat list.</param>
+    /// <returns>The values of the first choices and of the second choices, both in the order of the elements.</returns>
+    /// <remarks>O(n).</remarks>
+    [<CompiledName "PartitionWith">]
+    val partitionWith : partitioner : ('T -> Choice<'T1, 'T2>) -> array : FlatList<'T> -> FlatList<'T1> * FlatList<'T2>

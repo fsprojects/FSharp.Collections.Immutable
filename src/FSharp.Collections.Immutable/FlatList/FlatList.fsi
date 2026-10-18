@@ -2073,3 +2073,346 @@ val isDefault : array : FlatList<'T> -> bool
 /// </remarks>
 [<CompiledName "IsDefaultOrEmpty">]
 val isDefaultOrEmpty : array : FlatList<'T> -> bool
+
+/// <summary>Functions that process the elements of a flat list in parallel.</summary>
+/// <remarks>
+/// <para>
+/// The module mirrors <see cref="T:Microsoft.FSharp.Collections.ArrayModule.Parallel"/>: each function has the semantics,
+/// the argument checks and the exceptions of the function with the same name in that module (ADR 0001, D11). The functions
+/// read the underlying array without a copy and never change it; the in-place sorts of that module have no counterpart.
+/// </para>
+/// <para>
+/// The functions call their function arguments on several threads at once and in an unspecified order, so the function
+/// arguments must be thread-safe. An exception that a function argument throws can reach the caller wrapped in an
+/// <see cref="T:System.AggregateException"/>.
+/// </para>
+/// <para>
+/// A default immutable array throws <see cref="T:System.ArgumentNullException"/>, as
+/// <see cref="T:Microsoft.FSharp.Collections.ArrayModule.Parallel"/> does for a <see langword="null"/> array.
+/// </para>
+/// <para>
+/// Functions that return an optional value return a <see cref="T:Microsoft.FSharp.Core.FSharpValueOption`1"/>, and
+/// functions that return tuples return struct tuples. The namespaces <see cref="N:FSharp.Collections.Immutable.Option"/>
+/// and <see cref="N:FSharp.Collections.Immutable.Tuple"/> contain a module with the same name whose functions use options
+/// and reference tuples instead.
+/// </para>
+/// </remarks>
+[<RequireQualifiedAccess>]
+module Parallel =
+
+    // ---- Creation ----
+
+    /// <summary>Creates a flat list from a function of the index, in parallel.</summary>
+    /// <param name="count">The length of the flat list.</param>
+    /// <param name="initializer">The function that computes the element at each index, called in parallel.</param>
+    /// <returns>The created flat list.</returns>
+    /// <exception cref="T:System.OverflowException">Thrown when <paramref name="count"/> is negative.</exception>
+    /// <remarks>
+    /// O(n). A negative count throws <see cref="T:System.OverflowException"/>, as in
+    /// <see cref="M:Microsoft.FSharp.Collections.ArrayModule.Parallel.Initialize``1(System.Int32,Microsoft.FSharp.Core.FSharpFunc{System.Int32,``0})"/>,
+    /// where the sequential function throws <see cref="T:System.ArgumentException"/>.
+    /// </remarks>
+    [<CompiledName "Initialize">]
+    val init : count : int -> initializer : (int -> 'T) -> FlatList<'T>
+
+    // ---- Search ----
+
+    /// <summary>Returns whether any element satisfies the predicate.</summary>
+    /// <param name="predicate">The function to test the elements, called in parallel.</param>
+    /// <param name="array">The input flat list.</param>
+    /// <returns><see langword="true"/> when an element satisfies the predicate.</returns>
+    /// <remarks>
+    /// O(n). An element that satisfies the predicate stops the tests of the other elements as soon as possible.
+    /// </remarks>
+    [<CompiledName "Exists">]
+    val exists : predicate : ('T -> bool) -> array : FlatList<'T> -> bool
+
+    /// <summary>Returns whether all elements satisfy the predicate.</summary>
+    /// <param name="predicate">The function to test the elements, called in parallel.</param>
+    /// <param name="array">The input flat list.</param>
+    /// <returns><see langword="true"/> when every element satisfies the predicate.</returns>
+    /// <remarks>
+    /// O(n). An element that does not satisfy the predicate stops the tests of the other elements as soon as possible.
+    /// </remarks>
+    [<CompiledName "ForAll">]
+    val forall : predicate : ('T -> bool) -> array : FlatList<'T> -> bool
+
+    /// <summary>Returns the first element that satisfies the predicate, or <c>ValueNone</c>.</summary>
+    /// <param name="predicate">The function to test the elements, called in parallel.</param>
+    /// <param name="array">The input flat list.</param>
+    /// <returns>The first element that satisfies the predicate, or <c>ValueNone</c>.</returns>
+    /// <remarks>O(n). The predicate can also run for elements after the first one that satisfies it.</remarks>
+    [<CompiledName "TryFind">]
+    val tryFind : predicate : ('T -> bool) -> array : FlatList<'T> -> 'T voption
+
+    /// <summary>Returns the index of the first element that satisfies the predicate, or <c>ValueNone</c>.</summary>
+    /// <param name="predicate">The function to test the elements, called in parallel.</param>
+    /// <param name="array">The input flat list.</param>
+    /// <returns>The index of the first element that satisfies the predicate, or <c>ValueNone</c>.</returns>
+    /// <remarks>O(n). The predicate can also run for elements after the first one that satisfies it.</remarks>
+    [<CompiledName "TryFindIndex">]
+    val tryFindIndex : predicate : ('T -> bool) -> array : FlatList<'T> -> int voption
+
+    /// <summary>Returns the first value that the chooser returns for the elements, or <c>ValueNone</c>.</summary>
+    /// <param name="chooser">The function that returns a value, or <c>ValueNone</c> to go on, called in parallel.</param>
+    /// <param name="array">The input flat list.</param>
+    /// <returns>The value for the first element that the chooser returns a value for, or <c>ValueNone</c>.</returns>
+    /// <remarks>O(n). The chooser can also run for elements after the first one that it returns a value for.</remarks>
+    [<CompiledName "TryPick">]
+    val tryPick : chooser : ('T -> 'U voption) -> array : FlatList<'T> -> 'U voption
+
+    // ---- Transformation ----
+
+    /// <summary>Returns the values that the chooser returns for the elements.</summary>
+    /// <param name="chooser">
+    /// The function that returns a value, or <c>ValueNone</c> to skip the element, called in parallel.
+    /// </param>
+    /// <param name="array">The input flat list.</param>
+    /// <returns>The chosen values, in the order of their elements.</returns>
+    /// <remarks>O(n).</remarks>
+    [<CompiledName "Choose">]
+    val choose : chooser : ('T -> 'U voption) -> array : FlatList<'T> -> FlatList<'U>
+
+    /// <summary>Concatenates the flat lists that a function returns for the elements.</summary>
+    /// <param name="mapping">The function that returns a flat list for each element, called in parallel.</param>
+    /// <param name="array">The input flat list.</param>
+    /// <returns>The concatenation of the returned flat lists, in the order of the elements.</returns>
+    /// <remarks>O(n + the total length of the returned flat lists).</remarks>
+    [<CompiledName "Collect">]
+    val collect : mapping : ('T -> FlatList<'U>) -> array : FlatList<'T> -> FlatList<'U>
+
+    /// <summary>Returns the elements that satisfy the predicate.</summary>
+    /// <param name="predicate">The function to test the elements, called in parallel.</param>
+    /// <param name="array">The input flat list.</param>
+    /// <returns>The elements that satisfy the predicate, in their order.</returns>
+    /// <remarks>O(n).</remarks>
+    [<CompiledName "Filter">]
+    val filter : predicate : ('T -> bool) -> array : FlatList<'T> -> FlatList<'T>
+
+    /// <summary>Returns the results of a function applied to each element.</summary>
+    /// <param name="mapping">The function to transform the elements, called in parallel.</param>
+    /// <param name="array">The input flat list.</param>
+    /// <returns>The results, in the order of the elements.</returns>
+    /// <remarks>O(n).</remarks>
+    [<CompiledName "Map">]
+    val map : mapping : ('T -> 'U) -> array : FlatList<'T> -> FlatList<'U>
+
+    /// <summary>Returns the results of a function applied to each element and its index.</summary>
+    /// <param name="mapping">The function to transform the elements, called in parallel.</param>
+    /// <param name="array">The input flat list.</param>
+    /// <returns>The results, in the order of the elements.</returns>
+    /// <remarks>O(n).</remarks>
+    [<CompiledName "MapIndexed">]
+    val mapi : mapping : (int -> 'T -> 'U) -> array : FlatList<'T> -> FlatList<'U>
+
+    /// <summary>Combines two flat lists into a flat list of pairs, in parallel.</summary>
+    /// <param name="array1">The first flat list.</param>
+    /// <param name="array2">The second flat list.</param>
+    /// <returns>The pairs of elements at the same index.</returns>
+    /// <exception cref="T:System.ArgumentException">Thrown when the flat lists have different lengths.</exception>
+    /// <remarks>O(n).</remarks>
+    [<CompiledName "Zip">]
+    val zip : array1 : FlatList<'T1> -> array2 : FlatList<'T2> -> FlatList<struct ('T1 * 'T2)>
+
+    // ---- Folding ----
+
+    /// <summary>Returns the average of the elements, which are added in parallel.</summary>
+    /// <param name="array">The input flat list.</param>
+    /// <returns>The average.</returns>
+    /// <exception cref="T:System.ArgumentException">Thrown when the flat list is empty.</exception>
+    /// <remarks>
+    /// O(n). The elements are added in chunks, so a floating-point average can differ in its last digits from the
+    /// sequential one.
+    /// </remarks>
+    [<CompiledName "Average">]
+    val inline average :
+        array : FlatList< ^T > -> ^T
+            when ^T : (static member (+) : ^T * ^T -> ^T) and ^T : (static member DivideByInt : ^T * int -> ^T)
+
+    /// <summary>Returns the average of the results of a function applied to each element.</summary>
+    /// <param name="projection">The function to transform the elements, called in parallel.</param>
+    /// <param name="array">The input flat list.</param>
+    /// <returns>The average of the results.</returns>
+    /// <exception cref="T:System.ArgumentException">Thrown when the flat list is empty.</exception>
+    /// <remarks>
+    /// O(n). The results are added in chunks, so a floating-point average can differ in its last digits from the
+    /// sequential one.
+    /// </remarks>
+    [<CompiledName "AverageBy">]
+    val inline averageBy :
+        projection : ('T -> ^U) -> array : FlatList<'T> -> ^U
+            when ^U : (static member (+) : ^U * ^U -> ^U) and ^U : (static member DivideByInt : ^U * int -> ^U)
+
+    /// <summary>Applies an action to each element, in parallel.</summary>
+    /// <param name="action">The action, called in parallel.</param>
+    /// <param name="array">The input flat list.</param>
+    /// <remarks>O(n).</remarks>
+    [<CompiledName "Iterate">]
+    val iter : action : ('T -> unit) -> array : FlatList<'T> -> unit
+
+    /// <summary>Applies an action to each element and its index, in parallel.</summary>
+    /// <param name="action">The action, called in parallel.</param>
+    /// <param name="array">The input flat list.</param>
+    /// <remarks>O(n).</remarks>
+    [<CompiledName "IterateIndexed">]
+    val iteri : action : (int -> 'T -> unit) -> array : FlatList<'T> -> unit
+
+    /// <summary>Returns the greatest element, in F# generic comparison.</summary>
+    /// <param name="array">The input flat list.</param>
+    /// <returns>The greatest element.</returns>
+    /// <exception cref="T:System.ArgumentException">Thrown when the flat list is empty.</exception>
+    /// <remarks>O(n). The elements are compared in parallel chunks.</remarks>
+    [<CompiledName "Max">]
+    val max : array : FlatList<'T> -> 'T when 'T : comparison
+
+    /// <summary>Returns an element with the greatest result of a projection.</summary>
+    /// <param name="projection">The function to transform the elements for the comparison, called in parallel.</param>
+    /// <param name="array">The input flat list.</param>
+    /// <returns>An element with the greatest result; which one of several such elements is not specified.</returns>
+    /// <exception cref="T:System.ArgumentException">Thrown when the flat list is empty.</exception>
+    /// <remarks>O(n).</remarks>
+    [<CompiledName "MaxBy">]
+    val maxBy : projection : ('T -> 'U) -> array : FlatList<'T> -> 'T when 'U : comparison
+
+    /// <summary>Returns the smallest element, in F# generic comparison.</summary>
+    /// <param name="array">The input flat list.</param>
+    /// <returns>The smallest element.</returns>
+    /// <exception cref="T:System.ArgumentException">Thrown when the flat list is empty.</exception>
+    /// <remarks>O(n). The elements are compared in parallel chunks.</remarks>
+    [<CompiledName "Min">]
+    val min : array : FlatList<'T> -> 'T when 'T : comparison
+
+    /// <summary>Returns an element with the smallest result of a projection.</summary>
+    /// <param name="projection">The function to transform the elements for the comparison, called in parallel.</param>
+    /// <param name="array">The input flat list.</param>
+    /// <returns>An element with the smallest result; which one of several such elements is not specified.</returns>
+    /// <exception cref="T:System.ArgumentException">Thrown when the flat list is empty.</exception>
+    /// <remarks>O(n).</remarks>
+    [<CompiledName "MinBy">]
+    val minBy : projection : ('T -> 'U) -> array : FlatList<'T> -> 'T when 'U : comparison
+
+    /// <summary>Combines the elements with a function, in parallel.</summary>
+    /// <param name="reduction">
+    /// The function that combines two values. It combines the elements in parallel chunks and then the results of the
+    /// chunks, so it must be associative and commutative for a result that does not depend on the chunks.
+    /// </param>
+    /// <param name="array">The input flat list.</param>
+    /// <returns>The combined value.</returns>
+    /// <exception cref="T:System.ArgumentException">Thrown when the flat list is empty.</exception>
+    /// <remarks>O(n).</remarks>
+    [<CompiledName "Reduce">]
+    val reduce : reduction : ('T -> 'T -> 'T) -> array : FlatList<'T> -> 'T
+
+    /// <summary>Combines the results of a function applied to each element with another function, in parallel.</summary>
+    /// <param name="projection">The function to transform the elements, called in parallel.</param>
+    /// <param name="reduction">
+    /// The function that combines two results. It combines the results in parallel chunks and then the results of the
+    /// chunks, so it must be associative and commutative for a result that does not depend on the chunks.
+    /// </param>
+    /// <param name="array">The input flat list.</param>
+    /// <returns>The combined value.</returns>
+    /// <exception cref="T:System.ArgumentException">Thrown when the flat list is empty.</exception>
+    /// <remarks>O(n). The sequential module has no counterpart: the value is the reduction of the mapped elements.</remarks>
+    [<CompiledName "ReduceBy">]
+    val reduceBy : projection : ('T -> 'U) -> reduction : ('U -> 'U -> 'U) -> array : FlatList<'T> -> 'U
+
+    /// <summary>Returns the sum of the elements, which are added in parallel.</summary>
+    /// <param name="array">The input flat list.</param>
+    /// <returns>The sum; zero for an empty flat list.</returns>
+    /// <remarks>
+    /// O(n). The elements are added in chunks, so a floating-point sum can differ in its last digits from the sequential
+    /// one.
+    /// </remarks>
+    [<CompiledName "Sum">]
+    val inline sum :
+        array : FlatList< ^T > -> ^T when ^T : (static member (+) : ^T * ^T -> ^T) and ^T : (static member Zero : ^T)
+
+    /// <summary>Returns the sum of the results of a function applied to each element.</summary>
+    /// <param name="projection">The function to transform the elements, called in parallel.</param>
+    /// <param name="array">The input flat list.</param>
+    /// <returns>The sum of the results; zero for an empty flat list.</returns>
+    /// <remarks>
+    /// O(n). The results are added in chunks, so a floating-point sum can differ in its last digits from the sequential
+    /// one.
+    /// </remarks>
+    [<CompiledName "SumBy">]
+    val inline sumBy :
+        projection : ('T -> ^U) -> array : FlatList<'T> -> ^U
+            when ^U : (static member (+) : ^U * ^U -> ^U) and ^U : (static member Zero : ^U)
+
+    // ---- Partitioning and grouping ----
+
+    /// <summary>Groups the elements by the key of a projection.</summary>
+    /// <param name="projection">The function that returns the key of an element, called in parallel.</param>
+    /// <param name="array">The input flat list.</param>
+    /// <returns>
+    /// The keys with their elements. The order of the keys and the order of the elements of a key are not specified.
+    /// </returns>
+    /// <remarks>O(n). The keys compare in F# structural equality.</remarks>
+    [<CompiledName "GroupBy">]
+    val groupBy :
+        projection : ('T -> 'Key) -> array : FlatList<'T> -> FlatList<struct ('Key * FlatList<'T>)> when 'Key : equality
+
+    /// <summary>Splits the elements by a predicate.</summary>
+    /// <param name="predicate">The function to test the elements, called in parallel.</param>
+    /// <param name="array">The input flat list.</param>
+    /// <returns>The elements that satisfy the predicate and the other ones, both in their order.</returns>
+    /// <remarks>O(n).</remarks>
+    [<CompiledName "Partition">]
+    val partition : predicate : ('T -> bool) -> array : FlatList<'T> -> struct (FlatList<'T> * FlatList<'T>)
+
+    /// <summary>Splits the elements by the choice that a function returns for them.</summary>
+    /// <param name="partitioner">
+    /// The function that returns <c>Choice1Of2</c> or <c>Choice2Of2</c> for an element, called in parallel.
+    /// </param>
+    /// <param name="array">The input flat list.</param>
+    /// <returns>The values of the first choices and of the second choices, both in the order of the elements.</returns>
+    /// <remarks>O(n).</remarks>
+    [<CompiledName "PartitionWith">]
+    val partitionWith :
+        partitioner : ('T -> Choice<'T1, 'T2>) -> array : FlatList<'T> -> struct (FlatList<'T1> * FlatList<'T2>)
+
+    // ---- Sorting ----
+
+    /// <summary>Sorts the elements in parallel, in the order of F# generic comparison.</summary>
+    /// <param name="array">The input flat list.</param>
+    /// <returns>The sorted flat list.</returns>
+    /// <remarks>
+    /// O(n log n). This is not a stable sort, as
+    /// <see cref="M:Microsoft.FSharp.Collections.ArrayModule.Parallel.Sort``1(``0[])"/>.
+    /// </remarks>
+    [<CompiledName "Sort">]
+    val sort : array : FlatList<'T> -> FlatList<'T> when 'T : comparison
+
+    /// <summary>
+    /// Sorts the elements in parallel by the result of a projection, in the order of F# generic comparison.
+    /// </summary>
+    /// <param name="projection">The function that returns the key of an element, called in parallel.</param>
+    /// <param name="array">The input flat list.</param>
+    /// <returns>The sorted flat list.</returns>
+    /// <remarks>O(n log n). This is not a stable sort.</remarks>
+    [<CompiledName "SortBy">]
+    val sortBy : projection : ('T -> 'Key) -> array : FlatList<'T> -> FlatList<'T> when 'Key : comparison
+
+    /// <summary>Sorts the elements in parallel by the result of a projection, in descending order.</summary>
+    /// <param name="projection">The function that returns the key of an element, called in parallel.</param>
+    /// <param name="array">The input flat list.</param>
+    /// <returns>The sorted flat list.</returns>
+    /// <remarks>O(n log n). This is not a stable sort.</remarks>
+    [<CompiledName "SortByDescending">]
+    val sortByDescending : projection : ('T -> 'Key) -> array : FlatList<'T> -> FlatList<'T> when 'Key : comparison
+
+    /// <summary>Sorts the elements in parallel, in descending order of F# generic comparison.</summary>
+    /// <param name="array">The input flat list.</param>
+    /// <returns>The sorted flat list.</returns>
+    /// <remarks>O(n log n). This is not a stable sort.</remarks>
+    [<CompiledName "SortDescending">]
+    val sortDescending : array : FlatList<'T> -> FlatList<'T> when 'T : comparison
+
+    /// <summary>Sorts the elements in parallel with a comparison function.</summary>
+    /// <param name="comparer">The function that compares two elements, called in parallel.</param>
+    /// <param name="array">The input flat list.</param>
+    /// <returns>The sorted flat list.</returns>
+    /// <remarks>O(n log n). This is not a stable sort.</remarks>
+    [<CompiledName "SortWith">]
+    val sortWith : comparer : ('T -> 'T -> int) -> array : FlatList<'T> -> FlatList<'T>

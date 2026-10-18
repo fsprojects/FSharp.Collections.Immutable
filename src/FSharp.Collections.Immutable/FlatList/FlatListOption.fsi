@@ -173,3 +173,54 @@ val tryPick : chooser : ('T -> 'U option) -> array : FlatList<'T> -> 'U option
 /// </remarks>
 [<CompiledName "Choose">]
 val choose : chooser : ('T -> 'U option) -> array : FlatList<'T> -> FlatList<'U>
+
+/// <summary>
+/// The functions of <see cref="T:FSharp.Collections.Immutable.FlatList.Parallel"/> that take or return an optional
+/// value, with <see cref="T:Microsoft.FSharp.Core.FSharpOption`1"/> instead of
+/// <see cref="T:Microsoft.FSharp.Core.FSharpValueOption`1"/>.
+/// </summary>
+/// <remarks>
+/// The other functions of the default module stay available after <c>open FSharp.Collections.Immutable.Option</c>. Each
+/// function has the signature of the function with the same name in
+/// <see cref="T:Microsoft.FSharp.Collections.ArrayModule.Parallel"/>.
+/// </remarks>
+[<RequireQualifiedAccess>]
+module Parallel =
+
+    // ---- Search ----
+
+    /// <summary>Returns the first element that satisfies the predicate, or <c>None</c>.</summary>
+    /// <param name="predicate">The function to test the elements, called in parallel.</param>
+    /// <param name="array">The input flat list.</param>
+    /// <returns>The first element that satisfies the predicate, or <c>None</c>.</returns>
+    /// <remarks>O(n). The predicate can also run for elements after the first one that satisfies it.</remarks>
+    [<CompiledName "TryFind">]
+    val tryFind : predicate : ('T -> bool) -> array : FlatList<'T> -> 'T option
+
+    /// <summary>Returns the index of the first element that satisfies the predicate, or <c>None</c>.</summary>
+    /// <param name="predicate">The function to test the elements, called in parallel.</param>
+    /// <param name="array">The input flat list.</param>
+    /// <returns>The index of the first element that satisfies the predicate, or <c>None</c>.</returns>
+    /// <remarks>O(n). The predicate can also run for elements after the first one that satisfies it.</remarks>
+    [<CompiledName "TryFindIndex">]
+    val tryFindIndex : predicate : ('T -> bool) -> array : FlatList<'T> -> int option
+
+    /// <summary>Returns the first value that the chooser returns for the elements, or <c>None</c>.</summary>
+    /// <param name="chooser">The function that returns a value, or <c>None</c> to go on, called in parallel.</param>
+    /// <param name="array">The input flat list.</param>
+    /// <returns>The value for the first element that the chooser returns a value for, or <c>None</c>.</returns>
+    /// <remarks>O(n). The chooser can also run for elements after the first one that it returns a value for.</remarks>
+    [<CompiledName "TryPick">]
+    val tryPick : chooser : ('T -> 'U option) -> array : FlatList<'T> -> 'U option
+
+    // ---- Transformation ----
+
+    /// <summary>Returns the values that the chooser returns for the elements.</summary>
+    /// <param name="chooser">
+    /// The function that returns a value, or <c>None</c> to skip the element, called in parallel.
+    /// </param>
+    /// <param name="array">The input flat list.</param>
+    /// <returns>The chosen values, in the order of their elements.</returns>
+    /// <remarks>O(n).</remarks>
+    [<CompiledName "Choose">]
+    val choose : chooser : ('T -> 'U option) -> array : FlatList<'T> -> FlatList<'U>
