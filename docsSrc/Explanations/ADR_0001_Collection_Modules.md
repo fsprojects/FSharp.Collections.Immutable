@@ -90,12 +90,16 @@ would be `HashMap.HashMap<…>`. The type abbreviations of a folder therefore ha
 signature file. A signature file alone does not compile: F# needs an implementation file for every signature file
 (FS0240). A file that holds only type abbreviations is its own signature, so it carries their XML documentation itself.
 
-Per folder, in compile order: `XTypes.fs`, `CustomComparersX.fsi`/`.fs` (maps) or `CustomComparerX.fsi`/`.fs` (sets,
-D12), `X.fsi`, `X.fs`, `XOption.fsi`, `XOption.fs`, `XTuple.fsi`, `XTuple.fs`, `XExtensions.fsi`, `XExtensions.fs` (maps,
-D13), `IX.fsi`, `IX.fs` (plus their `Option`/`Tuple` files), `XBuilder.fs` (`FlatList` and `IndexedList` only), `XCE.fs`.
-The struct comes before the module, because `forComparers`, `forKeyComparer` and `forComparer` return it, and the
-extension module after both, because its members are those of the struct with the default comparers.
-`Helper.fs` comes first and `ComputationExpressions.fs` last. Interface modules compile after the concrete type they return.
+Per folder, in compile order: `XTypes.fs`, `X.CustomComparers.fsi`/`.fs` (maps) or `X.CustomComparer.fsi`/`.fs` (sets,
+D12), `X.fsi`, `X.fs`, `XOption.fsi`, `XOption.fs`, `XTuple.fsi`, `XTuple.fs`, `X.Extensions.fsi`, `X.Extensions.fs`
+(maps, D13), `IX.fsi`, `IX.fs` (plus their `Option`/`Tuple` files), `XBuilder.fsi`/`.fs` (`FlatList` and `IndexedList`
+only), `XCE.fsi`/`.fs`. Every file with public API has a signature file, the builders and the computation expressions
+included; only the `XTypes.fs` files have none. The struct comes before the module, because `forComparers`,
+`forKeyComparer` and `forComparer` return it, and the extension module after both, because its members are those of the
+struct with the default comparers. The struct and extension files carry `DependentUpon` on the files of the module
+(`X.CustomComparers.fsi` on `X.fsi`, `X.CustomComparers.fs` on `X.fs`), so that Visual Studio shows them under the
+module; their names start with the name of the module for the same reason. `Helper.fs` comes first and
+`ComputationExpressions.fsi`/`.fs` last. Interface modules compile after the concrete type they return.
 
 Names: `IMap` module and `IMap<'Key, 'Value>` abbreviation for `IImmutableDictionary`; `ISet` module **without** an
 `ISet<'T>` abbreviation, because it would shadow `System.Collections.Generic.ISet<'T>`, which `FrozenSet<'T>` implements.
@@ -334,7 +338,8 @@ not byref-like, such as an `int` alternate for `int64` keys with a custom compar
 ### D12. Comparers: one `CustomComparers*` or `CustomComparer*` struct per collection
 
 No module function creates a collection with comparers. Every collection that can be created with comparers gets a struct,
-in its own file of the collection's folder, that holds the comparers and creates the collection with them. The prefix
+in its own file of the collection's folder (`X.CustomComparers.fs`, `X.CustomComparer.fs` for sets, D2), that holds the
+comparers and creates the collection with them. The prefix
 names what the struct holds: `CustomComparers` for maps, `CustomComparer` for sets, which have one comparer. Functions that
 use a comparer for one operation only, such as `sortWithComparer`, `indexOfWith` and `lastIndexOfWith`, keep their comparer
 argument.
@@ -375,11 +380,12 @@ A map binding comes in three shapes: `KeyValuePair<'Key, 'Value>`, which every .
 function takes one shape. F# types a tuple literal that is written as the argument as struct tuples, but a list of reference
 tuples that is bound before, or any sequence of `KeyValuePair`s, needs a conversion first.
 
-Each map folder therefore has an `[<AutoOpen>]` root module `XExtensions` in its own file. It extends the BCL type
-(`ImmutableDictionary<'Key, 'Value>`, `ImmutableSortedDictionary<'Key, 'Value>`, `FrozenDictionary<'Key, 'Value>`) with
-the static members `ofArray`, `ofList` and `ofSeq`, each overloaded for the three shapes. Through the type abbreviation,
-`HashMap.ofSeq pairs` reaches them and overload resolution picks the shape; a pipeline `pairs |> HashMap.ofSeq` works too.
-This was checked with lists, arrays, `dict` and an existing map. The rules that follow from F#:
+Each map folder therefore has an `[<AutoOpen>]` root module `XExtensions` in its own file, `X.Extensions.fs`. It
+extends the BCL type (`ImmutableDictionary<'Key, 'Value>`, `ImmutableSortedDictionary<'Key, 'Value>`,
+`FrozenDictionary<'Key, 'Value>`) with the static members `ofArray`, `ofList` and `ofSeq`, each overloaded for the three
+shapes. Through the type abbreviation, `HashMap.ofSeq pairs` reaches them and overload resolution picks the shape; a
+pipeline `pairs |> HashMap.ofSeq` works too. This was checked with lists, arrays, `dict` and an existing map. The rules
+that follow from F#:
 
 * The map modules have no `ofArray`, `ofList` or `ofSeq`: module search precedes type search (D3), so a module function
   with the same name hides the extension members.
@@ -400,6 +406,24 @@ This was checked with lists, arrays, `dict` and an existing map. The rules that 
 Static extension members are an F# feature: C# does not see them as members of the BCL types. C# callers use the members
 of the structs of D12, whose compiled names are PascalCase, or the BCL itself. Sets need no extensions and no submodules,
 because their elements have one shape.
+
+### D14. Edge cases follow .NET
+
+FSharp.Core and the BCL disagree in a few edge cases. Where they do, the modules follow the convention of .NET: the
+semantics of the BCL member that a function wraps, or of the BCL family when there is no such member (decided by the
+maintainer, 2026-10-18). A BCL behaviour that contradicts the BCL's own documentation is a defect, not a convention: the
+modules answer as the documentation says.
+
+| Case | Behaviour | .NET source |
+|---|---|---|
+| `intersect` of two elements that the comparer finds equal | the element of the second set | `ImmutableHashSet.Intersect`, `ImmutableSortedSet.Intersect`; `FrozenSet` has no member and follows them |
+| `union` of two such elements | the element of the first set | `ImmutableHashSet.Union`, `ImmutableSortedSet.Union` |
+| `append` of the interface modules | the implementation of the collection that receives the elements: the first list or queue, the second stack | `IImmutableList.AddRange`, `IImmutableQueue.Enqueue`, `IImmutableStack.Push` |
+| A repeated key in `ofSeqBy` | `HashMap` and `SortedMap` accept a repeated key with an equal value and reject another value; `FrozenMap` rejects every repeated key | `ToImmutableDictionary`, `ToImmutableSortedDictionary`, `ToFrozenDictionary` |
+| A new value that the value comparer finds equal to the stored one (`add`, `change`, `setItem`, creation) | the stored value stays; a sorted map also keeps the stored key | `ImmutableDictionary.SetItem`, the indexers of the builders |
+| An existing collection given to `ofSeq` of a struct of D12 | a frozen collection comes back when its comparer `Equals` the struct's; an immutable one only for the same comparer instance | `ToFrozenDictionary`, `ToFrozenSet`; `WithComparers`, `WithComparer` |
+| `isProperSuperset` of a sequence with repeated elements, or with elements that the set's comparer finds equal | set semantics: `{1, 2}` is a proper superset of `[1; 1]` | the documentation of `IsProperSupersetOf`, as the mutable `HashSet` and `FrozenSet` answer; `ImmutableHashSet` and `ImmutableSortedSet` count the repetitions |
+| The default value of a struct of D12 | the comparer that the BCL takes for `null`: `EqualityComparer<'T>.Default`, `Comparer<'T>.Default` | the BCL constructors |
 
 ## Consequences
 
