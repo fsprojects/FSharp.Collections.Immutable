@@ -80,6 +80,7 @@ val add : value : 'T -> builder : FlatList<'T>.Builder -> FlatList<'T>.Builder
 /// <param name="values">The values to add.</param>
 /// <param name="builder">The builder.</param>
 /// <returns>The same builder.</returns>
+/// <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="values"/> is <see langword="null"/> or a default flat list.</exception>
 [<CompiledName "AddRange">]
 val addRange : values : seq<'T> -> builder : FlatList<'T>.Builder -> FlatList<'T>.Builder
 

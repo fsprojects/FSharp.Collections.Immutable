@@ -360,6 +360,7 @@ let collect (mapping : 'T -> FlatList<'U>) (array : FlatList<'T>) =
 [<CompiledName "Concat">]
 let concat (arrays : seq<FlatList<'T>>) =
     checkNotNull (nameof arrays) arrays
+    checkNotDefaultSeq (nameof arrays) arrays
 
     arrays
     |> Seq.map (fun array -> unwrapArray (nameof arrays) array)
@@ -383,8 +384,13 @@ let insertAt index (value : 'T) (source : FlatList<'T>) =
 
 [<CompiledName "InsertManyAt">]
 let insertManyAt index (values : seq<'T>) (source : FlatList<'T>) =
-    Array.insertManyAt index values (unwrapArray (nameof source) source)
-    |> wrapArray
+    let array = unwrapArray (nameof source) source
+
+    // Array.insertManyAt checks the index before it enumerates the values, so the check of the values comes after it
+    if index >= 0 && index <= array.Length then
+        checkNotDefaultSeq (nameof values) values
+
+    Array.insertManyAt index values array |> wrapArray
 
 [<CompiledName "Map">]
 let map (mapping : 'T -> 'U) (array : FlatList<'T>) =
@@ -441,6 +447,7 @@ let rev (array : FlatList<'T>) = Array.rev (unwrapArray (nameof array) array) |>
 [<CompiledName "Transpose">]
 let transpose (arrays : seq<FlatList<'T>>) =
     checkNotNull (nameof arrays) arrays
+    checkNotDefaultSeq (nameof arrays) arrays
 
     arrays
     |> Seq.map (fun array -> unwrapArray (nameof arrays) array)
@@ -643,6 +650,7 @@ let distinctBy (projection : 'T -> 'Key) (array : FlatList<'T>) =
 let except (itemsToExclude : seq<'T>) (array : FlatList<'T>) =
     // FSharp.Core checks the items to exclude first
     checkNotNull (nameof itemsToExclude) itemsToExclude
+    checkNotDefaultSeq (nameof itemsToExclude) itemsToExclude
     Array.except itemsToExclude (unwrapArray (nameof array) array)
     |> wrapArray
 

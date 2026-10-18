@@ -648,7 +648,7 @@ val collect : mapping : ('T -> FlatList<'U>) -> array : FlatList<'T> -> FlatList
 /// <summary>Concatenates a sequence of flat lists.</summary>
 /// <param name="arrays">The flat lists.</param>
 /// <returns>The concatenation.</returns>
-/// <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="arrays"/> is <see langword="null"/>.</exception>
+/// <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="arrays"/> is <see langword="null"/> or a default flat list, or contains a default flat list.</exception>
 /// <remarks>O(the total length).</remarks>
 [<CompiledName "Concat">]
 val concat : arrays : seq<FlatList<'T>> -> FlatList<'T>
@@ -683,6 +683,7 @@ val insertAt : index : int -> value : 'T -> source : FlatList<'T> -> FlatList<'T
 /// <param name="values">The values to insert.</param>
 /// <param name="source">The input flat list.</param>
 /// <returns>The flat list with the values.</returns>
+/// <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="values"/> is <see langword="null"/> or a default flat list.</exception>
 /// <exception cref="T:System.ArgumentException">Thrown when the index is negative or greater than the length.</exception>
 /// <remarks>O(n + m).</remarks>
 [<CompiledName "InsertManyAt">]
@@ -807,6 +808,7 @@ val rev : array : FlatList<'T> -> FlatList<'T>
 /// </summary>
 /// <param name="arrays">The flat lists.</param>
 /// <returns>A flat list whose element i holds the element i of every input flat list.</returns>
+/// <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="arrays"/> is <see langword="null"/> or a default flat list, or contains a default flat list.</exception>
 /// <exception cref="T:System.ArgumentException">Thrown when the flat lists have different lengths.</exception>
 /// <remarks>
 /// O(the total length).
@@ -1214,7 +1216,7 @@ val distinctBy : projection : ('T -> 'Key) -> array : FlatList<'T> -> FlatList<'
 /// <param name="itemsToExclude">The items to remove.</param>
 /// <param name="array">The input flat list.</param>
 /// <returns>The distinct remaining elements, in their order.</returns>
-/// <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="itemsToExclude"/> is <see langword="null"/>.</exception>
+/// <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="itemsToExclude"/> is <see langword="null"/> or a default flat list.</exception>
 /// <remarks>
 /// O(n + m).
 /// </remarks>

@@ -14,10 +14,7 @@ type FlatListCE () =
 
     member inline _.YieldFrom (items : seq<'T>) : FlatListBuffer<'T> =
         // A default flat list given as a sequence is still a default flat list, as in FlatList.ofSeq (ADR 0001, D6)
-        match items with
-        | :? ImmutableArray<'T> as array -> checkNotDefault (nameof items) array
-        | _ -> ()
-
+        checkNotDefaultSeq (nameof items) items
         fun builder -> builder.AddRange items
 
     member inline _.YieldFrom (items : 'T array) : FlatListBuffer<'T> = fun builder -> builder.AddRange items
@@ -39,6 +36,9 @@ type FlatListCE () =
         fun builder -> delayed () builder
 
     member inline _.For (source : seq<'U>, [<InlineIfLambda>] body : 'U -> FlatListBuffer<'T>) : FlatListBuffer<'T> =
+        // A default flat list is a sequence that fails when it is enumerated; the expression rejects it as yield! does
+        checkNotDefaultSeq (nameof source) source
+
         fun builder ->
             for item in source do
                 body item builder

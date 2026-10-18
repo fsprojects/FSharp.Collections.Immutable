@@ -50,6 +50,7 @@ type FlatListCE =
     member inline Delay : [<InlineIfLambda>] delayed : (unit -> FlatListBuffer<'T>) -> FlatListBuffer<'T>
 
     /// <summary>Adds the elements of the body for each item of a sequence.</summary>
+    /// <exception cref="T:System.ArgumentNullException">Thrown when the sequence is a default flat list.</exception>
     member inline For : source : seq<'U> * [<InlineIfLambda>] body : ('U -> FlatListBuffer<'T>) -> FlatListBuffer<'T>
 
     /// <summary>Adds the elements of the body while the guard holds.</summary>

@@ -33,6 +33,21 @@ module internal ImmutableCollectionUtil =
             nullArg name
 
     /// <summary>
+    /// Throws <see cref="T:System.ArgumentNullException"/> for a default <see cref="T:System.Collections.Immutable.ImmutableArray`1"/>
+    /// that is given as a sequence.
+    /// </summary>
+    /// <remarks>
+    /// A default immutable array converts to a sequence without a check, and the sequence fails with
+    /// <see cref="T:System.InvalidOperationException"/> when a function enumerates it, so a function that takes a sequence
+    /// calls this check next to its <see langword="null"/> check (ADR 0001, D6). Any other sequence passes, a
+    /// <see langword="null"/> sequence included.
+    /// </remarks>
+    let inline checkNotDefaultSeq name (source : seq<'T>) =
+        match source with
+        | :? ImmutableArray<'T> as array -> checkNotDefault name array
+        | _ -> ()
+
+    /// <summary>
     /// The array under an immutable array, without a copy (ADR 0001, D5).
     /// </summary>
     /// <remarks>
