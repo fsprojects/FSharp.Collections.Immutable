@@ -17,16 +17,6 @@ type FlatListTests () =
     /// The array under a flat list, to tell whether two flat lists share their storage.
     static let underlying (array : FlatList<'T>) = ImmutableCollectionsMarshal.AsArray array
 
-    /// Asserts that an action rejects its input with an ArgumentNullException that names the parameter.
-    static let assertRejects (name : string) (paramName : string) (actual : unit -> unit) =
-        let ex =
-            Assert.ThrowsExactly<ArgumentNullException>(Action actual, $"FlatList.%s{name} must throw ArgumentNullException")
-
-        Assert.AreEqual<string | null>(
-            paramName,
-            ex.ParamName,
-            $"FlatList.%s{name} must name the parameter of the rejected input"
-        )
 
     /// Maps the parameter names of the Array oracles to the ones of the flat list functions that name a sequence of
     /// values: Array.insertManyAt names its values source, as Seq.toArray does, where the flat list function names them values.
@@ -35,18 +25,6 @@ type FlatListTests () =
         | "source" -> "values"
         | other -> other
 
-    /// The elements without the first one that the equality finds equal to the item: the oracle of the removal by value.
-    static let removeFirst (equal : 'T -> 'T -> bool) (item : 'T) (elements : 'T array) =
-        match Array.tryFindIndex (equal item) elements with
-        | Some index -> Array.removeAt index elements
-        | None -> elements
-
-    /// Tells whether two strings are equal when the case is ignored.
-    static let equalIgnoringCase (left : string) (right : string) =
-        String.Equals (left, right, StringComparison.OrdinalIgnoreCase)
-
-    /// The strings of the removal by value; "b" and "B" are equal when the case is ignored.
-    static let names () = [| "a"; "b"; "B"; "c" |]
 
     /// The functions that mirror an Array function, by name, with that function on a null array and the function on a
     /// default flat list. The rows of the test are the names: a function has no readable name in a row.
@@ -196,6 +174,22 @@ type FlatListTests () =
             struct (nameof FlatList.add, "array", (fun () -> FlatList.add 1 defaultArray |> ignore))
             struct (nameof FlatList.asMemory, "array", (fun () -> FlatList.asMemory defaultArray |> ignore))
             struct (nameof FlatList.binarySearch, "array", (fun () -> FlatList.binarySearch 1 defaultArray |> ignore))
+            // The default flat list is checked before the range, which would be rejected as well
+            struct (nameof FlatList.binarySearchRange,
+                    "array",
+                    (fun () -> FlatList.binarySearchRange -1 -1 1 defaultArray |> ignore))
+            struct (nameof FlatList.binarySearchRangeWithComparer,
+                    "array",
+                    (fun () ->
+                        FlatList.binarySearchRangeWithComparer Comparer<int>.Default -1 -1 1 defaultArray
+                        |> ignore
+                    ))
+            struct (nameof FlatList.binarySearchWithComparer,
+                    "array",
+                    (fun () ->
+                        FlatList.binarySearchWithComparer Comparer<int>.Default 1 defaultArray
+                        |> ignore
+                    ))
             struct (nameof FlatList.blit, "source", (fun () -> FlatList.blit defaultArray 0 [| 0 |] 0 0))
             // Array.concat dereferences a null element array without a check; a default element is a default flat list (D6)
             struct (nameof FlatList.concat, "arrays", (fun () -> FlatList.concat [ defaultArray ] |> ignore))
@@ -210,6 +204,13 @@ type FlatListTests () =
             // A default flat list passed as a sequence is still a default flat list
             struct (nameof FlatList.ofSeq, "source", (fun () -> FlatList.ofSeq (defaultArray :> seq<int>) |> ignore))
             struct (nameof FlatList.indexOf, "array", (fun () -> FlatList.indexOf 1 defaultArray |> ignore))
+            struct (nameof FlatList.indexOfRange, "array", (fun () -> FlatList.indexOfRange -1 -1 1 defaultArray |> ignore))
+            struct (nameof FlatList.indexOfRangeWith,
+                    "array",
+                    (fun () ->
+                        FlatList.indexOfRangeWith EqualityComparer<int>.Default -1 -1 1 defaultArray
+                        |> ignore
+                    ))
             struct (nameof FlatList.indexOfWith,
                     "array",
                     (fun () ->
@@ -217,6 +218,15 @@ type FlatListTests () =
                         |> ignore
                     ))
             struct (nameof FlatList.lastIndexOf, "array", (fun () -> FlatList.lastIndexOf 1 defaultArray |> ignore))
+            struct (nameof FlatList.lastIndexOfRange,
+                    "array",
+                    (fun () -> FlatList.lastIndexOfRange -1 -1 1 defaultArray |> ignore))
+            struct (nameof FlatList.lastIndexOfRangeWith,
+                    "array",
+                    (fun () ->
+                        FlatList.lastIndexOfRangeWith EqualityComparer<int>.Default -1 -1 1 defaultArray
+                        |> ignore
+                    ))
             struct (nameof FlatList.lastIndexOfWith,
                     "array",
                     (fun () ->
@@ -236,6 +246,13 @@ type FlatListTests () =
                     "source",
                     (fun () ->
                         FlatList.removeWith EqualityComparer<int>.Default 1 defaultArray
+                        |> ignore
+                    ))
+            struct (nameof FlatList.replace, "array", (fun () -> FlatList.replace 1 2 defaultArray |> ignore))
+            struct (nameof FlatList.replaceWith,
+                    "array",
+                    (fun () ->
+                        FlatList.replaceWith EqualityComparer<int>.Default 1 2 defaultArray
                         |> ignore
                     ))
             struct (nameof FlatList.skipLast, "array", (fun () -> FlatList.skipLast 0 defaultArray |> ignore))
@@ -268,6 +285,10 @@ type FlatListTests () =
     static let sequenceRejections =
         let defaultOuter = Unchecked.defaultof<FlatList<FlatList<int>>>
         let nullItems = Unchecked.defaultof<seq<int>>
+
+        // The flat list of strings is a sequence of objects, which a type test for the flat list of objects does not see
+        let widenedItems = FlatListOracles.defaultStringsAsObjects
+        let objects = FlatList.ofArray [| "a" :> obj |]
 
         [|
             struct ($"%s{nameof FlatList.concat} (default outer)",
@@ -349,6 +370,24 @@ type FlatListTests () =
                         FlatList.removeManyWith EqualityComparer<int>.Default nullItems (FlatList.ofArray Inputs.Several)
                         |> ignore
                     ))
+            struct ($"%s{nameof FlatList.ofSeq} (default flat list of strings as objects)",
+                    "source",
+                    (fun () -> FlatList.ofSeq widenedItems |> ignore))
+            struct ($"%s{nameof FlatList.insertManyAt} (default flat list of strings as objects)",
+                    "values",
+                    (fun () -> FlatList.insertManyAt 1 widenedItems objects |> ignore))
+            struct ($"%s{nameof FlatList.except} (default flat list of strings as objects)",
+                    "itemsToExclude",
+                    (fun () -> FlatList.except widenedItems objects |> ignore))
+            struct ($"%s{nameof FlatList.removeMany} (default flat list of strings as objects)",
+                    "items",
+                    (fun () -> FlatList.removeMany widenedItems objects |> ignore))
+            struct ($"%s{nameof FlatList.removeManyWith} (default flat list of strings as objects)",
+                    "items",
+                    (fun () ->
+                        FlatList.removeManyWith EqualityComparer<obj>.Default widenedItems objects
+                        |> ignore
+                    ))
         |]
         |> Array.map (fun struct (name, paramName, actual) -> name, struct (paramName, actual))
         |> Map.ofArray
@@ -387,14 +426,13 @@ type FlatListTests () =
     /// have no two different elements with the same absolute value, and the comparer of `sortRangeWithComparer` orders by
     /// the absolute value, so the result does not depend on the stability of the sort.
     static let rangeSorts : Map<string, struct ((int -> int -> FlatList<int> -> FlatList<int>) * (int array -> int array))> =
-        let descending (left : int) (right : int) = compare right left
-        let byAbsolute (left : int) (right : int) = compare (abs left) (abs right)
-
         Map.ofArray [|
             nameof FlatList.sortRange, struct (FlatList.sortRange, Array.sortWith compare)
-            nameof FlatList.sortRangeWith, struct (FlatList.sortRangeWith descending, Array.sortWith descending)
+            nameof FlatList.sortRangeWith,
+            struct (FlatList.sortRangeWith FlatListOracles.descending, Array.sortWith FlatListOracles.descending)
             nameof FlatList.sortRangeWithComparer,
-            struct (FlatList.sortRangeWithComparer (Comparer<int>.Create(Comparison<int> byAbsolute)), Array.sortWith byAbsolute)
+            struct (FlatList.sortRangeWithComparer (Comparer<int>.Create(Comparison<int> FlatListOracles.byAbsolute)),
+                    Array.sortWith FlatListOracles.byAbsolute)
         |]
 
     /// The functions that take a range, by name, on the whole range of the input with several elements.
@@ -564,6 +602,21 @@ type FlatListTests () =
         TestDataRow [| "C"; "d"; "A" |]
     }
 
+    /// Every input with an element, with each of its different elements: the value to replace.
+    static member ReplacedValues = seq {
+        for input in Inputs.NonEmpty do
+            for oldValue in Array.distinct input do
+                struct (input, oldValue)
+    }
+
+    /// The values to replace in the strings with a case-insensitive comparer: equal in the same case and in another case.
+    static member ReplacedNames = seq {
+        "a"
+        "b"
+        "B"
+        "C"
+    }
+
     /// The names of the functions that take a range, as the rows of the test of the whole range.
     static member WholeRanges = wholeRanges.Keys
 
@@ -606,15 +659,44 @@ type FlatListTests () =
     [<TestMethod; DynamicData(nameof FlatListTests.OtherRejections)>]
     member _.``functions without an Array counterpart reject a default flat list`` (name : string) =
         let struct (paramName, actual) = otherRejections[name]
-        assertRejects name paramName actual
+        FlatListAssert.RejectsNull ($"FlatList.%s{name}", paramName, actual)
 
     [<TestMethod; DynamicData(nameof FlatListTests.SequenceRejections)>]
     member _.``functions that take a sequence reject a default flat list given as the sequence and a null sequence``
         (name : string)
         =
         let struct (paramName, actual) = sequenceRejections[name]
-        assertRejects name paramName actual
+        FlatListAssert.RejectsNull ($"FlatList.%s{name}", paramName, actual)
 
+    [<TestMethod>]
+    member _.``a flat list of strings that is not default passes as a sequence of objects`` () =
+        let widened = FlatListOracles.stringsAsObjects (FlatList.ofArray [| "a"; "b" |])
+        let asObjects (strings : string array) = strings |> Array.map (fun item -> item :> obj)
+        let objects = FlatList.ofArray (asObjects [| "c" |])
+
+        CollectionAssert.AreEqual (
+            asObjects [| "a"; "b" |],
+            FlatList.toArray (FlatList.ofSeq widened),
+            "FlatList.ofSeq must take the elements of a flat list of strings as objects"
+        )
+
+        CollectionAssert.AreEqual (
+            asObjects [| "a"; "b"; "c" |],
+            FlatList.toArray (FlatList.insertManyAt 0 widened objects),
+            "FlatList.insertManyAt must take the elements of a flat list of strings as objects"
+        )
+
+        CollectionAssert.AreEqual (
+            asObjects [| "c" |],
+            FlatList.toArray (FlatList.except widened objects),
+            "FlatList.except must take the elements of a flat list of strings as objects"
+        )
+
+        CollectionAssert.AreEqual (
+            asObjects [| "c" |],
+            FlatList.toArray (FlatList.removeMany widened (FlatList.ofArray (asObjects [| "a"; "c"; "b" |]))),
+            "FlatList.removeMany must take the elements of a flat list of strings as objects"
+        )
     [<TestMethod; DynamicData(nameof FlatListTests.NullSequenceMirrors)>]
     member _.``functions that take a sequence reject a null sequence as Array does`` (name : string) =
         let struct (oracle, actual) = nullSequenceMirrors[name]
@@ -777,14 +859,20 @@ type FlatListTests () =
 
     [<TestMethod; DynamicData(nameof FlatListTests.SubRangesOutOfRange)>]
     member _.``sub throws for a range out of range as Array.sub does`` (input : int array, startIndex : int, count : int) =
-        ExceptionAssert.Same (
-            id,
-            (fun () -> Array.sub input startIndex count |> ignore),
-            (fun () ->
-                FlatList.sub (FlatList.ofArray input) startIndex count
-                |> ignore
-            ),
-            "FlatList.sub must throw as Array.sub does for a range out of range"
+        let oracle () = Array.sub input startIndex count |> ignore
+
+        let actual () =
+            FlatList.sub (FlatList.ofArray input) startIndex count
+            |> ignore
+
+        ExceptionAssert.Same (id, oracle, actual, "FlatList.sub must throw as Array.sub does for a range out of range")
+
+        // ExceptionAssert compares the first line of the messages. The second line names the argument and, for a range
+        // beyond the end, the length: "count = 9, array.Length = 8"
+        Assert.AreEqual<string>(
+            FlatListOracles.messageDetail oracle,
+            FlatListOracles.messageDetail actual,
+            "FlatList.sub must write the arguments of the message as Array.sub does"
         )
 
     [<TestMethod; DataRow(0, 0); DataRow(-1, 0); DataRow(0, -1); DataRow(9, 9)>]
@@ -884,7 +972,7 @@ type FlatListTests () =
     [<TestMethod; DynamicData(nameof FlatListTests.RemovalValues)>]
     member _.``remove removes the first equal element`` (input : int array, value : int) =
         CollectionAssert.AreEqual (
-            removeFirst (=) value input,
+            FlatListOracles.removeFirst (=) value input,
             FlatList.toArray (FlatList.remove value (FlatList.ofArray input)),
             "FlatList.remove must remove the first equal element"
         )
@@ -903,21 +991,23 @@ type FlatListTests () =
     member _.``remove compares in the default equality, which tells b from B`` () =
         CollectionAssert.AreEqual (
             [| "a"; "b"; "c" |],
-            FlatList.toArray (FlatList.remove "B" (FlatList.ofArray (names ()))),
+            FlatList.toArray (FlatList.remove "B" (FlatList.ofArray (FlatListOracles.names ()))),
             "FlatList.remove must not find B equal to b"
         )
 
     [<TestMethod; DynamicData(nameof FlatListTests.NameValues)>]
     member _.``removeWith removes the first element that the comparer finds equal`` (value : string) =
         CollectionAssert.AreEqual (
-            removeFirst equalIgnoringCase value (names ()),
-            FlatList.toArray (FlatList.removeWith StringComparer.OrdinalIgnoreCase value (FlatList.ofArray (names ()))),
+            FlatListOracles.removeFirst FlatListOracles.equalIgnoringCase value (FlatListOracles.names ()),
+            FlatList.toArray (
+                FlatList.removeWith StringComparer.OrdinalIgnoreCase value (FlatList.ofArray (FlatListOracles.names ()))
+            ),
             "FlatList.removeWith must remove the first element that the comparer finds equal"
         )
 
     [<TestMethod; DataRow "d"; DataRow "D">]
     member _.``removeWith returns the input itself when no element is equal`` (value : string) =
-        let array = FlatList.ofArray (names ())
+        let array = FlatList.ofArray (FlatListOracles.names ())
 
         Assert.AreSame (
             underlying array,
@@ -927,7 +1017,8 @@ type FlatListTests () =
 
     [<TestMethod; DynamicData(nameof FlatListTests.RemovalItems)>]
     member _.``removeMany removes one element for each value`` (input : int array, items : int array) =
-        let expected = Array.fold (fun elements item -> removeFirst (=) item elements) input items
+        let expected =
+            Array.fold (fun elements item -> FlatListOracles.removeFirst (=) item elements) input items
 
         CollectionAssert.AreEqual (
             expected,
@@ -973,17 +1064,101 @@ type FlatListTests () =
     member _.``removeMany compares in the default equality, which tells b from B`` () =
         CollectionAssert.AreEqual (
             [| "a"; "b"; "c" |],
-            FlatList.toArray (FlatList.removeMany [| "B" |] (FlatList.ofArray (names ()))),
+            FlatList.toArray (FlatList.removeMany [| "B" |] (FlatList.ofArray (FlatListOracles.names ()))),
             "FlatList.removeMany must not find B equal to b"
         )
 
     [<TestMethod; DynamicData(nameof FlatListTests.NameItems)>]
     member _.``removeManyWith removes one element for each value that the comparer finds equal`` (items : string array) =
         let expected =
-            Array.fold (fun elements item -> removeFirst equalIgnoringCase item elements) (names ()) items
+            Array.fold
+                (fun elements item -> FlatListOracles.removeFirst FlatListOracles.equalIgnoringCase item elements)
+                (FlatListOracles.names ())
+                items
 
         CollectionAssert.AreEqual (
             expected,
-            FlatList.toArray (FlatList.removeManyWith StringComparer.OrdinalIgnoreCase items (FlatList.ofArray (names ()))),
+            FlatList.toArray (
+                FlatList.removeManyWith StringComparer.OrdinalIgnoreCase items (FlatList.ofArray (FlatListOracles.names ()))
+            ),
             "FlatList.removeManyWith must remove one element for each value that the comparer finds equal"
+        )
+
+    // ---- replace and replaceWith ----
+
+    [<TestMethod; DynamicData(nameof FlatListTests.ReplacedValues)>]
+    member _.``replace replaces the first equal element`` (input : int array, oldValue : int) =
+        CollectionAssert.AreEqual (
+            FlatListOracles.replaceFirst (=) oldValue 99 input
+            |> ValueOption.get,
+            FlatList.toArray (FlatList.replace oldValue 99 (FlatList.ofArray input)),
+            "FlatList.replace must replace the first equal element"
+        )
+
+    [<TestMethod; DynamicData(nameof FlatListTests.AbsentValues)>]
+    member _.``replace throws for a value that no element equals as the BCL does`` (input : int array, value : int) =
+        ExceptionAssert.Same (
+            id,
+            (fun () -> (FlatList.ofArray input).Replace(value, 0) |> ignore),
+            (fun () -> FlatList.replace value 0 (FlatList.ofArray input) |> ignore),
+            "FlatList.replace must throw as ImmutableArray.Replace does when no element equals the value"
+        )
+
+    [<TestMethod; DataRow 5; DataRow 7>]
+    member _.``replace returns a new flat list also when the new value equals the old one`` (value : int) =
+        let array = FlatList.ofArray Inputs.Several
+        let replaced = FlatList.replace value value array
+
+        CollectionAssert.AreEqual (Inputs.Several, FlatList.toArray replaced, "FlatList.replace must keep the elements")
+
+        Assert.AreNotSame (
+            underlying array,
+            underlying replaced,
+            "FlatList.replace must return a new flat list, as ImmutableArray.Replace does"
+        )
+
+    [<TestMethod>]
+    member _.``replace compares in the default equality, which tells b from B`` () =
+        CollectionAssert.AreEqual (
+            [| "a"; "b"; "X"; "c" |],
+            FlatList.toArray (FlatList.replace "B" "X" (FlatList.ofArray (FlatListOracles.names ()))),
+            "FlatList.replace must not find B equal to b"
+        )
+
+    [<TestMethod; DynamicData(nameof FlatListTests.ReplacedNames)>]
+    member _.``replaceWith replaces the first element that the comparer finds equal`` (oldValue : string) =
+        let names = FlatListOracles.names ()
+
+        CollectionAssert.AreEqual (
+            FlatListOracles.replaceFirst FlatListOracles.equalIgnoringCase oldValue "X" names
+            |> ValueOption.get,
+            FlatList.toArray (FlatList.replaceWith StringComparer.OrdinalIgnoreCase oldValue "X" (FlatList.ofArray names)),
+            "FlatList.replaceWith must replace the first element that the comparer finds equal"
+        )
+
+    [<TestMethod; DataRow "d"; DataRow "D">]
+    member _.``replaceWith throws for a value that no element equals as the BCL does`` (oldValue : string) =
+        let array = FlatList.ofArray (FlatListOracles.names ())
+
+        ExceptionAssert.Same (
+            id,
+            (fun () ->
+                array.Replace (oldValue, "X", StringComparer.OrdinalIgnoreCase)
+                |> ignore
+            ),
+            (fun () ->
+                FlatList.replaceWith StringComparer.OrdinalIgnoreCase oldValue "X" array
+                |> ignore
+            ),
+            "FlatList.replaceWith must throw as ImmutableArray.Replace does when no element equals the value"
+        )
+
+    [<TestMethod>]
+    member _.``replaceWith takes null for the default comparer`` () =
+        let comparer = Unchecked.defaultof<IEqualityComparer<string>>
+
+        CollectionAssert.AreEqual (
+            [| "a"; "b"; "X"; "c" |],
+            FlatList.toArray (FlatList.replaceWith comparer "B" "X" (FlatList.ofArray (FlatListOracles.names ()))),
+            "FlatList.replaceWith must compare in the default equality for a null comparer"
         )

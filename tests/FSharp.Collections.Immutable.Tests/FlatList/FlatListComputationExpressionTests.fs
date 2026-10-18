@@ -10,6 +10,7 @@ type FlatListComputationExpressionTests () =
 
     static let defaultArray = Unchecked.defaultof<FlatList<int>>
 
+
     [<TestMethod>]
     member _.``an expression without elements is empty`` () =
         let array : FlatList<int> = flatList { () }
@@ -79,6 +80,19 @@ type FlatListComputationExpressionTests () =
         Assert.AreEqual<string | null>("items", ex.ParamName, "flatList must name the parameter of the null sequence")
 
     [<TestMethod>]
+    member _.``yield! rejects a default flat list of strings given as a sequence of objects`` () =
+        let ex =
+            Assert.ThrowsExactly<ArgumentNullException>(
+                Action (fun () ->
+                    flatList { yield! FlatListOracles.defaultStringsAsObjects }
+                    |> ignore
+                ),
+                "flatList must reject a default flat list of strings in yield! of a sequence of objects"
+            )
+
+        Assert.AreEqual<string | null>("items", ex.ParamName, "flatList must name the parameter of the default flat list")
+
+    [<TestMethod>]
     member _.``for adds the elements of the body for each item`` () =
         let array = flatList {
             for item in 1..3 do
@@ -118,6 +132,39 @@ type FlatListComputationExpressionTests () =
             )
 
         Assert.AreEqual<string | null>("source", ex.ParamName, "flatList must name the parameter of the null sequence")
+
+    [<TestMethod>]
+    member _.``for rejects a default flat list of strings given as a sequence of objects`` () =
+        let ex =
+            Assert.ThrowsExactly<ArgumentNullException>(
+                Action (fun () ->
+                    flatList {
+                        for item in FlatListOracles.defaultStringsAsObjects do
+                            yield item
+                    }
+                    |> ignore
+                ),
+                "flatList must reject a default flat list of strings in for over a sequence of objects"
+            )
+
+        Assert.AreEqual<string | null>("source", ex.ParamName, "flatList must name the parameter of the default flat list")
+
+    [<TestMethod>]
+    member _.``yield! and for take a flat list of strings that is not default as a sequence of objects`` () =
+        let widened = FlatListOracles.stringsAsObjects (FlatList.ofArray [| "a"; "b" |])
+
+        let array = flatList {
+            yield! widened
+
+            for item in widened do
+                yield item
+        }
+
+        CollectionAssert.AreEqual (
+            [| "a" :> obj; "b" :> obj; "a" :> obj; "b" :> obj |],
+            FlatList.toArray array,
+            "flatList must take the elements of a flat list of strings as objects in yield! and for"
+        )
 
     [<TestMethod>]
     member _.``while adds the elements while the guard holds`` () =
