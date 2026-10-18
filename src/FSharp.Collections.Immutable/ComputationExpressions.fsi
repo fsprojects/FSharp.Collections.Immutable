@@ -33,3 +33,19 @@ val flatList : FlatListCE
 /// Evaluates to an indexed list of 0, 1, 4, 9, 100 and 200.
 /// </example>
 val indexedList : IndexedListCE
+
+/// <summary>
+/// Builds a stack, with the first element of the expression on top.
+/// </summary>
+/// <example id="stack-1">
+/// <code lang="fsharp">
+/// let squares = stack {
+///     yield 0
+///     for i in 1..3 do
+///         yield i * i
+///     yield! [ 100; 200 ]
+/// }
+/// </code>
+/// Evaluates to a stack of 0, 1, 4, 9, 100 and 200, with 0 on top.
+/// </example>
+val stack : StackCE
