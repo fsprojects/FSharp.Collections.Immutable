@@ -183,18 +183,22 @@ type FlatListParallelTests () =
             )
 
     [<TestMethod; TestCategory(nameof FlatList.Parallel.collect)>]
-    member _.``collect throws for a default flat list of the mapping as Array.Parallel does for a null array`` () =
-        ExceptionAssert.same
-            id
-            (fun () ->
-                Array.Parallel.collect (fun _ -> nullArray) [| 1 |]
-                |> ignore
+    member _.``collect throws ArgumentNullException for a default flat list of the mapping`` () =
+        // Array.Parallel.collect dereferences a null result; a default flat list is rejected as in the sequential collect
+        let ex =
+            Assert.ThrowsExactly<ArgumentNullException>(
+                Action (fun () ->
+                    FlatList.Parallel.collect (fun _ -> defaultArray) (FlatList.singleton 1)
+                    |> ignore
+                ),
+                "FlatList.Parallel.collect must reject a default flat list of the mapping"
             )
-            (fun () ->
-                FlatList.Parallel.collect (fun _ -> defaultArray) (FlatList.singleton 1)
-                |> ignore
-            )
-            "FlatList.Parallel.collect must throw for a default flat list of the mapping as Array.Parallel.collect does"
+
+        Assert.AreEqual<string | null>(
+            "mapping",
+            ex.ParamName,
+            "FlatList.Parallel.collect must name the mapping as the source of the default flat list"
+        )
 
     [<TestMethod; TestCategory(nameof FlatList.Parallel.filter)>]
     member _.``filter keeps the elements that satisfy the predicate in their order`` () =
