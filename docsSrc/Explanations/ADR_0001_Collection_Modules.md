@@ -100,7 +100,10 @@ Names: `IMap` module and `IMap<'Key, 'Value>` abbreviation for `IImmutableDictio
 `ISet<'T>` abbreviation, because it would shadow `System.Collections.Generic.ISet<'T>`, which `FrozenSet<'T>` implements.
 Maps and sets measure their size with `count` (FSharp.Core `Map.count`/`Set.count`), sequences with `length`. `Queue` keeps
 `enqueue`/`head`/`tail`/`uncons` (compiled `Enqueue`/`Peek`/`Dequeue`/`PeekDequeue`), `Stack` keeps `cons`/`head`/`tail`/
-`uncons` (`Push`/`Peek`/`Pop`/`PeekPop`). Computation expression instances: `flatList`, `indexedList`, `queue`, `stack`,
+`uncons` (`Push`/`Peek`/`Pop`/`PeekPop`). Their other functions of that kind use the same .NET vocabulary in compiled
+code: `tryHead`/`tryTail`/`tryUncons` compile as `TryPeek`/`TryDequeue`/`TryPeekDequeue` for `Queue` and as
+`TryPeek`/`TryPop`/`TryPeekPop` for `Stack`, `enqueueMany` as `EnqueueMany` and `consMany` as `PushMany`; the interface
+modules compile the same way. Computation expression instances: `flatList`, `indexedList`, `queue`, `stack`,
 `hashMap`, `sortedMap`, `hashSet`, `sortedSet`, `frozenMap`, `frozenSet`, and `equatableArray` of ADR 0002. The structs of
 D12 are `CustomComparersHashMap`, `CustomComparersSortedMap`, `CustomComparersFrozenMap`, `CustomComparerHashSet`,
 `CustomComparerSortedSet` and `CustomComparerFrozenSet`: the prefix names what the struct holds, the comparers of a map or
@@ -177,7 +180,11 @@ Priority for every function body:
 6. hand-written enumerator loops only where measured (an internal `SeqV` module for `Queue`/`Stack`/interface modules).
 
 The priority ranks only implementations that meet the documented contract (D6 exceptions, ordering, stability, comparison
-semantics); a faster candidate that breaks the contract is skipped. Sorting is the main case. Stability follows the
+semantics); a faster candidate that breaks the contract is skipped. In the other direction, a member gives way to a
+measured faster path that keeps the contract: `IndexedList.rev` copies the elements to an array, reverses it and builds
+the result with `ImmutableList.CreateRange`, about 2.5 times faster than `ImmutableList.Reverse` at 100 000 elements with
+the same allocation, and `IIndexedList.rev` reverses the same array and keeps the implementation of its input. Sorting is
+the main case of a contract that excludes a member. Stability follows the
 FSharp.Core module that a collection mirrors: `FlatList` and `FlatList.Parallel` sort unstably, as `Array.sort*` and
 `Array.Parallel.sort*` are documented ("This is not a stable sort"), through `ImmutableArray.Sort` or `Array.sort*` on the
 bridge; `IndexedList`, `Queue`, `Stack` and their interface modules sort stably, as `List.sort*` and `Seq.sort*` are
@@ -516,7 +523,7 @@ their element-type-changing transformations return the concrete type.
 | `pairwise` | Ⓣ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
 | `permute` | | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
 | `removeAt` / `removeManyAt` | | ✓ | ✓ | ✓ | – | – | – | – | |
-| `rev` | | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
+| `rev` | | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | IndexedList: array copy, `Array.Reverse`, `CreateRange`, measured faster than `ImmutableList.Reverse` (D5) |
 | `transpose` | | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
 | `unzip` / `unzip3` | Ⓣ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
 | `updateAt` | | ✓ | ✓ | ✓ | – | – | – | – | |
