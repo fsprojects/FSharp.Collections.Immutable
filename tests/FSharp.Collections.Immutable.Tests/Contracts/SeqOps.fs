@@ -3,7 +3,9 @@ namespace FSharp.Collections.Immutable.Tests
 open System
 open System.Collections.Generic
 
-/// <summary>The functions of a sequence-like module for the contract tests, over <see cref="T:System.Int32"/> elements.</summary>
+/// <summary>
+/// The functions of a sequence-like module for the contract tests, over <see cref="T:System.Int32"/> elements.
+/// </summary>
 /// <remarks>
 /// <para>
 /// A record of functions checks at compile time that a module provides every function of a facet (ADR 0001, D8). The
@@ -58,7 +60,7 @@ type SeqOps<'C> = {
     AllPairs : 'C -> 'C -> struct (int * int) array
     Append : 'C -> 'C -> 'C
     Choose : (int -> int voption) -> 'C -> 'C
-    ChunkBySize : int -> 'C -> int array array
+    ChunkBySize : int -> 'C -> int[][]
     Collect : (int -> 'C) -> 'C -> 'C
     Concat : seq<'C> -> 'C
     Filter : (int -> bool) -> 'C -> 'C
@@ -71,13 +73,13 @@ type SeqOps<'C> = {
     Pairwise : 'C -> struct (int * int) array
     Permute : (int -> int) -> 'C -> 'C
     Rev : 'C -> 'C
-    Transpose : seq<'C> -> int array array
+    Transpose : seq<'C> -> int[][]
     /// Unzips a collection of the given pairs.
     Unzip : struct (int * int) array -> struct (int array * int array)
     /// Unzips a collection of the given triples.
     Unzip3 : struct (int * int * int) array -> struct (int array * int array * int array)
     Where : (int -> bool) -> 'C -> 'C
-    Windowed : int -> 'C -> int array array
+    Windowed : int -> 'C -> int[][]
     Zip : 'C -> 'C -> struct (int * int) array
     Zip3 : 'C -> 'C -> 'C -> struct (int * int * int) array
 
@@ -101,8 +103,8 @@ type SeqOps<'C> = {
     MinBy : (int -> int) -> 'C -> int
     Reduce : (int -> int -> int) -> 'C -> int
     ReduceBack : (int -> int -> int) -> 'C -> int
-    Scan : (int array -> int -> int array) -> int array -> 'C -> int array array
-    ScanBack : (int -> int array -> int array) -> 'C -> int array -> int array array
+    Scan : (int array -> int -> int array) -> int array -> 'C -> int[][]
+    ScanBack : (int -> int array -> int array) -> 'C -> int array -> int[][]
     Sum : 'C -> int
     SumBy : (int -> int) -> 'C -> int
 
@@ -117,7 +119,7 @@ type SeqOps<'C> = {
     SkipLast : int -> 'C -> 'C
     SkipWhile : (int -> bool) -> 'C -> 'C
     SplitAt : int -> 'C -> struct ('C * 'C)
-    SplitInto : int -> 'C -> int array array
+    SplitInto : int -> 'C -> int[][]
     Take : int -> 'C -> 'C
     TakeLast : int -> 'C -> 'C
     TakeWhile : (int -> bool) -> 'C -> 'C
@@ -147,8 +149,12 @@ type SeqOps<'C> = {
     ToSeq : 'C -> seq<int>
 }
 
-/// <summary>The creation functions of a sequence-like module for the contract tests.</summary>
-/// <remarks>A function value cannot take a span, so the span functions take an array that the instance turns into a span.</remarks>
+/// <summary>
+/// The creation functions of a sequence-like module for the contract tests.
+/// </summary>
+/// <remarks>
+/// A function value cannot take a span, so the span functions take an array that the instance turns into a span.
+/// </remarks>
 type SeqCreationOps<'C> = {
     /// The name of the module, for the messages of the assertions.
     Name : string
@@ -171,7 +177,9 @@ type SeqCreationOps<'C> = {
     Unfold : (int -> struct (int * int) voption) -> int -> 'C
 }
 
-/// <summary>The index-based functions of a sequence-like module for the contract tests.</summary>
+/// <summary>
+/// The index-based functions of a sequence-like module for the contract tests.
+/// </summary>
 type IndexedOps<'C> = {
     /// The name of the module, for the messages of the assertions.
     Name : string

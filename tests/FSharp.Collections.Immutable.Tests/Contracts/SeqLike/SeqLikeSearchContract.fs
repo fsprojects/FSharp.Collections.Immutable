@@ -3,7 +3,9 @@ namespace FSharp.Collections.Immutable.Tests
 open FSharp.Collections.Immutable
 open Microsoft.VisualStudio.TestTools.UnitTesting
 
-/// <summary>The predicates of the search tests over elements, as the cases of their rows.</summary>
+/// <summary>
+/// The predicates of the search tests over elements, as the cases of their rows.
+/// </summary>
 /// <remarks>
 /// MSTest names a row after its values, and a function has no readable name, so a row holds a case and the test takes
 /// the function of the case.
@@ -27,7 +29,9 @@ type ElementPredicate =
         | ElementPredicate.IsBelowHundred -> item < 100
         | ElementPredicate.Never -> false
 
-/// <summary>The predicates of the search tests over the pairs of elements at the same index, as the cases of their rows.</summary>
+/// <summary>
+/// The predicates of the search tests over the pairs of elements at the same index, as the cases of their rows.
+/// </summary>
 /// <remarks>
 /// MSTest names a row after its values, and a function has no readable name, so a row holds a case and the test takes
 /// the function of the case.

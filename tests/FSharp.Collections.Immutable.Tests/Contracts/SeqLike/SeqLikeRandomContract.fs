@@ -4,7 +4,9 @@ open System
 open FSharp.Collections.Immutable
 open Microsoft.VisualStudio.TestTools.UnitTesting
 
-/// <summary>The contract of the random functions of a sequence-like module.</summary>
+/// <summary>
+/// The contract of the random functions of a sequence-like module.
+/// </summary>
 /// <remarks>
 /// With a seeded generator or a fixed randomizer, a function returns what the function of the mirrored FSharp.Core module
 /// returns for the same elements; with <see cref="P:System.Random.Shared"/>, the tests check the properties of the result.

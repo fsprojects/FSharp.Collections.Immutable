@@ -8,7 +8,9 @@ open Microsoft.VisualStudio.TestTools.UnitTesting
 /// The contract of the index-based functions of <c>FlatList</c>, <c>IndexedList</c> and <c>IIndexedList</c>
 /// (ADR 0001, Appendix A).
 /// </summary>
-/// <remarks>The tests run on the input with several elements; the indices of their rows are computed from its length.</remarks>
+/// <remarks>
+/// The tests run on the input with several elements; the indices of their rows are computed from its length.
+/// </remarks>
 [<AbstractClass>]
 type IndexedContract<'C> (ops : IndexedOps<'C>) =
     inherit ContractBase (ops.Name, ops.Mirror, ops.ParamName)

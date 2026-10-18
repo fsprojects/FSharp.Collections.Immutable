@@ -4,7 +4,9 @@ open System.Collections.Generic
 open FSharp.Collections.Immutable
 open Microsoft.VisualStudio.TestTools.UnitTesting
 
-/// <summary>The contract of the sorting functions of a sequence-like module.</summary>
+/// <summary>
+/// The contract of the sorting functions of a sequence-like module.
+/// </summary>
 /// <remarks>
 /// Equal keys belong to equal elements in these inputs, so the results do not depend on the stability of the sort;
 /// <c>StableSortContract</c> checks the stability of the modules that promise it.

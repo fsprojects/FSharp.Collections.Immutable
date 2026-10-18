@@ -3,7 +3,9 @@ namespace FSharp.Collections.Immutable.Tests
 open FSharp.Collections.Immutable
 open Microsoft.VisualStudio.TestTools.UnitTesting
 
-/// <summary>The helpers that the contract bases of the sequence-like modules share.</summary>
+/// <summary>
+/// The helpers that the contract bases of the sequence-like modules share.
+/// </summary>
 /// <remarks>
 /// The contract tests compute their expectations with the FSharp.Core <c>Array</c> module over the elements in the order
 /// in which the collection enumerates them, so one test body serves FIFO, LIFO and indexed collections (ADR 0001, D8).
