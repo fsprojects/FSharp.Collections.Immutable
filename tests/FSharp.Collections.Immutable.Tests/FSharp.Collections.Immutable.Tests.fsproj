@@ -22,7 +22,29 @@
     <Compile Include="Contracts\ExceptionAssert.fs" />
     <Compile Include="Contracts\Inputs.fs" />
     <Compile Include="Contracts\OverrideAssert.fs" />
+    <Compile Include="Contracts\ContractBase.fs" />
+    <Compile Include="Contracts\SeqOps.fs" />
+    <Compile Include="Contracts\SeqLike\SeqLikeAccessContract.fs" />
+    <Compile Include="Contracts\SeqLike\SeqLikeSearchContract.fs" />
+    <Compile Include="Contracts\SeqLike\SeqLikeTransformationContract.fs" />
+    <Compile Include="Contracts\SeqLike\SeqLikeFoldingContract.fs" />
+    <Compile Include="Contracts\SeqLike\SeqLikePartitioningContract.fs" />
+    <Compile Include="Contracts\SeqLike\SeqLikeSortingContract.fs" />
+    <Compile Include="Contracts\SeqLike\SeqLikeRandomContract.fs" />
+    <Compile Include="Contracts\SeqLike\SeqLikeContract.fs" />
+    <Compile Include="Contracts\SeqCreationContract.fs" />
+    <Compile Include="Contracts\IndexedContract.fs" />
     <Compile Include="TestCategoriesTests.fs" />
+    <Compile Include="FlatList\FlatListOps.fs" />
+    <Compile Include="FlatList\FlatListAssert.fs" />
+    <Compile Include="FlatList\FlatListOracles.fs" />
+    <Compile Include="FlatList\FlatListContractTests.fs" />
+    <Compile Include="FlatList\FlatListTests.fs" />
+    <Compile Include="FlatList\FlatListSearchTests.fs" />
+    <Compile Include="FlatList\FlatListBuilderTests.fs" />
+    <Compile Include="FlatList\FlatListComputationExpressionTests.fs" />
+    <Compile Include="FlatList\FlatListOptionTests.fs" />
+    <Compile Include="FlatList\FlatListTupleTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
