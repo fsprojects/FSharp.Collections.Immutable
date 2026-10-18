@@ -11,11 +11,11 @@ open Microsoft.VisualStudio.TestTools.UnitTesting
 type SeqCreationContract<'C> (ops : SeqCreationOps<'C>) =
     inherit ContractBase (ops.Name, ops.Mirror, ops.ParamName)
 
-    [<TestMethod; TestCategory(nameof FlatList.empty)>]
+    [<TestMethod>]
     member _.``empty has no elements`` () =
         Assert.IsEmpty (ops.ToList (ops.Empty ()), $"%s{ops.Name}.empty must have no elements")
 
-    [<TestMethod; TestCategory(nameof FlatList.init)>]
+    [<TestMethod>]
     member _.``init creates the elements in index order`` () =
         for count in [ 0; 1; 5 ] do
             Assert.AreEqual<int list>(
@@ -24,7 +24,7 @@ type SeqCreationContract<'C> (ops : SeqCreationOps<'C>) =
                 $"%s{ops.Name}.init %d{count}"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.init)>]
+    [<TestMethod>]
     member this.``init throws for a negative count as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.init -1 id),
@@ -33,7 +33,7 @@ type SeqCreationContract<'C> (ops : SeqCreationOps<'C>) =
             "init -1 must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.ofArray)>]
+    [<TestMethod>]
     member _.``ofArray copies the elements in order`` () =
         for input in Inputs.all do
             let source = List.toArray input
@@ -44,7 +44,7 @@ type SeqCreationContract<'C> (ops : SeqCreationOps<'C>) =
 
             Assert.AreEqual<int list>(input, ops.ToList collection, $"%s{ops.Name}.ofArray must copy %A{input}")
 
-    [<TestMethod; TestCategory(nameof FlatList.ofArray)>]
+    [<TestMethod>]
     member this.``ofArray throws for a null array as FSharp.Core does`` () =
         let source = Unchecked.defaultof<int array>
 
@@ -55,12 +55,12 @@ type SeqCreationContract<'C> (ops : SeqCreationOps<'C>) =
             "ofArray of a null array must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.ofList)>]
+    [<TestMethod>]
     member _.``ofList keeps the elements in order`` () =
         for input in Inputs.all do
             Assert.AreEqual<int list>(input, ops.ToList (ops.OfList input), $"%s{ops.Name}.ofList of %A{input}")
 
-    [<TestMethod; TestCategory(nameof FlatList.ofReadOnlySpan)>]
+    [<TestMethod>]
     member _.``ofReadOnlySpan copies the elements in order`` () =
         for input in Inputs.all do
             Assert.AreEqual<int list>(
@@ -69,7 +69,7 @@ type SeqCreationContract<'C> (ops : SeqCreationOps<'C>) =
                 $"%s{ops.Name}.ofReadOnlySpan of %A{input}"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.ofSeq)>]
+    [<TestMethod>]
     member _.``ofSeq keeps the elements in order`` () =
         for input in Inputs.all do
             Assert.AreEqual<int list>(input, ops.ToList (ops.OfSeq input), $"%s{ops.Name}.ofSeq of the list %A{input}")
@@ -86,7 +86,7 @@ type SeqCreationContract<'C> (ops : SeqCreationOps<'C>) =
                 $"%s{ops.Name}.ofSeq of a lazy sequence of %A{input}"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.ofSeq)>]
+    [<TestMethod>]
     member this.``ofSeq throws for a null sequence as FSharp.Core does`` () =
         let source = Unchecked.defaultof<seq<int>>
 
@@ -97,12 +97,12 @@ type SeqCreationContract<'C> (ops : SeqCreationOps<'C>) =
             "ofSeq of a null sequence must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.ofSpan)>]
+    [<TestMethod>]
     member _.``ofSpan copies the elements in order`` () =
         for input in Inputs.all do
             Assert.AreEqual<int list>(input, ops.ToList (ops.OfSpan (List.toArray input)), $"%s{ops.Name}.ofSpan of %A{input}")
 
-    [<TestMethod; TestCategory(nameof FlatList.replicate)>]
+    [<TestMethod>]
     member _.``replicate repeats the value`` () =
         for count in [ 0; 1; 4 ] do
             Assert.AreEqual<int list>(
@@ -111,7 +111,7 @@ type SeqCreationContract<'C> (ops : SeqCreationOps<'C>) =
                 $"%s{ops.Name}.replicate %d{count}"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.replicate)>]
+    [<TestMethod>]
     member this.``replicate throws for a negative count as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.replicate -1 7),
@@ -120,11 +120,11 @@ type SeqCreationContract<'C> (ops : SeqCreationOps<'C>) =
             "replicate -1 must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.singleton)>]
+    [<TestMethod>]
     member _.``singleton has one element`` () =
         Assert.AreEqual<int list>([ 42 ], ops.ToList (ops.Singleton 42), $"%s{ops.Name}.singleton must have one element")
 
-    [<TestMethod; TestCategory(nameof FlatList.unfold)>]
+    [<TestMethod>]
     member _.``unfold generates the elements until the generator stops`` () =
         let generator (state : int) =
             if state > 0 then

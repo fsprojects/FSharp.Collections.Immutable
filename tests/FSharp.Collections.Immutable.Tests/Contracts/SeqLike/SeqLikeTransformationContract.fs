@@ -16,7 +16,7 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
         triples
         |> List.map (fun (first, second, third) -> struct (first, second, third))
 
-    [<TestMethod; TestCategory(nameof FlatList.allPairs)>]
+    [<TestMethod>]
     member this.``allPairs pairs every element with every element of the other collection`` () =
         let other = ops.OfSeq [ 1; 2; 3 ]
         let otherElements = ops.ToList other
@@ -31,7 +31,7 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.append)>]
+    [<TestMethod>]
     member this.``append concatenates two collections`` () =
         for first in Inputs.all do
             for second in Inputs.all do
@@ -44,7 +44,7 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
                     $"%s{ops.Name}.append of %A{first} and %A{second}"
                 )
 
-    [<TestMethod; TestCategory(nameof FlatList.choose)>]
+    [<TestMethod>]
     member this.``choose keeps the chosen values in order`` () =
         this.ForEach (
             Inputs.all,
@@ -59,7 +59,7 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.chunkBySize)>]
+    [<TestMethod>]
     member this.``chunkBySize divides the elements into chunks`` () =
         this.ForEach (
             Inputs.all,
@@ -72,7 +72,7 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
                     )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.chunkBySize)>]
+    [<TestMethod>]
     member this.``chunkBySize throws for a size that is not positive as FSharp.Core does`` () =
         for size in [ 0; -1 ] do
             this.ThrowsLikeFSharpCore (
@@ -82,7 +82,7 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
                 $"chunkBySize %d{size} must throw"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.collect)>]
+    [<TestMethod>]
     member this.``collect concatenates the collections of the elements`` () =
         this.ForEach (
             Inputs.all,
@@ -94,7 +94,7 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.concat)>]
+    [<TestMethod>]
     member this.``concat concatenates a sequence of collections`` () =
         let collections = Inputs.all |> List.map (fun input -> ops.OfSeq input)
         let elements = collections |> List.map ops.ToList
@@ -106,7 +106,7 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
         )
         Assert.AreEqual<int list>([], ops.ToList (ops.Concat []), $"%s{ops.Name}.concat of no collections")
 
-    [<TestMethod; TestCategory(nameof FlatList.filter)>]
+    [<TestMethod>]
     member this.``filter keeps the elements that satisfy the predicate`` () =
         this.ForEach (
             Inputs.all,
@@ -118,7 +118,7 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.indexed)>]
+    [<TestMethod>]
     member this.``indexed pairs every element with its index`` () =
         this.ForEach (
             Inputs.all,
@@ -130,7 +130,7 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.map)>]
+    [<TestMethod>]
     member this.``map transforms every element`` () =
         this.ForEach (
             Inputs.all,
@@ -142,7 +142,7 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.map2)>]
+    [<TestMethod>]
     member this.``map2 transforms the pairs at the same index`` () =
         let collection = ops.OfSeq Inputs.several
         let other = ops.OfSeq Inputs.other
@@ -153,7 +153,7 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
             $"%s{ops.Name}.map2 of two collections"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.map2)>]
+    [<TestMethod>]
     member this.``map2 throws for different lengths as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.map2 (+) (List.toArray Inputs.singleton) (List.toArray Inputs.several)),
@@ -162,7 +162,7 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
             "map2 of collections of different lengths must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.map3)>]
+    [<TestMethod>]
     member this.``map3 transforms the triples at the same index`` () =
         let collection = ops.OfSeq Inputs.several
         let other = ops.OfSeq Inputs.other
@@ -174,7 +174,7 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
             $"%s{ops.Name}.map3 of three collections"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.map3)>]
+    [<TestMethod>]
     member this.``map3 throws for different lengths as FSharp.Core does`` () =
         let shortArray = List.toArray Inputs.singleton
         let longArray = List.toArray Inputs.several
@@ -192,7 +192,7 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
             "map3 of collections of different lengths must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.mapi)>]
+    [<TestMethod>]
     member this.``mapi transforms every element with its index`` () =
         this.ForEach (
             Inputs.all,
@@ -204,7 +204,7 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.mapi2)>]
+    [<TestMethod>]
     member this.``mapi2 transforms the pairs at the same index with the index`` () =
         let collection = ops.OfSeq Inputs.several
         let other = ops.OfSeq Inputs.other
@@ -215,7 +215,7 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
             $"%s{ops.Name}.mapi2 of two collections"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.mapi2)>]
+    [<TestMethod>]
     member this.``mapi2 throws for different lengths as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.mapi2 (fun _ a b -> a + b) (List.toArray Inputs.singleton) (List.toArray Inputs.several)),
@@ -224,7 +224,7 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
             "mapi2 of collections of different lengths must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.pairwise)>]
+    [<TestMethod>]
     member this.``pairwise pairs every element with its successor`` () =
         this.ForEach (
             Inputs.all,
@@ -236,7 +236,7 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.permute)>]
+    [<TestMethod>]
     member this.``permute moves every element to its new index`` () =
         this.ForEach (
             Inputs.nonEmpty,
@@ -251,7 +251,7 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.permute)>]
+    [<TestMethod>]
     member this.``permute throws for a function that is not a permutation as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.permute (fun _ -> 0) (List.toArray Inputs.several)),
@@ -260,7 +260,7 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
             "permute with a function that is not a permutation must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.rev)>]
+    [<TestMethod>]
     member this.``rev reverses the elements`` () =
         this.ForEach (
             Inputs.all,
@@ -268,7 +268,7 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
                 Assert.AreEqual<int list>(List.rev elements, ops.ToList (ops.Rev collection), $"%s{ops.Name}.rev of %A{elements}")
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.transpose)>]
+    [<TestMethod>]
     member this.``transpose turns the collections into their columns`` () =
         let collections =
             [ Inputs.several; Inputs.other; Inputs.third ]
@@ -281,7 +281,7 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
             $"%s{ops.Name}.transpose of %A{elements}"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.transpose)>]
+    [<TestMethod>]
     member this.``transpose throws for collections of different lengths as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.transpose [ List.toArray Inputs.several; List.toArray Inputs.singleton ]),
@@ -290,7 +290,7 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
             "transpose of collections of different lengths must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.unzip)>]
+    [<TestMethod>]
     member _.``unzip splits the pairs`` () =
         let pairs = List.zip Inputs.several Inputs.other
         let struct (first, second) = ops.Unzip (toStructPairs pairs)
@@ -298,7 +298,7 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
         Assert.AreEqual<int list>(expectedFirst, first, $"%s{ops.Name}.unzip must return the first components")
         Assert.AreEqual<int list>(expectedSecond, second, $"%s{ops.Name}.unzip must return the second components")
 
-    [<TestMethod; TestCategory(nameof FlatList.unzip3)>]
+    [<TestMethod>]
     member _.``unzip3 splits the triples`` () =
         let triples = List.zip3 Inputs.several Inputs.other Inputs.third
         let struct (first, second, third) = ops.Unzip3 (toStructTriples triples)
@@ -307,7 +307,7 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
         Assert.AreEqual<int list>(expectedSecond, second, $"%s{ops.Name}.unzip3 must return the second components")
         Assert.AreEqual<int list>(expectedThird, third, $"%s{ops.Name}.unzip3 must return the third components")
 
-    [<TestMethod; TestCategory(nameof FlatList.where)>]
+    [<TestMethod>]
     member this.``where keeps the elements that satisfy the predicate`` () =
         this.ForEach (
             Inputs.all,
@@ -319,7 +319,7 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.windowed)>]
+    [<TestMethod>]
     member this.``windowed returns the windows that slide over the elements`` () =
         this.ForEach (
             Inputs.all,
@@ -332,7 +332,7 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
                     )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.windowed)>]
+    [<TestMethod>]
     member this.``windowed throws for a size that is not positive as FSharp.Core does`` () =
         for size in [ 0; -1 ] do
             this.ThrowsLikeFSharpCore (
@@ -342,7 +342,7 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
                 $"windowed %d{size} must throw"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.zip)>]
+    [<TestMethod>]
     member _.``zip pairs the elements at the same index`` () =
         let collection = ops.OfSeq Inputs.several
         let other = ops.OfSeq Inputs.other
@@ -354,7 +354,7 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
             $"%s{ops.Name}.zip of two collections"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.zip)>]
+    [<TestMethod>]
     member this.``zip throws for different lengths as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.zip (List.toArray Inputs.singleton) (List.toArray Inputs.several)),
@@ -363,7 +363,7 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
             "zip of collections of different lengths must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.zip3)>]
+    [<TestMethod>]
     member _.``zip3 combines the elements at the same index`` () =
         let collection = ops.OfSeq Inputs.several
         let other = ops.OfSeq Inputs.other
@@ -376,7 +376,7 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
             $"%s{ops.Name}.zip3 of three collections"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.zip3)>]
+    [<TestMethod>]
     member this.``zip3 throws for different lengths as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.zip3 (List.toArray Inputs.several) (List.toArray Inputs.singleton) (List.toArray Inputs.several)),

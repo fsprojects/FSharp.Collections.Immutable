@@ -14,12 +14,12 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
     /// A folder from the end whose state records the order in which it saw the elements.
     static let recordBack (item : int) (state : int list) = item :: state
 
-    [<TestMethod; TestCategory(nameof FlatList.average)>]
+    [<TestMethod>]
     member _.``average returns the average of the elements`` () =
         for input in [ [ 1.5 ]; [ 1.0; 2.0; 4.5; -3.0 ] ] do
             Assert.AreEqual<float>(List.average input, ops.Average input, $"%s{ops.Name}.average of %A{input}")
 
-    [<TestMethod; TestCategory(nameof FlatList.average)>]
+    [<TestMethod>]
     member this.``average throws for an empty collection as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.average Array.empty<float>),
@@ -28,7 +28,7 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
             "average of an empty collection must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.averageBy)>]
+    [<TestMethod>]
     member this.``averageBy returns the average of the projections`` () =
         this.ForEach (
             Inputs.nonEmpty,
@@ -40,7 +40,7 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.averageBy)>]
+    [<TestMethod>]
     member this.``averageBy throws for an empty collection as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.averageBy float Array.empty<int>),
@@ -49,7 +49,7 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
             "averageBy of an empty collection must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.compareWith)>]
+    [<TestMethod>]
     member _.``compareWith compares element by element and then by length`` () =
         for first in Inputs.all do
             for second in Inputs.all @ [ [ 5; -3 ]; [ 5; 0 ] ] do
@@ -63,7 +63,7 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
                     $"%s{ops.Name}.compareWith of %A{first} and %A{second}"
                 )
 
-    [<TestMethod; TestCategory(nameof FlatList.fold)>]
+    [<TestMethod>]
     member this.``fold visits the elements from the first one`` () =
         this.ForEach (
             Inputs.all,
@@ -75,7 +75,7 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.fold2)>]
+    [<TestMethod>]
     member _.``fold2 visits the pairs from the first index`` () =
         let collection = ops.OfSeq Inputs.several
         let other = ops.OfSeq Inputs.other
@@ -87,7 +87,7 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
             $"%s{ops.Name}.fold2 over two collections"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.fold2)>]
+    [<TestMethod>]
     member this.``fold2 throws for different lengths as FSharp.Core does`` () =
         let folder (state : int list) (_ : int) (_ : int) = state
 
@@ -98,7 +98,7 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
             "fold2 of collections of different lengths must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.foldBack)>]
+    [<TestMethod>]
     member this.``foldBack visits the elements from the last one`` () =
         this.ForEach (
             Inputs.all,
@@ -110,7 +110,7 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.foldBack2)>]
+    [<TestMethod>]
     member _.``foldBack2 visits the pairs from the last index`` () =
         let collection = ops.OfSeq Inputs.several
         let other = ops.OfSeq Inputs.other
@@ -122,7 +122,7 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
             $"%s{ops.Name}.foldBack2 over two collections"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.foldBack2)>]
+    [<TestMethod>]
     member this.``foldBack2 throws for different lengths as FSharp.Core does`` () =
         let folder (_ : int) (_ : int) (state : int list) = state
 
@@ -133,7 +133,7 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
             "foldBack2 of collections of different lengths must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.iter)>]
+    [<TestMethod>]
     member this.``iter visits every element in order`` () =
         this.ForEach (
             Inputs.all,
@@ -143,7 +143,7 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
                 Assert.AreEqual<int list>(elements, List.ofSeq visited, $"%s{ops.Name}.iter over %A{elements}")
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.iter2)>]
+    [<TestMethod>]
     member _.``iter2 visits every pair in order`` () =
         let collection = ops.OfSeq Inputs.several
         let other = ops.OfSeq Inputs.other
@@ -157,7 +157,7 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
             $"%s{ops.Name}.iter2 over two collections"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.iter2)>]
+    [<TestMethod>]
     member this.``iter2 throws for different lengths as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.iter2 (fun _ _ -> ()) (List.toArray Inputs.singleton) (List.toArray Inputs.several)),
@@ -166,7 +166,7 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
             "iter2 of collections of different lengths must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.iteri)>]
+    [<TestMethod>]
     member this.``iteri visits every element with its index`` () =
         this.ForEach (
             Inputs.all,
@@ -182,7 +182,7 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.iteri2)>]
+    [<TestMethod>]
     member _.``iteri2 visits every pair with its index`` () =
         let collection = ops.OfSeq Inputs.several
         let other = ops.OfSeq Inputs.other
@@ -196,7 +196,7 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
             $"%s{ops.Name}.iteri2 over two collections"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.iteri2)>]
+    [<TestMethod>]
     member this.``iteri2 throws for different lengths as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.iteri2 (fun _ _ _ -> ()) (List.toArray Inputs.singleton) (List.toArray Inputs.several)),
@@ -205,7 +205,7 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
             "iteri2 of collections of different lengths must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.mapFold)>]
+    [<TestMethod>]
     member this.``mapFold maps the elements and threads the state from the first one`` () =
         this.ForEach (
             Inputs.all,
@@ -217,7 +217,7 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
                 Assert.AreEqual<int>(expectedState, state, $"%s{ops.Name}.mapFold state over %A{elements}")
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.mapFoldBack)>]
+    [<TestMethod>]
     member this.``mapFoldBack maps the elements and threads the state from the last one`` () =
         this.ForEach (
             Inputs.all,
@@ -231,7 +231,7 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
                 Assert.AreEqual<int>(expectedState, state, $"%s{ops.Name}.mapFoldBack state over %A{elements}")
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.max)>]
+    [<TestMethod>]
     member this.``max returns the greatest element`` () =
         this.ForEach (
             Inputs.nonEmpty,
@@ -239,7 +239,7 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
                 Assert.AreEqual<int>(List.max elements, ops.Max collection, $"%s{ops.Name}.max of %A{elements}")
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.max)>]
+    [<TestMethod>]
     member this.``max throws for an empty collection as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.max Array.empty<int>),
@@ -248,7 +248,7 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
             "max of an empty collection must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.maxBy)>]
+    [<TestMethod>]
     member this.``maxBy returns the first element with the greatest projection`` () =
         this.ForEach (
             Inputs.nonEmpty,
@@ -256,7 +256,7 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
                 Assert.AreEqual<int>(List.maxBy abs elements, ops.MaxBy abs collection, $"%s{ops.Name}.maxBy of %A{elements}")
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.maxBy)>]
+    [<TestMethod>]
     member this.``maxBy throws for an empty collection as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.maxBy abs Array.empty<int>),
@@ -265,7 +265,7 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
             "maxBy of an empty collection must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.min)>]
+    [<TestMethod>]
     member this.``min returns the smallest element`` () =
         this.ForEach (
             Inputs.nonEmpty,
@@ -273,7 +273,7 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
                 Assert.AreEqual<int>(List.min elements, ops.Min collection, $"%s{ops.Name}.min of %A{elements}")
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.min)>]
+    [<TestMethod>]
     member this.``min throws for an empty collection as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.min Array.empty<int>),
@@ -282,7 +282,7 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
             "min of an empty collection must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.minBy)>]
+    [<TestMethod>]
     member this.``minBy returns the first element with the smallest projection`` () =
         this.ForEach (
             Inputs.nonEmpty,
@@ -290,7 +290,7 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
                 Assert.AreEqual<int>(List.minBy abs elements, ops.MinBy abs collection, $"%s{ops.Name}.minBy of %A{elements}")
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.minBy)>]
+    [<TestMethod>]
     member this.``minBy throws for an empty collection as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.minBy abs Array.empty<int>),
@@ -299,7 +299,7 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
             "minBy of an empty collection must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.reduce)>]
+    [<TestMethod>]
     member this.``reduce combines the elements from the first one`` () =
         this.ForEach (
             Inputs.nonEmpty,
@@ -311,7 +311,7 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.reduce)>]
+    [<TestMethod>]
     member this.``reduce throws for an empty collection as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.reduce (+) Array.empty<int>),
@@ -320,7 +320,7 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
             "reduce of an empty collection must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.reduceBack)>]
+    [<TestMethod>]
     member this.``reduceBack combines the elements from the last one`` () =
         this.ForEach (
             Inputs.nonEmpty,
@@ -332,7 +332,7 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.reduceBack)>]
+    [<TestMethod>]
     member this.``reduceBack throws for an empty collection as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.reduceBack (+) Array.empty<int>),
@@ -341,7 +341,7 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
             "reduceBack of an empty collection must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.scan)>]
+    [<TestMethod>]
     member this.``scan returns every state from the first element`` () =
         this.ForEach (
             Inputs.all,
@@ -353,7 +353,7 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.scanBack)>]
+    [<TestMethod>]
     member this.``scanBack returns every state from the last element`` () =
         this.ForEach (
             Inputs.all,
@@ -365,7 +365,7 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.sum)>]
+    [<TestMethod>]
     member this.``sum adds the elements`` () =
         this.ForEach (
             Inputs.all,
@@ -373,7 +373,7 @@ type SeqLikeFoldingContract<'C> (ops : SeqOps<'C>) =
                 Assert.AreEqual<int>(List.sum elements, ops.Sum collection, $"%s{ops.Name}.sum of %A{elements}")
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.sumBy)>]
+    [<TestMethod>]
     member this.``sumBy adds the projections`` () =
         this.ForEach (
             Inputs.all,

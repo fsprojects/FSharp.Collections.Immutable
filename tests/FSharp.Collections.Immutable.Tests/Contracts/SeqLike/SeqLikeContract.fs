@@ -14,7 +14,7 @@ open Microsoft.VisualStudio.TestTools.UnitTesting
 type SeqLikeContract<'C> (ops : SeqOps<'C>) =
     inherit SeqLikeRandomContract<'C> (ops)
 
-    [<TestMethod; TestCategory(nameof FlatList.toArray)>]
+    [<TestMethod>]
     member this.``toArray returns the elements in order`` () =
         this.ForEach (
             Inputs.all,
@@ -22,7 +22,7 @@ type SeqLikeContract<'C> (ops : SeqOps<'C>) =
                 CollectionAssert.AreEqual (List.toArray elements, ops.ToArray collection, $"%s{ops.Name}.toArray of %A{elements}")
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.toArray)>]
+    [<TestMethod>]
     member _.``toArray returns a new array`` () =
         let collection = ops.OfSeq Inputs.several
         let array = ops.ToArray collection
@@ -34,7 +34,7 @@ type SeqLikeContract<'C> (ops : SeqOps<'C>) =
             $"%s{ops.Name}.toArray must return a copy that does not change the collection"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.toSeq)>]
+    [<TestMethod>]
     member this.``toSeq returns the elements in order`` () =
         this.ForEach (
             Inputs.all,

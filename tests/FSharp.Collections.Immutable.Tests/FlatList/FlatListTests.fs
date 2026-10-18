@@ -17,12 +17,12 @@ type FlatListTests () =
     /// The array under a flat list, to tell whether two flat lists share their storage.
     static let underlying (array : FlatList<int>) = ImmutableCollectionsMarshal.AsArray array
 
-    [<TestMethod; TestCategory(nameof FlatList.create)>]
+    [<TestMethod>]
     member _.``create repeats the value`` () =
         Assert.AreEqual<int list>([ 7; 7; 7 ], FlatList.toList (FlatList.create 3 7), "FlatList.create must repeat the value")
         Assert.IsEmpty (FlatList.create 0 7, "FlatList.create 0 must be empty")
 
-    [<TestMethod; TestCategory(nameof FlatList.create)>]
+    [<TestMethod>]
     member _.``create throws for a negative count as Array does`` () =
         ExceptionAssert.same
             id
@@ -30,7 +30,7 @@ type FlatListTests () =
             (fun () -> FlatList.create -1 7 |> ignore)
             "FlatList.create -1 must throw as Array.create does"
 
-    [<TestMethod; TestCategory(nameof FlatList.isDefault)>]
+    [<TestMethod>]
     member _.``isDefault and isDefaultOrEmpty tell a default value from an empty one`` () =
         Assert.IsTrue (FlatList.isDefault defaultArray, "isDefault must be true for a default value")
         Assert.IsFalse (FlatList.isDefault FlatList.empty<int>, "isDefault must be false for an empty flat list")
@@ -41,7 +41,7 @@ type FlatListTests () =
             "isDefaultOrEmpty must be false for a non-empty flat list"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.isDefault)>]
+    [<TestMethod>]
     member _.``functions reject a default flat list as Array rejects a null array`` () =
         let cases : struct (string * (unit -> unit) * (unit -> unit)) list = [
             struct (nameof FlatList.allPairs,
@@ -182,7 +182,7 @@ type FlatListTests () =
         for struct (name, oracle, actual) in cases do
             ExceptionAssert.same id oracle actual $"FlatList.%s{name} must reject a default flat list"
 
-    [<TestMethod; TestCategory(nameof FlatList.isDefault)>]
+    [<TestMethod>]
     member _.``functions without an Array counterpart reject a default flat list`` () =
         let cases : struct (string * string * (unit -> unit)) list = [
             struct (nameof FlatList.add, "array", (fun () -> FlatList.add 1 defaultArray |> ignore))
@@ -239,7 +239,7 @@ type FlatListTests () =
                 $"FlatList.%s{name} must name the parameter of the default flat list"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.countBy)>]
+    [<TestMethod>]
     member _.``countBy counts null keys like any other key`` () =
         let array = FlatList.ofList Inputs.several
         let keyOf (item : int) = if item > 0 then Some (item % 2) else None
@@ -251,13 +251,13 @@ type FlatListTests () =
             "FlatList.countBy must count the key None, which is null, as List.countBy does"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.asSpan)>]
+    [<TestMethod>]
     member _.``asSpan views the elements`` () =
         let array = FlatList.ofList Inputs.several
         let span = FlatList.asSpan array
         CollectionAssert.AreEqual (List.toArray Inputs.several, span.ToArray (), "FlatList.asSpan must view the elements")
 
-    [<TestMethod; TestCategory(nameof FlatList.asMemory)>]
+    [<TestMethod>]
     member _.``asMemory views the underlying array without a copy`` () =
         let array = FlatList.ofList Inputs.several
         let memory = FlatList.asMemory array
@@ -266,7 +266,7 @@ type FlatListTests () =
         Assert.AreSame (underlying array, segment.Array, "FlatList.asMemory must view the underlying array")
         Assert.HasCount (Inputs.several.Length, segment, "FlatList.asMemory must view every element")
 
-    [<TestMethod; TestCategory(nameof FlatList.binarySearch)>]
+    [<TestMethod>]
     member _.``binarySearch finds a value or the complement of its insertion point`` () =
         let array = FlatList.ofList [ 1; 3; 5; 7 ]
         Assert.AreEqual<int>(2, FlatList.binarySearch 5 array, "FlatList.binarySearch must find 5 at index 2")
@@ -281,7 +281,7 @@ type FlatListTests () =
             "FlatList.binarySearch must return the complement of the length for 9"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.binarySearch)>]
+    [<TestMethod>]
     member _.``binarySearch uses the order of sort, which is ordinal for strings`` () =
         let array = FlatList.ofList [ "b"; "A"; "a"; "B" ] |> FlatList.sort
         Assert.AreEqual<string list>([ "A"; "B"; "a"; "b" ], FlatList.toList array, "FlatList.sort must order strings ordinally")
@@ -293,13 +293,13 @@ type FlatListTests () =
                 $"FlatList.binarySearch must find %s{array[index]}"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.blit)>]
+    [<TestMethod>]
     member _.``blit copies a range into an array`` () =
         let target = Array.zeroCreate<int> 5
         FlatList.blit (FlatList.ofList Inputs.several) 2 target 1 3
         CollectionAssert.AreEqual ([| 0; 8; 5; 0; 0 |], target, "FlatList.blit must copy three elements from index 2 to index 1")
 
-    [<TestMethod; TestCategory(nameof FlatList.blit)>]
+    [<TestMethod>]
     member _.``blit throws for a range out of range as Array does`` () =
         let source = List.toArray Inputs.several
 
@@ -309,12 +309,12 @@ type FlatListTests () =
             (fun () -> FlatList.blit (FlatList.ofArray source) 6 (Array.zeroCreate 5) 0 3)
             "FlatList.blit beyond the source must throw as Array.blit does"
 
-    [<TestMethod; TestCategory(nameof FlatList.ofSeq)>]
+    [<TestMethod>]
     member _.``ofSeq of a flat list shares its storage`` () =
         let array = FlatList.ofList Inputs.several
         Assert.AreSame (underlying array, underlying (FlatList.ofSeq array), "FlatList.ofSeq of a flat list must not copy it")
 
-    [<TestMethod; TestCategory(nameof FlatList.take)>]
+    [<TestMethod>]
     member _.``range functions return the input itself for the whole range`` () =
         let array = FlatList.ofList Inputs.several
 
@@ -331,7 +331,7 @@ type FlatListTests () =
         for name, result in results do
             Assert.AreSame (underlying array, underlying result, $"FlatList.%s{name} of the whole range must return the input")
 
-    [<TestMethod; TestCategory(nameof FlatList.take)>]
+    [<TestMethod>]
     member _.``range functions copy a partial range`` () =
         let array = FlatList.ofList Inputs.several
         let struct (before, after) = FlatList.splitAt 3 array
@@ -345,7 +345,7 @@ type FlatListTests () =
             ] do
             Assert.AreNotSame (underlying array, underlying result, $"FlatList.%s{name} of a partial range must copy it")
 
-    [<TestMethod; TestCategory(nameof FlatList.append)>]
+    [<TestMethod>]
     member _.``append returns the other flat list when one is empty`` () =
         let array = FlatList.ofList Inputs.several
         Assert.AreSame (
@@ -359,7 +359,7 @@ type FlatListTests () =
             "FlatList.append of an empty first flat list must return the second one"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.sortWithComparer)>]
+    [<TestMethod>]
     member _.``sortWithComparer returns a sorted input itself`` () =
         let array = FlatList.ofList [ 1; 2; 3 ]
         Assert.AreSame (

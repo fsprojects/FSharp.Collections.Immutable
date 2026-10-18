@@ -13,7 +13,7 @@ open Microsoft.VisualStudio.TestTools.UnitTesting
 type SeqLikeSortingContract<'C> (ops : SeqOps<'C>) =
     inherit SeqLikePartitioningContract<'C> (ops)
 
-    [<TestMethod; TestCategory(nameof FlatList.sort)>]
+    [<TestMethod>]
     member this.``sort orders the elements ascending`` () =
         this.ForEach (
             Inputs.all,
@@ -25,7 +25,7 @@ type SeqLikeSortingContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.sortBy)>]
+    [<TestMethod>]
     member this.``sortBy orders the elements by the projection`` () =
         this.ForEach (
             Inputs.all,
@@ -37,7 +37,7 @@ type SeqLikeSortingContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.sortByDescending)>]
+    [<TestMethod>]
     member this.``sortByDescending orders the elements by the projection descending`` () =
         this.ForEach (
             Inputs.all,
@@ -49,7 +49,7 @@ type SeqLikeSortingContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.sortDescending)>]
+    [<TestMethod>]
     member this.``sortDescending orders the elements descending`` () =
         this.ForEach (
             Inputs.all,
@@ -61,7 +61,7 @@ type SeqLikeSortingContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.sortWith)>]
+    [<TestMethod>]
     member this.``sortWith orders the elements with the comparison function`` () =
         let descending (left : int) (right : int) = compare right left
 
@@ -75,7 +75,7 @@ type SeqLikeSortingContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.sortWithComparer)>]
+    [<TestMethod>]
     member this.``sortWithComparer orders the elements with the comparer`` () =
         let descending = Comparer<int>.Create (fun left right -> compare right left)
 

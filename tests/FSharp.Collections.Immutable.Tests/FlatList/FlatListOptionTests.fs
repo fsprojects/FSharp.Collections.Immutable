@@ -16,7 +16,7 @@ type FlatListOptionTests () =
 
     static let negatedIfNegative (item : int) = if item < 0 then Some (-item) else None
 
-    [<TestMethod; TestCategory(nameof FlatList.unfold)>]
+    [<TestMethod>]
     member _.``unfold takes a generator of options of reference tuples`` () =
         let generator (state : int) = if state > 0 then Some (state, state - 1) else None
         let generated : FlatList<int> = FlatList.unfold generator 3
@@ -26,7 +26,7 @@ type FlatListOptionTests () =
             "Option.FlatList.unfold must generate as List.unfold does"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.tryExactlyOne)>]
+    [<TestMethod>]
     member _.``tryExactlyOne returns an option`` () =
         let found : int option = FlatList.tryExactlyOne (FlatList.singleton 5)
 
@@ -35,7 +35,7 @@ type FlatListOptionTests () =
             found
             "Option.FlatList.tryExactlyOne must match the default after conversion"
 
-    [<TestMethod; TestCategory(nameof FlatList.tryHead)>]
+    [<TestMethod>]
     member _.``tryHead returns an option`` () =
         let found : int option = FlatList.tryHead array
         OverrideAssert.optionMatches
@@ -43,7 +43,7 @@ type FlatListOptionTests () =
             found
             "Option.FlatList.tryHead must match the default"
 
-    [<TestMethod; TestCategory(nameof FlatList.tryItem)>]
+    [<TestMethod>]
     member _.``tryItem returns an option`` () =
         for index in [ -1; 2; 8 ] do
             let found : int option = FlatList.tryItem index array
@@ -53,7 +53,7 @@ type FlatListOptionTests () =
                 found
                 $"Option.FlatList.tryItem %d{index} must match the default"
 
-    [<TestMethod; TestCategory(nameof FlatList.tryLast)>]
+    [<TestMethod>]
     member _.``tryLast returns an option`` () =
         let found : int option = FlatList.tryLast array
         OverrideAssert.optionMatches
@@ -61,7 +61,7 @@ type FlatListOptionTests () =
             found
             "Option.FlatList.tryLast must match the default"
 
-    [<TestMethod; TestCategory(nameof FlatList.tryTail)>]
+    [<TestMethod>]
     member _.``tryTail returns an option`` () =
         let found : FlatList<int> option = FlatList.tryTail array
 
@@ -73,7 +73,7 @@ type FlatListOptionTests () =
             "Option.FlatList.tryTail must match the default"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.pick)>]
+    [<TestMethod>]
     member _.``pick takes a chooser of options`` () =
         let picked : int = FlatList.pick negatedIfNegative array
         Assert.AreEqual<int>(
@@ -82,7 +82,7 @@ type FlatListOptionTests () =
             "Option.FlatList.pick must pick as List.pick does"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.tryFind)>]
+    [<TestMethod>]
     member _.``tryFind returns an option`` () =
         let found : int option = FlatList.tryFind (fun item -> item > 6) array
 
@@ -91,7 +91,7 @@ type FlatListOptionTests () =
             found
             "Option.FlatList.tryFind must match the default"
 
-    [<TestMethod; TestCategory(nameof FlatList.tryFindBack)>]
+    [<TestMethod>]
     member _.``tryFindBack returns an option`` () =
         let found : int option = FlatList.tryFindBack (fun item -> item > 6) array
 
@@ -100,7 +100,7 @@ type FlatListOptionTests () =
             found
             "Option.FlatList.tryFindBack must match the default"
 
-    [<TestMethod; TestCategory(nameof FlatList.tryFindIndex)>]
+    [<TestMethod>]
     member _.``tryFindIndex returns an option`` () =
         let found : int option = FlatList.tryFindIndex (fun item -> item > 6) array
 
@@ -109,7 +109,7 @@ type FlatListOptionTests () =
             found
             "Option.FlatList.tryFindIndex must match the default"
 
-    [<TestMethod; TestCategory(nameof FlatList.tryFindIndexBack)>]
+    [<TestMethod>]
     member _.``tryFindIndexBack returns an option`` () =
         let found : int option = FlatList.tryFindIndexBack (fun item -> item > 6) array
 
@@ -118,7 +118,7 @@ type FlatListOptionTests () =
             found
             "Option.FlatList.tryFindIndexBack must match the default"
 
-    [<TestMethod; TestCategory(nameof FlatList.tryPick)>]
+    [<TestMethod>]
     member _.``tryPick takes a chooser of options and returns an option`` () =
         let found : int option = FlatList.tryPick negatedIfNegative array
         Assert.AreEqual<int option>(
@@ -127,7 +127,7 @@ type FlatListOptionTests () =
             "Option.FlatList.tryPick must pick as List.tryPick does"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.choose)>]
+    [<TestMethod>]
     member _.``choose takes a chooser of options`` () =
         let chosen : FlatList<int> = FlatList.choose negatedIfNegative array
 
@@ -137,7 +137,7 @@ type FlatListOptionTests () =
             "Option.FlatList.choose must choose as List.choose does"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.map)>]
+    [<TestMethod>]
     member _.``the functions without an option keep resolving to the default module`` () =
         let mapped : FlatList<int> = FlatList.map (fun item -> item * 2) array
         let zipped : FlatList<int * int> = FlatList.zip array array

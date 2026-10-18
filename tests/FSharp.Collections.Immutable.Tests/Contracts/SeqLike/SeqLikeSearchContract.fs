@@ -18,7 +18,7 @@ type SeqLikeSearchContract<'C> (ops : SeqOps<'C>) =
     /// The same chooser as `negatedIfNegative`, for the FSharp.Core oracle.
     static let negatedIfNegativeOption (item : int) = if item < 0 then Some (-item) else None
 
-    [<TestMethod; TestCategory(nameof FlatList.contains)>]
+    [<TestMethod>]
     member this.``contains finds an element equal to the value`` () =
         this.ForEach (
             Inputs.all,
@@ -31,7 +31,7 @@ type SeqLikeSearchContract<'C> (ops : SeqOps<'C>) =
                     )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.exists)>]
+    [<TestMethod>]
     member this.``exists finds an element that satisfies the predicate`` () =
         this.ForEach (
             Inputs.all,
@@ -44,7 +44,7 @@ type SeqLikeSearchContract<'C> (ops : SeqOps<'C>) =
                     )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.exists2)>]
+    [<TestMethod>]
     member this.``exists2 tests the pairs at the same index`` () =
         let collection = ops.OfSeq Inputs.several
         let other = ops.OfSeq Inputs.other
@@ -58,7 +58,7 @@ type SeqLikeSearchContract<'C> (ops : SeqOps<'C>) =
                 $"%s{ops.Name}.exists2 over %A{elements} and %A{otherElements}"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.exists2)>]
+    [<TestMethod>]
     member this.``exists2 throws for different lengths as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.exists2 (fun _ _ -> false) (List.toArray Inputs.singleton) (List.toArray Inputs.several)),
@@ -67,7 +67,7 @@ type SeqLikeSearchContract<'C> (ops : SeqOps<'C>) =
             "exists2 of collections of different lengths must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.find)>]
+    [<TestMethod>]
     member this.``find returns the first element that satisfies the predicate`` () =
         this.ForEach (
             [ Inputs.several ],
@@ -80,7 +80,7 @@ type SeqLikeSearchContract<'C> (ops : SeqOps<'C>) =
                     )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.find)>]
+    [<TestMethod>]
     member this.``find throws when no element satisfies the predicate as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.find never (List.toArray Inputs.several)),
@@ -89,7 +89,7 @@ type SeqLikeSearchContract<'C> (ops : SeqOps<'C>) =
             "find without a match must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.findBack)>]
+    [<TestMethod>]
     member this.``findBack returns the last element that satisfies the predicate`` () =
         this.ForEach (
             [ Inputs.several ],
@@ -102,7 +102,7 @@ type SeqLikeSearchContract<'C> (ops : SeqOps<'C>) =
                     )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.findBack)>]
+    [<TestMethod>]
     member this.``findBack throws when no element satisfies the predicate as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.findBack never (List.toArray Inputs.several)),
@@ -111,7 +111,7 @@ type SeqLikeSearchContract<'C> (ops : SeqOps<'C>) =
             "findBack without a match must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.findIndex)>]
+    [<TestMethod>]
     member this.``findIndex returns the index of the first element that satisfies the predicate`` () =
         this.ForEach (
             [ Inputs.several ],
@@ -124,7 +124,7 @@ type SeqLikeSearchContract<'C> (ops : SeqOps<'C>) =
                     )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.findIndex)>]
+    [<TestMethod>]
     member this.``findIndex throws when no element satisfies the predicate as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.findIndex never (List.toArray Inputs.several)),
@@ -133,7 +133,7 @@ type SeqLikeSearchContract<'C> (ops : SeqOps<'C>) =
             "findIndex without a match must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.findIndexBack)>]
+    [<TestMethod>]
     member this.``findIndexBack returns the index of the last element that satisfies the predicate`` () =
         this.ForEach (
             [ Inputs.several ],
@@ -146,7 +146,7 @@ type SeqLikeSearchContract<'C> (ops : SeqOps<'C>) =
                     )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.findIndexBack)>]
+    [<TestMethod>]
     member this.``findIndexBack throws when no element satisfies the predicate as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.findIndexBack never (List.toArray Inputs.several)),
@@ -155,7 +155,7 @@ type SeqLikeSearchContract<'C> (ops : SeqOps<'C>) =
             "findIndexBack without a match must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.forall)>]
+    [<TestMethod>]
     member this.``forall checks that every element satisfies the predicate`` () =
         this.ForEach (
             Inputs.all,
@@ -168,7 +168,7 @@ type SeqLikeSearchContract<'C> (ops : SeqOps<'C>) =
                     )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.forall2)>]
+    [<TestMethod>]
     member this.``forall2 tests every pair at the same index`` () =
         let collection = ops.OfSeq Inputs.several
         let other = ops.OfSeq Inputs.other
@@ -182,7 +182,7 @@ type SeqLikeSearchContract<'C> (ops : SeqOps<'C>) =
                 $"%s{ops.Name}.forall2 over %A{elements} and %A{otherElements}"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.forall2)>]
+    [<TestMethod>]
     member this.``forall2 throws for different lengths as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.forall2 (fun _ _ -> true) (List.toArray Inputs.singleton) (List.toArray Inputs.several)),
@@ -191,7 +191,7 @@ type SeqLikeSearchContract<'C> (ops : SeqOps<'C>) =
             "forall2 of collections of different lengths must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.pick)>]
+    [<TestMethod>]
     member this.``pick returns the first chosen value`` () =
         this.ForEach (
             [ Inputs.several ],
@@ -203,7 +203,7 @@ type SeqLikeSearchContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.pick)>]
+    [<TestMethod>]
     member this.``pick throws when the chooser returns nothing as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.pick (fun _ -> None) (List.toArray Inputs.several) : int),
@@ -212,7 +212,7 @@ type SeqLikeSearchContract<'C> (ops : SeqOps<'C>) =
             "pick without a choice must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.tryFind)>]
+    [<TestMethod>]
     member this.``tryFind returns the first element that satisfies the predicate or nothing`` () =
         this.ForEach (
             Inputs.all,
@@ -225,7 +225,7 @@ type SeqLikeSearchContract<'C> (ops : SeqOps<'C>) =
                     )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.tryFindBack)>]
+    [<TestMethod>]
     member this.``tryFindBack returns the last element that satisfies the predicate or nothing`` () =
         this.ForEach (
             Inputs.all,
@@ -238,7 +238,7 @@ type SeqLikeSearchContract<'C> (ops : SeqOps<'C>) =
                     )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.tryFindIndex)>]
+    [<TestMethod>]
     member this.``tryFindIndex returns the index of the first element that satisfies the predicate or nothing`` () =
         this.ForEach (
             Inputs.all,
@@ -251,7 +251,7 @@ type SeqLikeSearchContract<'C> (ops : SeqOps<'C>) =
                     )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.tryFindIndexBack)>]
+    [<TestMethod>]
     member this.``tryFindIndexBack returns the index of the last element that satisfies the predicate or nothing`` () =
         this.ForEach (
             Inputs.all,
@@ -265,7 +265,7 @@ type SeqLikeSearchContract<'C> (ops : SeqOps<'C>) =
                     )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.tryPick)>]
+    [<TestMethod>]
     member this.``tryPick returns the first chosen value or nothing`` () =
         this.ForEach (
             Inputs.all,

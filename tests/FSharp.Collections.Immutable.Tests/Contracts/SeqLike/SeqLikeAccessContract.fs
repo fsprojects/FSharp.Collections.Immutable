@@ -25,7 +25,7 @@ type SeqLikeAccessContract<'C> (ops : SeqOps<'C>) =
 
     // ---- Properties ----
 
-    [<TestMethod; TestCategory(nameof FlatList.isEmpty)>]
+    [<TestMethod>]
     member this.``isEmpty is true only for a collection without elements`` () =
         this.ForEach (
             Inputs.all,
@@ -33,7 +33,7 @@ type SeqLikeAccessContract<'C> (ops : SeqOps<'C>) =
                 Assert.AreEqual<bool>(List.isEmpty elements, ops.IsEmpty collection, $"%s{ops.Name}.isEmpty of %A{elements}")
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.length)>]
+    [<TestMethod>]
     member this.``length counts the elements`` () =
         this.ForEach (
             Inputs.all,
@@ -43,7 +43,7 @@ type SeqLikeAccessContract<'C> (ops : SeqOps<'C>) =
 
     // ---- Access ----
 
-    [<TestMethod; TestCategory(nameof FlatList.exactlyOne)>]
+    [<TestMethod>]
     member this.``exactlyOne returns the only element`` () =
         let collection = ops.OfSeq Inputs.singleton
         Assert.AreEqual<int>(
@@ -52,7 +52,7 @@ type SeqLikeAccessContract<'C> (ops : SeqOps<'C>) =
             $"%s{ops.Name}.exactlyOne of one element"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.exactlyOne)>]
+    [<TestMethod>]
     member this.``exactlyOne throws for no element or several elements as FSharp.Core does`` () =
         for input in [ Inputs.empty; Inputs.several ] do
             this.ThrowsLikeFSharpCore (
@@ -62,7 +62,7 @@ type SeqLikeAccessContract<'C> (ops : SeqOps<'C>) =
                 $"exactlyOne of %A{input} must throw"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.head)>]
+    [<TestMethod>]
     member this.``head returns the first element`` () =
         this.ForEach (
             Inputs.nonEmpty,
@@ -70,7 +70,7 @@ type SeqLikeAccessContract<'C> (ops : SeqOps<'C>) =
                 Assert.AreEqual<int>(List.head elements, ops.Head collection, $"%s{ops.Name}.head of %A{elements}")
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.head)>]
+    [<TestMethod>]
     member this.``head throws for an empty collection as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.head Array.empty<int>),
@@ -79,7 +79,7 @@ type SeqLikeAccessContract<'C> (ops : SeqOps<'C>) =
             "head of an empty collection must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.last)>]
+    [<TestMethod>]
     member this.``last returns the last element`` () =
         this.ForEach (
             Inputs.nonEmpty,
@@ -87,7 +87,7 @@ type SeqLikeAccessContract<'C> (ops : SeqOps<'C>) =
                 Assert.AreEqual<int>(List.last elements, ops.Last collection, $"%s{ops.Name}.last of %A{elements}")
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.last)>]
+    [<TestMethod>]
     member this.``last throws for an empty collection as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.last Array.empty<int>),
@@ -96,7 +96,7 @@ type SeqLikeAccessContract<'C> (ops : SeqOps<'C>) =
             "last of an empty collection must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.tail)>]
+    [<TestMethod>]
     member this.``tail returns the elements after the first one`` () =
         this.ForEach (
             Inputs.nonEmpty,
@@ -108,7 +108,7 @@ type SeqLikeAccessContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.tail)>]
+    [<TestMethod>]
     member this.``tail throws for an empty collection as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.tail Array.empty<int>),
@@ -117,7 +117,7 @@ type SeqLikeAccessContract<'C> (ops : SeqOps<'C>) =
             "tail of an empty collection must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.tryExactlyOne)>]
+    [<TestMethod>]
     member this.``tryExactlyOne returns the only element or nothing`` () =
         this.ForEach (
             Inputs.all,
@@ -129,7 +129,7 @@ type SeqLikeAccessContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.tryHead)>]
+    [<TestMethod>]
     member this.``tryHead returns the first element or nothing`` () =
         this.ForEach (
             Inputs.all,
@@ -141,7 +141,7 @@ type SeqLikeAccessContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.tryLast)>]
+    [<TestMethod>]
     member this.``tryLast returns the last element or nothing`` () =
         this.ForEach (
             Inputs.all,
@@ -153,7 +153,7 @@ type SeqLikeAccessContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.tryTail)>]
+    [<TestMethod>]
     member this.``tryTail returns the elements after the first one or nothing`` () =
         this.ForEach (
             Inputs.all,

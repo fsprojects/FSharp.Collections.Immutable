@@ -16,7 +16,7 @@ type FlatListTupleTests () =
 
     static let third = FlatList.ofList Inputs.third
 
-    [<TestMethod; TestCategory(nameof FlatList.unfold)>]
+    [<TestMethod>]
     member _.``unfold takes a generator of value options of reference tuples`` () =
         let generator (state : int) =
             if state > 0 then
@@ -26,7 +26,7 @@ type FlatListTupleTests () =
         let generated : FlatList<int> = FlatList.unfold generator 3
         Assert.AreEqual<int list>([ 3; 2; 1 ], FlatList.toList generated, "Tuple.FlatList.unfold must generate the elements")
 
-    [<TestMethod; TestCategory(nameof FlatList.allPairs)>]
+    [<TestMethod>]
     member _.``allPairs returns reference tuples`` () =
         let pairs : FlatList<int * int> = FlatList.allPairs array other
 
@@ -36,7 +36,7 @@ type FlatListTupleTests () =
             "Tuple.FlatList.allPairs must pair as List.allPairs does"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.indexed)>]
+    [<TestMethod>]
     member _.``indexed returns reference tuples`` () =
         let pairs : FlatList<int * int> = FlatList.indexed array
         Assert.AreEqual<(int * int) list>(
@@ -45,7 +45,7 @@ type FlatListTupleTests () =
             "Tuple.FlatList.indexed must index as List.indexed does"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.pairwise)>]
+    [<TestMethod>]
     member _.``pairwise returns reference tuples`` () =
         let pairs : FlatList<int * int> = FlatList.pairwise array
 
@@ -55,13 +55,13 @@ type FlatListTupleTests () =
             "Tuple.FlatList.pairwise must pair as List.pairwise does"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.unzip)>]
+    [<TestMethod>]
     member _.``unzip takes and returns reference tuples`` () =
         let (first : FlatList<int>), (second : FlatList<int>) = FlatList.unzip (FlatList.zip array other)
         Assert.AreEqual<int list>(Inputs.several, FlatList.toList first, "Tuple.FlatList.unzip must return the first components")
         Assert.AreEqual<int list>(Inputs.other, FlatList.toList second, "Tuple.FlatList.unzip must return the second components")
 
-    [<TestMethod; TestCategory(nameof FlatList.unzip3)>]
+    [<TestMethod>]
     member _.``unzip3 takes and returns reference tuples`` () =
         let (first : FlatList<int>), (second : FlatList<int>), (last : FlatList<int>) =
             FlatList.unzip3 (FlatList.zip3 array other third)
@@ -69,7 +69,7 @@ type FlatListTupleTests () =
         Assert.AreEqual<int list>(Inputs.other, FlatList.toList second, "Tuple.FlatList.unzip3 must return the second components")
         Assert.AreEqual<int list>(Inputs.third, FlatList.toList last, "Tuple.FlatList.unzip3 must return the third components")
 
-    [<TestMethod; TestCategory(nameof FlatList.zip)>]
+    [<TestMethod>]
     member _.``zip returns reference tuples`` () =
         let pairs : FlatList<int * int> = FlatList.zip array other
         Assert.AreEqual<(int * int) list>(
@@ -78,7 +78,7 @@ type FlatListTupleTests () =
             "Tuple.FlatList.zip must zip as List.zip does"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.zip)>]
+    [<TestMethod>]
     member _.``zip throws for different lengths as the default does`` () =
         ExceptionAssert.same
             id
@@ -89,7 +89,7 @@ type FlatListTupleTests () =
             (fun () -> FlatList.zip array (FlatList.singleton 1) |> ignore)
             "Tuple.FlatList.zip must throw as the default zip does"
 
-    [<TestMethod; TestCategory(nameof FlatList.zip3)>]
+    [<TestMethod>]
     member _.``zip3 returns reference tuples`` () =
         let triples : FlatList<int * int * int> = FlatList.zip3 array other third
 
@@ -99,7 +99,7 @@ type FlatListTupleTests () =
             "Tuple.FlatList.zip3 must zip as List.zip3 does"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.mapFold)>]
+    [<TestMethod>]
     member _.``mapFold takes and returns reference tuples`` () =
         let (results : FlatList<int>), (state : int) =
             FlatList.mapFold (fun state item -> item * state, state + 1) 1 array
@@ -112,7 +112,7 @@ type FlatListTupleTests () =
         )
         Assert.AreEqual<int>(expectedState, state, "Tuple.FlatList.mapFold must thread the state as List.mapFold does")
 
-    [<TestMethod; TestCategory(nameof FlatList.mapFoldBack)>]
+    [<TestMethod>]
     member _.``mapFoldBack takes and returns reference tuples`` () =
         let (results : FlatList<int>), (state : int) =
             FlatList.mapFoldBack (fun item state -> item * state, state + 1) array 1
@@ -125,7 +125,7 @@ type FlatListTupleTests () =
         )
         Assert.AreEqual<int>(expectedState, state, "Tuple.FlatList.mapFoldBack must thread the state as List.mapFoldBack does")
 
-    [<TestMethod; TestCategory(nameof FlatList.countBy)>]
+    [<TestMethod>]
     member _.``countBy returns reference tuples`` () =
         let counts : FlatList<int * int> = FlatList.countBy (fun item -> item % 3) array
 
@@ -135,7 +135,7 @@ type FlatListTupleTests () =
             "Tuple.FlatList.countBy must count as List.countBy does"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.groupBy)>]
+    [<TestMethod>]
     member _.``groupBy returns reference tuples`` () =
         let groups : FlatList<int * FlatList<int>> = FlatList.groupBy (fun item -> item % 3) array
 
@@ -147,7 +147,7 @@ type FlatListTupleTests () =
             "Tuple.FlatList.groupBy must group as List.groupBy does"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.partition)>]
+    [<TestMethod>]
     member _.``partition returns a reference tuple`` () =
         let (accepted : FlatList<int>), (rejected : FlatList<int>) =
             FlatList.partition (fun item -> item > 0) array
@@ -163,7 +163,7 @@ type FlatListTupleTests () =
             "Tuple.FlatList.partition must return the rejected elements"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.partitionWith)>]
+    [<TestMethod>]
     member _.``partitionWith returns a reference tuple`` () =
         let partitioner (item : int) =
             if item > 0 then
@@ -183,14 +183,14 @@ type FlatListTupleTests () =
             "Tuple.FlatList.partitionWith must return the second choices"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.splitAt)>]
+    [<TestMethod>]
     member _.``splitAt returns a reference tuple`` () =
         let (before : FlatList<int>), (after : FlatList<int>) = FlatList.splitAt 3 array
         let expectedBefore, expectedAfter = List.splitAt 3 Inputs.several
         Assert.AreEqual<int list>(expectedBefore, FlatList.toList before, "Tuple.FlatList.splitAt must return the first part")
         Assert.AreEqual<int list>(expectedAfter, FlatList.toList after, "Tuple.FlatList.splitAt must return the second part")
 
-    [<TestMethod; TestCategory(nameof FlatList.tryFind)>]
+    [<TestMethod>]
     member _.``the functions without a tuple keep resolving to the default module`` () =
         let found : int voption = FlatList.tryFind (fun item -> item > 6) array
         Assert.AreEqual<int voption>(ValueSome 8, found, "FlatList.tryFind must resolve to the default module")

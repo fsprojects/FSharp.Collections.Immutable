@@ -8,12 +8,12 @@ open Microsoft.VisualStudio.TestTools.UnitTesting
 [<TestClass; FlatListTestCategory; ComputationExpressionTestCategory>]
 type FlatListComputationExpressionTests () =
 
-    [<TestMethod; TestCategory(nameof flatList.Zero)>]
+    [<TestMethod>]
     member _.``an expression without elements is empty`` () =
         let array : FlatList<int> = flatList { () }
         Assert.IsTrue (FlatList.isEmpty array, "flatList { () } must be empty")
 
-    [<TestMethod; TestCategory(nameof flatList.Yield)>]
+    [<TestMethod>]
     member _.``yield adds the elements in order`` () =
         let array = flatList {
             yield 1
@@ -23,7 +23,7 @@ type FlatListComputationExpressionTests () =
 
         Assert.AreEqual<int list>([ 1; 2; 3 ], FlatList.toList array, "flatList must keep the order of yield")
 
-    [<TestMethod; TestCategory(nameof flatList.Yield)>]
+    [<TestMethod>]
     member _.``implicit yields add the elements in order`` () =
         let array = flatList {
             1
@@ -33,8 +33,7 @@ type FlatListComputationExpressionTests () =
 
         Assert.AreEqual<int list>([ 1; 2; 3 ], FlatList.toList array, "flatList must keep the order of implicit yields")
 
-    // nameof cannot name the overloaded YieldFrom, so the category is the expression itself
-    [<TestMethod; TestCategory(nameof flatList)>]
+    [<TestMethod>]
     member _.``yield! adds a sequence, an array, a flat list and another expression`` () =
         let inner = flatList { yield 7 }
 
@@ -47,7 +46,7 @@ type FlatListComputationExpressionTests () =
 
         Assert.AreEqual<int list>([ 1; 2; 3; 4; 5; 6; 7 ], FlatList.toList array, "flatList must add the elements of yield!")
 
-    [<TestMethod; TestCategory(nameof flatList.For)>]
+    [<TestMethod>]
     member _.``for adds the elements of the body for each item`` () =
         let array = flatList {
             for item in 1..3 do
@@ -56,7 +55,7 @@ type FlatListComputationExpressionTests () =
 
         Assert.AreEqual<int list>([ 10; 20; 30 ], FlatList.toList array, "flatList must run the body of for for each item")
 
-    [<TestMethod; TestCategory(nameof flatList.While)>]
+    [<TestMethod>]
     member _.``while adds the elements while the guard holds`` () =
         let mutable count = 0
 
@@ -68,7 +67,7 @@ type FlatListComputationExpressionTests () =
 
         Assert.AreEqual<int list>([ 1; 2; 3 ], FlatList.toList array, "flatList must run the body of while while the guard holds")
 
-    [<TestMethod; TestCategory(nameof flatList.Combine)>]
+    [<TestMethod>]
     member _.``if without else and following elements combine`` () =
         let array = flatList {
             if false then
@@ -82,7 +81,7 @@ type FlatListComputationExpressionTests () =
 
         Assert.AreEqual<int list>([ 1; 2 ], FlatList.toList array, "flatList must combine conditional and plain elements")
 
-    [<TestMethod; TestCategory(nameof flatList.TryWith)>]
+    [<TestMethod>]
     member _.``try with adds the elements of the handler after an exception`` () =
         let array = flatList {
             try
@@ -98,7 +97,7 @@ type FlatListComputationExpressionTests () =
             "flatList must keep the elements before the exception and add the handler's"
         )
 
-    [<TestMethod; TestCategory(nameof flatList.TryFinally)>]
+    [<TestMethod>]
     member _.``try finally runs the compensation`` () =
         let mutable compensated = false
 
@@ -112,7 +111,7 @@ type FlatListComputationExpressionTests () =
         Assert.IsTrue (compensated, "flatList must run the compensation of try finally")
         Assert.AreEqual<int list>([ 1 ], FlatList.toList array, "flatList must keep the elements of the body of try finally")
 
-    [<TestMethod; TestCategory(nameof flatList.Using)>]
+    [<TestMethod>]
     member _.``use disposes the resource after the body`` () =
         let mutable disposed = false
 

@@ -11,7 +11,7 @@ type SeqLikePartitioningContract<'C> (ops : SeqOps<'C>) =
     /// The counts to try on a collection of the given length: negative, zero, inside and the whole length.
     static let countsFor (length : int) = List.distinct [ -1; 0; min 3 length; length ]
 
-    [<TestMethod; TestCategory(nameof FlatList.countBy)>]
+    [<TestMethod>]
     member this.``countBy counts the elements of each key in the order of the first occurrence`` () =
         this.ForEach (
             Inputs.all,
@@ -24,7 +24,7 @@ type SeqLikePartitioningContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.distinct)>]
+    [<TestMethod>]
     member this.``distinct keeps the first occurrence of each element`` () =
         this.ForEach (
             Inputs.all,
@@ -36,7 +36,7 @@ type SeqLikePartitioningContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.distinctBy)>]
+    [<TestMethod>]
     member this.``distinctBy keeps the first element of each key`` () =
         this.ForEach (
             Inputs.all,
@@ -48,7 +48,7 @@ type SeqLikePartitioningContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.except)>]
+    [<TestMethod>]
     member this.``except removes the excluded items and the duplicates`` () =
         this.ForEach (
             Inputs.all,
@@ -60,7 +60,7 @@ type SeqLikePartitioningContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.except)>]
+    [<TestMethod>]
     member this.``except throws for null items to exclude as FSharp.Core does`` () =
         let excluded = Unchecked.defaultof<seq<int>>
 
@@ -71,7 +71,7 @@ type SeqLikePartitioningContract<'C> (ops : SeqOps<'C>) =
             "except of null items must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.groupBy)>]
+    [<TestMethod>]
     member this.``groupBy groups the elements by key in the order of the first occurrence`` () =
         this.ForEach (
             Inputs.all,
@@ -84,7 +84,7 @@ type SeqLikePartitioningContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.partition)>]
+    [<TestMethod>]
     member this.``partition splits the elements by the predicate`` () =
         this.ForEach (
             Inputs.all,
@@ -103,7 +103,7 @@ type SeqLikePartitioningContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.partitionWith)>]
+    [<TestMethod>]
     member this.``partitionWith splits the elements by the choice`` () =
         this.ForEach (
             Inputs.all,
@@ -119,7 +119,7 @@ type SeqLikePartitioningContract<'C> (ops : SeqOps<'C>) =
                 Assert.AreEqual<string list>(expectedSecond, second, $"%s{ops.Name}.partitionWith second choices of %A{elements}")
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.skip)>]
+    [<TestMethod>]
     member this.``skip drops the first elements`` () =
         this.ForEach (
             Inputs.all,
@@ -132,7 +132,7 @@ type SeqLikePartitioningContract<'C> (ops : SeqOps<'C>) =
                     )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.skip)>]
+    [<TestMethod>]
     member this.``skip throws for a count beyond the length as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.skip 9 (List.toArray Inputs.several)),
@@ -141,7 +141,7 @@ type SeqLikePartitioningContract<'C> (ops : SeqOps<'C>) =
             "skip beyond the length must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.skipLast)>]
+    [<TestMethod>]
     member this.``skipLast drops the last elements`` () =
         this.ForEach (
             Inputs.all,
@@ -154,7 +154,7 @@ type SeqLikePartitioningContract<'C> (ops : SeqOps<'C>) =
                     )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.skipLast)>]
+    [<TestMethod>]
     member this.``skipLast throws for a count beyond the length as skip does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.skip 9 (List.toArray Inputs.several)),
@@ -163,7 +163,7 @@ type SeqLikePartitioningContract<'C> (ops : SeqOps<'C>) =
             "skipLast beyond the length must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.skipWhile)>]
+    [<TestMethod>]
     member this.``skipWhile drops the first elements that satisfy the predicate`` () =
         this.ForEach (
             Inputs.all,
@@ -176,7 +176,7 @@ type SeqLikePartitioningContract<'C> (ops : SeqOps<'C>) =
                     )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.splitAt)>]
+    [<TestMethod>]
     member this.``splitAt splits the elements at the index`` () =
         this.ForEach (
             Inputs.all,
@@ -198,7 +198,7 @@ type SeqLikePartitioningContract<'C> (ops : SeqOps<'C>) =
                     )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.splitAt)>]
+    [<TestMethod>]
     member this.``splitAt throws for a negative index or one beyond the length as FSharp.Core does`` () =
         for index in [ -1; 9 ] do
             this.ThrowsLikeFSharpCore (
@@ -208,7 +208,7 @@ type SeqLikePartitioningContract<'C> (ops : SeqOps<'C>) =
                 $"splitAt %d{index} must throw"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.splitInto)>]
+    [<TestMethod>]
     member this.``splitInto splits the elements into parts of nearly equal length`` () =
         this.ForEach (
             Inputs.all,
@@ -221,7 +221,7 @@ type SeqLikePartitioningContract<'C> (ops : SeqOps<'C>) =
                     )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.splitInto)>]
+    [<TestMethod>]
     member this.``splitInto throws for a count that is not positive as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.splitInto 0 (List.toArray Inputs.several)),
@@ -230,7 +230,7 @@ type SeqLikePartitioningContract<'C> (ops : SeqOps<'C>) =
             "splitInto 0 must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.take)>]
+    [<TestMethod>]
     member this.``take returns the first elements`` () =
         this.ForEach (
             Inputs.all,
@@ -243,7 +243,7 @@ type SeqLikePartitioningContract<'C> (ops : SeqOps<'C>) =
                     )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.take)>]
+    [<TestMethod>]
     member this.``take throws for a negative count or one beyond the length as FSharp.Core does`` () =
         for count in [ -1; 9 ] do
             this.ThrowsLikeFSharpCore (
@@ -253,7 +253,7 @@ type SeqLikePartitioningContract<'C> (ops : SeqOps<'C>) =
                 $"take %d{count} must throw"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.takeLast)>]
+    [<TestMethod>]
     member this.``takeLast returns the last elements`` () =
         this.ForEach (
             Inputs.all,
@@ -266,7 +266,7 @@ type SeqLikePartitioningContract<'C> (ops : SeqOps<'C>) =
                     )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.takeLast)>]
+    [<TestMethod>]
     member this.``takeLast throws for a negative count or one beyond the length as take does`` () =
         for count in [ -1; 9 ] do
             this.ThrowsLikeFSharpCore (
@@ -276,7 +276,7 @@ type SeqLikePartitioningContract<'C> (ops : SeqOps<'C>) =
                 $"takeLast %d{count} must throw"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.takeWhile)>]
+    [<TestMethod>]
     member this.``takeWhile returns the first elements that satisfy the predicate`` () =
         this.ForEach (
             Inputs.all,
@@ -289,7 +289,7 @@ type SeqLikePartitioningContract<'C> (ops : SeqOps<'C>) =
                     )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.truncate)>]
+    [<TestMethod>]
     member this.``truncate returns at most the given number of first elements`` () =
         this.ForEach (
             Inputs.all,

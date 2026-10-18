@@ -24,14 +24,14 @@ type IndexedContract<'C> (ops : IndexedOps<'C>) =
         let collection = ops.OfSeq Inputs.several
         struct (collection, ops.ToList collection)
 
-    [<TestMethod; TestCategory(nameof FlatList.item)>]
+    [<TestMethod>]
     member _.``item returns the element at the index`` () =
         let struct (collection, elements) = several ()
 
         for index in 0 .. elements.Length - 1 do
             Assert.AreEqual<int>(List.item index elements, ops.Item index collection, $"%s{ops.Name}.item %d{index}")
 
-    [<TestMethod; TestCategory(nameof FlatList.item)>]
+    [<TestMethod>]
     member this.``item throws for an index out of range as FSharp.Core does`` () =
         let struct (collection, elements) = several ()
 
@@ -43,7 +43,7 @@ type IndexedContract<'C> (ops : IndexedOps<'C>) =
                 $"item %d{index} must throw"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.tryItem)>]
+    [<TestMethod>]
     member _.``tryItem returns the element at the index or nothing`` () =
         let struct (collection, elements) = several ()
 
@@ -54,7 +54,7 @@ type IndexedContract<'C> (ops : IndexedOps<'C>) =
                 $"%s{ops.Name}.tryItem %d{index}"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.indexOf)>]
+    [<TestMethod>]
     member _.``indexOf returns the index of the first equal element or -1`` () =
         let struct (collection, elements) = several ()
 
@@ -66,7 +66,7 @@ type IndexedContract<'C> (ops : IndexedOps<'C>) =
                 $"%s{ops.Name}.indexOf %d{value}"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.indexOfWith)>]
+    [<TestMethod>]
     member _.``indexOfWith compares with the equality comparer`` () =
         let struct (collection, elements) = several ()
 
@@ -78,7 +78,7 @@ type IndexedContract<'C> (ops : IndexedOps<'C>) =
                 $"%s{ops.Name}.indexOfWith %d{value}"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.lastIndexOf)>]
+    [<TestMethod>]
     member _.``lastIndexOf returns the index of the last equal element or -1`` () =
         let struct (collection, elements) = several ()
 
@@ -92,7 +92,7 @@ type IndexedContract<'C> (ops : IndexedOps<'C>) =
 
         Assert.AreEqual<int>(-1, ops.LastIndexOf 5 (ops.OfSeq Inputs.empty), $"%s{ops.Name}.lastIndexOf in an empty collection")
 
-    [<TestMethod; TestCategory(nameof FlatList.lastIndexOfWith)>]
+    [<TestMethod>]
     member _.``lastIndexOfWith compares with the equality comparer`` () =
         let struct (collection, elements) = several ()
 
@@ -110,7 +110,7 @@ type IndexedContract<'C> (ops : IndexedOps<'C>) =
             $"%s{ops.Name}.lastIndexOfWith in an empty collection"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.add)>]
+    [<TestMethod>]
     member _.``add appends the value`` () =
         for input in Inputs.all do
             let collection = ops.OfSeq input
@@ -121,7 +121,7 @@ type IndexedContract<'C> (ops : IndexedOps<'C>) =
                 $"%s{ops.Name}.add to %A{input}"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.insertAt)>]
+    [<TestMethod>]
     member _.``insertAt inserts the value at the index`` () =
         let struct (collection, elements) = several ()
 
@@ -132,7 +132,7 @@ type IndexedContract<'C> (ops : IndexedOps<'C>) =
                 $"%s{ops.Name}.insertAt %d{index}"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.insertAt)>]
+    [<TestMethod>]
     member this.``insertAt throws for an index out of range as FSharp.Core does`` () =
         let struct (collection, elements) = several ()
 
@@ -144,7 +144,7 @@ type IndexedContract<'C> (ops : IndexedOps<'C>) =
                 $"insertAt %d{index} must throw"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.insertManyAt)>]
+    [<TestMethod>]
     member _.``insertManyAt inserts the values at the index`` () =
         let struct (collection, elements) = several ()
 
@@ -156,7 +156,7 @@ type IndexedContract<'C> (ops : IndexedOps<'C>) =
                     $"%s{ops.Name}.insertManyAt %d{index} %A{values}"
                 )
 
-    [<TestMethod; TestCategory(nameof FlatList.insertManyAt)>]
+    [<TestMethod>]
     member this.``insertManyAt throws for an index out of range as FSharp.Core does`` () =
         let struct (collection, elements) = several ()
 
@@ -168,7 +168,7 @@ type IndexedContract<'C> (ops : IndexedOps<'C>) =
                 $"insertManyAt %d{index} must throw"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.removeAt)>]
+    [<TestMethod>]
     member _.``removeAt removes the element at the index`` () =
         let struct (collection, elements) = several ()
 
@@ -179,7 +179,7 @@ type IndexedContract<'C> (ops : IndexedOps<'C>) =
                 $"%s{ops.Name}.removeAt %d{index}"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.removeAt)>]
+    [<TestMethod>]
     member this.``removeAt throws for an index out of range as FSharp.Core does`` () =
         let struct (collection, elements) = several ()
 
@@ -191,7 +191,7 @@ type IndexedContract<'C> (ops : IndexedOps<'C>) =
                 $"removeAt %d{index} must throw"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.removeManyAt)>]
+    [<TestMethod>]
     member _.``removeManyAt removes the elements of the range`` () =
         let struct (collection, elements) = several ()
 
@@ -202,7 +202,7 @@ type IndexedContract<'C> (ops : IndexedOps<'C>) =
                 $"%s{ops.Name}.removeManyAt %d{index} %d{count}"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.removeManyAt)>]
+    [<TestMethod>]
     member this.``removeManyAt throws for a range out of range as FSharp.Core does`` () =
         let struct (collection, elements) = several ()
 
@@ -214,7 +214,7 @@ type IndexedContract<'C> (ops : IndexedOps<'C>) =
                 $"removeManyAt %d{index} %d{count} must throw"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.updateAt)>]
+    [<TestMethod>]
     member _.``updateAt replaces the element at the index`` () =
         let struct (collection, elements) = several ()
 
@@ -225,7 +225,7 @@ type IndexedContract<'C> (ops : IndexedOps<'C>) =
                 $"%s{ops.Name}.updateAt %d{index}"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.updateAt)>]
+    [<TestMethod>]
     member this.``updateAt throws for an index out of range as FSharp.Core does`` () =
         let struct (collection, elements) = several ()
 

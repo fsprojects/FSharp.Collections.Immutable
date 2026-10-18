@@ -23,7 +23,7 @@ type SeqLikeRandomContract<'C> (ops : SeqOps<'C>) =
     /// The elements of a result as a sorted list, for the comparison of multisets.
     static let sorted (items : int list) = List.sort items
 
-    [<TestMethod; TestCategory(nameof FlatList.randomChoice)>]
+    [<TestMethod>]
     member this.``randomChoice returns an element`` () =
         this.ForEach (
             Inputs.nonEmpty,
@@ -32,7 +32,7 @@ type SeqLikeRandomContract<'C> (ops : SeqOps<'C>) =
                 Assert.Contains (chosen, elements, $"%s{ops.Name}.randomChoice must return an element of %A{elements}")
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.randomChoice)>]
+    [<TestMethod>]
     member this.``randomChoice throws for an empty collection as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.randomChoice Array.empty<int>),
@@ -41,7 +41,7 @@ type SeqLikeRandomContract<'C> (ops : SeqOps<'C>) =
             "randomChoice of an empty collection must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.randomChoiceBy)>]
+    [<TestMethod>]
     member this.``randomChoiceBy chooses as FSharp.Core does with the same randomizer`` () =
         this.ForEach (
             Inputs.nonEmpty,
@@ -59,7 +59,7 @@ type SeqLikeRandomContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.randomChoiceBy)>]
+    [<TestMethod>]
     member this.``randomChoiceBy throws for a randomizer outside the range as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.randomChoiceBy (fun () -> 1.0) (List.toArray Inputs.several)),
@@ -68,7 +68,7 @@ type SeqLikeRandomContract<'C> (ops : SeqOps<'C>) =
             "randomChoiceBy with a randomizer that returns 1.0 must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.randomChoiceWith)>]
+    [<TestMethod>]
     member this.``randomChoiceWith chooses as FSharp.Core does with the same generator`` () =
         this.ForEach (
             Inputs.nonEmpty,
@@ -86,7 +86,7 @@ type SeqLikeRandomContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.randomChoiceWith)>]
+    [<TestMethod>]
     member this.``randomChoiceWith throws for a null generator as FSharp.Core does`` () =
         let random = Unchecked.defaultof<Random>
 
@@ -97,7 +97,7 @@ type SeqLikeRandomContract<'C> (ops : SeqOps<'C>) =
             "randomChoiceWith of a null generator must throw"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.randomChoices)>]
+    [<TestMethod>]
     member this.``randomChoices returns the given number of elements`` () =
         this.ForEach (
             Inputs.nonEmpty,
@@ -109,7 +109,7 @@ type SeqLikeRandomContract<'C> (ops : SeqOps<'C>) =
                     Assert.Contains (item, elements, $"%s{ops.Name}.randomChoices must return elements of %A{elements}")
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.randomChoices)>]
+    [<TestMethod>]
     member this.``randomChoices throws for a negative count or an empty collection as FSharp.Core does`` () =
         for struct (count, input) in [ struct (-1, Inputs.several); struct (3, Inputs.empty) ] do
             this.ThrowsLikeFSharpCore (
@@ -119,7 +119,7 @@ type SeqLikeRandomContract<'C> (ops : SeqOps<'C>) =
                 $"randomChoices %d{count} of %A{input} must throw"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.randomChoicesBy)>]
+    [<TestMethod>]
     member this.``randomChoicesBy chooses as FSharp.Core does with the same randomizer`` () =
         this.ForEach (
             Inputs.nonEmpty,
@@ -140,7 +140,7 @@ type SeqLikeRandomContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.randomChoicesWith)>]
+    [<TestMethod>]
     member this.``randomChoicesWith chooses as FSharp.Core does with the same generator`` () =
         this.ForEach (
             Inputs.nonEmpty,
@@ -161,7 +161,7 @@ type SeqLikeRandomContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.randomSample)>]
+    [<TestMethod>]
     member this.``randomSample returns elements at distinct indices`` () =
         this.ForEach (
             Inputs.nonEmpty,
@@ -180,7 +180,7 @@ type SeqLikeRandomContract<'C> (ops : SeqOps<'C>) =
                     )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.randomSample)>]
+    [<TestMethod>]
     member this.``randomSample throws for a negative count or one beyond the length as FSharp.Core does`` () =
         for count in [ -1; 9 ] do
             this.ThrowsLikeFSharpCore (
@@ -190,7 +190,7 @@ type SeqLikeRandomContract<'C> (ops : SeqOps<'C>) =
                 $"randomSample %d{count} must throw"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.randomSampleBy)>]
+    [<TestMethod>]
     member this.``randomSampleBy samples as FSharp.Core does with the same randomizer`` () =
         this.ForEach (
             Inputs.nonEmpty,
@@ -213,7 +213,7 @@ type SeqLikeRandomContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.randomSampleWith)>]
+    [<TestMethod>]
     member this.``randomSampleWith samples as FSharp.Core does with the same generator`` () =
         this.ForEach (
             Inputs.nonEmpty,
@@ -236,7 +236,7 @@ type SeqLikeRandomContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.randomShuffle)>]
+    [<TestMethod>]
     member this.``randomShuffle returns a permutation of the elements`` () =
         this.ForEach (
             Inputs.all,
@@ -248,7 +248,7 @@ type SeqLikeRandomContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.randomShuffleBy)>]
+    [<TestMethod>]
     member this.``randomShuffleBy shuffles as FSharp.Core does with the same randomizer`` () =
         this.ForEach (
             Inputs.all,
@@ -269,7 +269,7 @@ type SeqLikeRandomContract<'C> (ops : SeqOps<'C>) =
                 )
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.randomShuffleWith)>]
+    [<TestMethod>]
     member this.``randomShuffleWith shuffles as FSharp.Core does with the same generator`` () =
         this.ForEach (
             Inputs.all,
