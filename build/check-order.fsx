@@ -43,7 +43,14 @@ let bannerRegex = Regex (@"^\s*// ---- (?<category>.+?) ----\s*$", RegexOptions.
 
 let moduleRegex =
     Regex (
-        @"^(?<indent> *)module\s+(?<access>(?:private|internal)\s+)?(?<name>[A-Za-z_][A-Za-z0-9_]*)\s*=",
+        @"^(?<indent> *)module\s+(?<access>(?:private|internal)\s+)?(?:rec\s+)?(?<name>[A-Za-z_][A-Za-z0-9_]*)\s*=",
+        RegexOptions.CultureInvariant
+    )
+
+/// A file-scoped module, `module A.B` without `=`, whose members start at column 0.
+let fileModuleRegex =
+    Regex (
+        @"^module\s+(?<access>(?:private|internal)\s+)?(?:rec\s+)?(?<name>[A-Za-z_][A-Za-z0-9_.]*)\s*$",
         RegexOptions.CultureInvariant
     )
 
@@ -81,10 +88,15 @@ type Scope = {
 
 let indentOf (line : string) = line.Length - line.AsSpan().TrimStart(' ').Length
 
-/// Reads the modules of a file. `memberRegex` recognises a member declaration (`val` or `let`);
-/// members at the content level of a public module count, nested bindings and non-public members do not.
+/// <summary>Reads the modules of a file.</summary>
+/// <remarks>
+/// <c>memberRegex</c> recognises a member declaration (<c>val</c> or <c>let</c>); members at the content level of a public
+/// module count, nested bindings and non-public members do not. The second result lists the members at column 0 outside
+/// any module: they belong to a module header that the script does not understand, so they must not pass unchecked.
+/// </remarks>
 let parse (path : string) (memberRegex : Regex) =
     let scopes = ResizeArray<Scope>()
+    let orphans = ResizeArray<Member>()
     let stack = Collections.Generic.Stack<Scope>()
     let lines = File.ReadAllLines path
 
@@ -104,8 +116,21 @@ let parse (path : string) (memberRegex : Regex) =
                 stack.Pop () |> ignore
 
             let moduleMatch = moduleRegex.Match line
+            let fileModuleMatch = fileModuleRegex.Match line
 
-            if moduleMatch.Success then
+            if fileModuleMatch.Success then
+                // The members of a file-scoped module start at column 0, the content level of an indent of -4
+                let scope = {
+                    Path = fileModuleMatch.Groups["name"].Value
+                    Indent = -4
+                    IsPublic = not fileModuleMatch.Groups["access"].Success
+                    Banners = ResizeArray ()
+                    Members = ResizeArray ()
+                }
+
+                scopes.Add scope
+                stack.Push scope
+            elif moduleMatch.Success then
                 let name = moduleMatch.Groups["name"].Value
                 let parent =
                     if stack.Count > 0 then
@@ -154,8 +179,16 @@ let parse (path : string) (memberRegex : Regex) =
                             Category = category
                             Name = memberMatch.Groups["name"].Value
                         }
+            else
+                let memberMatch = memberRegex.Match line
 
-    scopes |> Seq.filter _.IsPublic |> Seq.toArray
+                if
+                    memberMatch.Success
+                    && memberMatch.Groups["indent"].Length = 0
+                then
+                    orphans.Add { Line = lineNumber; Category = ""; Name = memberMatch.Groups["name"].Value }
+
+    struct (scopes |> Seq.filter _.IsPublic |> Seq.toArray, orphans |> Seq.toArray)
 
 let isActivePattern (name : string) = name.StartsWith ("(|", StringComparison.Ordinal)
 
@@ -212,7 +245,7 @@ let checkImplementation (signaturePath : string) (signatureScopes : Scope array)
     if not (File.Exists implementationPath) then
         report signaturePath 1 "The signature file has no implementation file next to it"
     else
-        let implementationScopes = parse implementationPath letRegex
+        let struct (implementationScopes, _) = parse implementationPath letRegex
 
         let findScope (scopes : Scope array) path =
             scopes
@@ -242,27 +275,34 @@ let checkImplementation (signaturePath : string) (signatureScopes : Scope array)
 
                 let count = min signature.Members.Count implementation.Members.Count
 
+                // A member must have the same name and the same category, so that a moved banner cannot go unnoticed
+                let differs index =
+                    let expected = signature.Members[index]
+                    let actual = implementation.Members[index]
+
+                    not (String.Equals (expected.Name, actual.Name, StringComparison.Ordinal))
+                    || not (String.Equals (expected.Category, actual.Category, StringComparison.Ordinal))
+
                 let firstDifference =
                     seq { 0 .. count - 1 }
-                    |> Seq.tryFind (fun index ->
-                        not (
-                            String.Equals (
-                                signature.Members[index].Name,
-                                implementation.Members[index].Name,
-                                StringComparison.Ordinal
-                            )
-                        )
-                    )
+                    |> Seq.tryFind differs
                     |> Option.toValueOption
 
                 match firstDifference with
                 | ValueSome index ->
                     let expected = signature.Members[index]
                     let actual = implementation.Members[index]
-                    report
-                        implementationPath
-                        actual.Line
-                        $"`%s{actual.Name}` is defined where the signature declares `%s{expected.Name}` (line %d{expected.Line})"
+
+                    if String.Equals (expected.Name, actual.Name, StringComparison.Ordinal) then
+                        report
+                            implementationPath
+                            actual.Line
+                            $"`%s{actual.Name}` is in category '%s{actual.Category}'; the signature puts it in '%s{expected.Category}' (line %d{expected.Line})"
+                    else
+                        report
+                            implementationPath
+                            actual.Line
+                            $"`%s{actual.Name}` is defined where the signature declares `%s{expected.Name}` (line %d{expected.Line})"
                 | ValueNone when signature.Members.Count <> implementation.Members.Count ->
                     report
                         implementationPath
@@ -288,7 +328,13 @@ let signatureFiles =
     |> Seq.toArray
 
 for signaturePath in signatureFiles do
-    let scopes = parse signaturePath valRegex
+    let struct (scopes, orphans) = parse signaturePath valRegex
+
+    for orphan in orphans do
+        report
+            signaturePath
+            orphan.Line
+            $"`%s{orphan.Name}` is outside every module header that the script understands (`module X =` or `module A.B`)"
 
     for scope in scopes do
         checkSignature signaturePath scope
