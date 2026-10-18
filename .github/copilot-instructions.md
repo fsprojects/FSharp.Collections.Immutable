@@ -166,7 +166,7 @@ Agents discover servers from #file:'.mcp.json'; these are only hints on when to 
 * Always use the latest F# 10 features over old syntax.
 * If you are running outside of an IDE, or the IDE does not provide F# semantic tools, use FsLangMCP as the primary tool for F# code navigation, symbol discovery, diagnostics, usage search and refactoring preview. Prefer its semantic tools over plain text search.
 * The compiler generates `IsCaseName` instance properties (for example `IsOk`, `IsNotFound`) for each DU case – use them when a single-case check is needed.
-* Write at most one level of a type in the postfix ML style: `int[] seq`, `int voption[]`, `seq<int list>` – never `int array seq` or `int list list`. An array inside another type is `'T[]`.
+* Write at most one level of a type in the postfix ML style: `int[] seq`, `int voption[]`, `seq<int list>` – never `int array seq` or `int list list`. Only the postfix levels count: `seq<int array>` and `struct (int array * int array)` have one each.
 
 ### Asynchrony and Cancellation
 
