@@ -160,10 +160,10 @@ Functions are grouped by category and sorted alphabetically (ordinal) inside eac
 signature and the implementation file; each category is a banner comment. The canonical category sequence is
 `Creation`, `Builder`, `Properties`, `Access`, `Search`, `Transformation`, `Folding`, `Partitioning and grouping`, `Sorting`,
 `Random`, `Conversion`, `Type-specific`; an empty category is omitted, an active pattern is the last row of its category.
-A script `build/check-order.fsx` parses every `.fsi`, verifies the banner sequence and the alphabetical order, checks that
-the sibling `.fs` has the same banners and the same sequence of `[<CompiledName>]` bindings, and runs as the FAKE target
-`CheckOrder` before `DotnetBuild`. The members of the structs of D12 and of the extension modules of D13 follow the same
-category order; the script checks the values of modules only.
+The FAKE target `CheckOrder` (`build/CheckOrder.fs`) parses every `.fsi` with the parser of Fantomas (`Fantomas.FCS`),
+verifies the banner sequence and the alphabetical order, checks that the sibling `.fs` has the same banners and the same
+sequence of `[<CompiledName>]` bindings, and runs before `DotnetBuild`. The members of the structs of D12 and of the
+extension modules of D13 follow the same category order; the target checks the values of modules only.
 
 ### D5. Implementation principle: BCL members and System.Linq first
 
