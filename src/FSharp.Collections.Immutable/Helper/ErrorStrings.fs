@@ -69,3 +69,7 @@ let NotEnoughElements = "The input sequence has an insufficient number of elemen
 /// FSCore.resx, outOfRange.
 [<Literal>]
 let OutOfRange = "The index is outside the legal range."
+
+/// FSCore.resx, setContainsNoElements.
+[<Literal>]
+let SetContainsNoElements = "Set contains no elements."
