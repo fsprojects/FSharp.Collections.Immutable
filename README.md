@@ -18,8 +18,9 @@ Please also join the [F# Open Source Group](http://fsharp.github.com)
 | `Queue` | `ImmutableQueue<'T>` | – |
 | `HashMap` | `ImmutableDictionary<'Key, 'Value>` | – |
 | `SortedMap` | `ImmutableSortedDictionary<'Key, 'Value>` | – |
-| `HashSet` | `ImmutableHashSet<'T>` | – |
+| `HashSet` | `ImmutableHashSet<'T>` | `hashSet { }` |
 | `SortedSet` | `ImmutableSortedSet<'T>` | – |
+| `ISet` | `IImmutableSet<'T>` | – |
 | `IIndexedSeq` | `IReadOnlyList<'T>` | – |
 
 [Documentation](https://fsprojects.github.io/FSharp.Collections.Immutable/)

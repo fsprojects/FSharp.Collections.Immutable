@@ -30,6 +30,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   semantics and exceptions. Its `tryFind`, `tryFindIndex` and `tryPick` return `voption`, `choose` and `tryPick` take
   functions that return `voption`, and `groupBy`, `partition`, `partitionWith` and `zip` return struct tuples; the
   `Parallel` modules of the `Option` and `Tuple` namespaces repeat them with options and reference tuples.
+* `HashSet` has every function of the FSharp.Core `Set` module that applies to a hash set, with its semantics, argument
+  order and exceptions, plus `addRange`, `build`, `builder`, `choose`, `clear`, `comparer`, `forComparer`, `ofBuilder`,
+  `ofReadOnlySpan`, `ofSpan`, `overlaps`, `removeRange`, `setEquals`, `symmetricDifference`, `toBuilder`, `tryGetValue`
+  and `update`.
+* `HashSet.addRange elements set` and `removeRange elements set` wrap the `Union` and `Except` members that take a
+  sequence. The result keeps the comparer of the hash set, an element of the sequence that the comparer finds equal to
+  an element of the hash set does not replace it, and the input itself comes back when nothing changes.
+* `HashSet.ofReadOnlySpan` and `ofSpan` create a hash set from a span, `build` fills a builder with an action, and
+  `update` applies an action to a builder of a hash set and returns its contents, so that the in-place operations of the
+  builder, such as `IntersectWith`, are one expression.
+* `HashSet.forComparer comparer` creates the `CustomComparerHashSet` struct, whose members `build`, `builder`, `empty`,
+  `ofArray`, `ofList`, `ofReadOnlySpan`, `ofSeq`, `ofSpan` and `singleton` create hash sets and builders that compare
+  with the comparer, as in `(HashSet.forComparer StringComparer.OrdinalIgnoreCase).ofSeq names`. They replace the BCL
+  members `Create(comparer, ...)`, `CreateRange(comparer, items)`, `ToImmutableHashSet(items, comparer)` and
+  `CreateBuilder(comparer)`. `ofSeq` also gives an existing hash set the comparer, as `WithComparer` does: the hash set
+  itself comes back for the same comparer instance, and an equal but distinct instance rebuilds it.
+  `WithComparer(null)` is `HashSet.ofSeq set`. A `null` comparer throws `ArgumentNullException`.
+* `HashSet.add` and `remove` return the input itself when nothing changes, so a reference comparison of the input and
+  the result tells whether `Add` changed anything, as the `bool` result of `Builder.Add` does. Hash sets have no builder
+  module: `builder`, `toBuilder` and `ofBuilder` are `CreateBuilder`, `ToBuilder` and `ToImmutable`, and the builder is
+  used directly. The mutating members of the BCL interfaces, such as `ISet<T>.UnionWith` and `ICollection<T>.Add`,
+  throw `NotSupportedException` on a hash set and have no function.
+* `add`, `addRange`, `remove`, `removeRange`, `clear`, `update`, `filter` and `partition` of `HashSet` keep the comparer
+  of their input, and the set algebra keeps the comparer of the first hash set; `map`, `choose` and `partitionWith`
+  compare with the default comparer of the result type. Every function throws `ArgumentNullException` for a `null` hash
+  set, sequence or array, and for a default flat list that is given as a sequence; `yield!` and `for` of
+  `hashSet { }` do the same. `unionMany` of an empty sequence returns an empty hash set, as `Set.unionMany` does.
+  `tryGetValue` returns a `voption`, `choose` takes a function that returns a `voption`, and `partition` and
+  `partitionWith` return struct tuples.
+* The set algebra and the relations of `HashSet` take hash sets, as the `Set` functions do. The BCL members that take a
+  sequence map as follows. `Union` and `Except` are `addRange` and `removeRange`, and `Overlaps` and `IsSupersetOf` are
+  `Seq.exists` and `Seq.forall` with `HashSet.contains`, which compare in the comparer of the hash set for every
+  comparer. To pass a sequence to `Intersect`, `SymmetricExcept`, `IsSubsetOf`, `IsProperSubsetOf`,
+  `IsProperSupersetOf` or `SetEquals`, convert it with `(HashSet.forComparer (HashSet.comparer set)).ofSeq elements`:
+  the elements get the comparer of the first hash set, as they do in the members. `HashSet.ofSeq elements` converts
+  them with the default comparer instead, which merges the elements that it finds equal before the function sees them.
+  The answer is that of the member when the comparer of `set` finds equal every pair of elements that the default
+  comparer finds equal, as the default comparer and `StringComparer.OrdinalIgnoreCase` do. It can differ when the
+  comparer of `set` tells such elements apart, as `HashIdentity.Reference` does for two strings with the same text.
+* The element that stays when the comparer finds two elements equal follows the BCL: `union` and `addRange` keep the
+  element of the first hash set, `intersect` keeps the elements of the second one, and the creation functions keep the
+  first element of their input. `isProperSuperset` is the exception: it counts the elements of the second hash set that
+  the comparer of the first one finds equal once, as the documentation of `IsProperSupersetOf` says, where the member
+  counts each of them.
+* The `ISet` module works on any `IImmutableSet<'T>` with the functions of `HashSet` that need neither a creation nor a
+  comparer, `addRange` and `removeRange` included; the transformations that keep the element type return the
+  implementation of their input. The interface cannot tell its comparer, so a sequence for a relation, `intersect` or
+  `symmetricDifference` is converted with `ISet.addRange elements (ISet.clear set)`, which has the implementation and
+  the comparer of `set`, where `HashSet` uses `(HashSet.forComparer (HashSet.comparer set)).ofSeq elements`.
+* The `FSharp.Collections.Immutable.Option.HashSet`, `FSharp.Collections.Immutable.Tuple.HashSet`,
+  `FSharp.Collections.Immutable.Option.ISet` and `FSharp.Collections.Immutable.Tuple.ISet` modules repeat `choose` and
+  `tryGetValue` with options, and `partition` and `partitionWith` with reference tuples.
+* `hashSet { }` builds a hash set, and `HashSetCE` created with an equality comparer builds hash sets that compare with it;
+  a `null` comparer throws `ArgumentNullException`.
 
 ### Changed
 
@@ -61,6 +115,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   compared in F# structural equality. The removed functions did not remove the elements that satisfy a predicate: use
   `filter` with the negated predicate for that.
 * `FlatList.removeRange`: use `removeManyAt`.
+* The `ISet<'T>` abbreviation of `IImmutableSet<'T>`, because it shadowed `System.Collections.Generic.ISet<'T>`: use
+  `IImmutableSet<'T>` and the `ISet` module.
 
 ## [1.0.0] - 2020-02-23
 
