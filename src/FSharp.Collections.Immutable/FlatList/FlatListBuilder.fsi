@@ -74,8 +74,9 @@ val indexOf : value : 'T -> builder : FlatList<'T>.Builder -> int
 /// <see cref="M:System.Collections.Immutable.ImmutableArray`1.Builder.IndexOf(`0,System.Int32,System.Int32)"/>.
 /// </para>
 /// <para>
-/// The start index must be less than the count of the builder, as in the BCL member, also for an empty range. An empty
-/// builder accepts only the start index 0 with the count 0, and the result is -1.
+/// The function throws what the BCL member throws. The member of .NET 8 and .NET 10 rejects also an empty range at a
+/// start index that equals the count of the builder, and it accepts for an empty builder only the start index 0 with
+/// the count 0, which gives -1.
 /// </para>
 /// </remarks>
 [<CompiledName "IndexOfRange">]
@@ -100,8 +101,9 @@ val indexOfRange : startIndex : int -> count : int -> value : 'T -> builder : Fl
 /// <see cref="M:System.Collections.Immutable.ImmutableArray`1.Builder.IndexOf(`0,System.Int32,System.Int32,System.Collections.Generic.IEqualityComparer{`0})"/>.
 /// </para>
 /// <para>
-/// The start index must be less than the count of the builder, as in the BCL member, also for an empty range. An empty
-/// builder accepts only the start index 0 with the count 0, and the result is -1.
+/// The function throws what the BCL member throws. The member of .NET 8 and .NET 10 rejects also an empty range at a
+/// start index that equals the count of the builder, and it accepts for an empty builder only the start index 0 with
+/// the count 0, which gives -1.
 /// </para>
 /// </remarks>
 [<CompiledName "IndexOfRangeWith">]
@@ -134,8 +136,9 @@ val lastIndexOf : value : 'T -> builder : FlatList<'T>.Builder -> int
 /// <see cref="M:System.Collections.Immutable.ImmutableArray`1.Builder.LastIndexOf(`0,System.Int32,System.Int32)"/>.
 /// </para>
 /// <para>
-/// The start index must be less than the count of the builder, as in the BCL member, also for an empty range. An empty
-/// builder accepts only the start index 0 with the count 0, and the result is -1.
+/// The function throws what the BCL member throws. The member of .NET 8 and .NET 10 rejects also an empty range at a
+/// start index that equals the count of the builder, and it accepts for an empty builder only the start index 0 with
+/// the count 0, which gives -1.
 /// </para>
 /// </remarks>
 [<CompiledName "LastIndexOfRange">]
@@ -162,8 +165,9 @@ val lastIndexOfRange : startIndex : int -> count : int -> value : 'T -> builder 
 /// <see cref="M:System.Collections.Immutable.ImmutableArray`1.Builder.LastIndexOf(`0,System.Int32,System.Int32,System.Collections.Generic.IEqualityComparer{`0})"/>.
 /// </para>
 /// <para>
-/// The start index must be less than the count of the builder, as in the BCL member, also for an empty range. An empty
-/// builder accepts only the start index 0 with the count 0, and the result is -1.
+/// The function throws what the BCL member throws. The member of .NET 8 and .NET 10 rejects also an empty range at a
+/// start index that equals the count of the builder, and it accepts for an empty builder only the start index 0 with
+/// the count 0, which gives -1.
 /// </para>
 /// </remarks>
 [<CompiledName "LastIndexOfRangeWith">]

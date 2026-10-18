@@ -559,8 +559,9 @@ val indexOf : value : 'T -> array : FlatList<'T> -> int
 /// <see cref="M:System.Collections.Immutable.ImmutableArray`1.IndexOf(`0,System.Int32,System.Int32)"/>.
 /// </para>
 /// <para>
-/// The start index must be less than the length, as in the BCL member, also for an empty range. An empty flat list
-/// accepts only the start index 0 with the count 0, and the result is -1.
+/// The function throws what the BCL member throws. The member of .NET 8 and .NET 10 rejects also an empty range at a
+/// start index that equals the length, and it accepts for an empty flat list only the start index 0 with the count 0,
+/// which gives -1.
 /// </para>
 /// </remarks>
 [<CompiledName "IndexOfRange">]
@@ -585,8 +586,9 @@ val indexOfRange : startIndex : int -> count : int -> value : 'T -> array : Flat
 /// <see cref="M:System.Collections.Immutable.ImmutableArray`1.IndexOf(`0,System.Int32,System.Int32,System.Collections.Generic.IEqualityComparer{`0})"/>.
 /// </para>
 /// <para>
-/// The start index must be less than the length, as in the BCL member, also for an empty range. An empty flat list
-/// accepts only the start index 0 with the count 0, and the result is -1.
+/// The function throws what the BCL member throws. The member of .NET 8 and .NET 10 rejects also an empty range at a
+/// start index that equals the length, and it accepts for an empty flat list only the start index 0 with the count 0,
+/// which gives -1.
 /// </para>
 /// </remarks>
 [<CompiledName "IndexOfRangeWith">]
@@ -636,8 +638,9 @@ val lastIndexOf : value : 'T -> array : FlatList<'T> -> int
 /// <see cref="M:System.Collections.Immutable.ImmutableArray`1.LastIndexOf(`0,System.Int32,System.Int32)"/>.
 /// </para>
 /// <para>
-/// The start index must be less than the length, as in the BCL member, also for an empty range. An empty flat list
-/// accepts only the start index 0 with the count 0, and the result is -1.
+/// The function throws what the BCL member throws. The member of .NET 8 and .NET 10 rejects also an empty range at a
+/// start index that equals the length, and it accepts for an empty flat list only the start index 0 with the count 0,
+/// which gives -1.
 /// </para>
 /// </remarks>
 [<CompiledName "LastIndexOfRange">]
@@ -664,8 +667,9 @@ val lastIndexOfRange : startIndex : int -> count : int -> value : 'T -> array : 
 /// <see cref="M:System.Collections.Immutable.ImmutableArray`1.LastIndexOf(`0,System.Int32,System.Int32,System.Collections.Generic.IEqualityComparer{`0})"/>.
 /// </para>
 /// <para>
-/// The start index must be less than the length, as in the BCL member, also for an empty range. An empty flat list
-/// accepts only the start index 0 with the count 0, and the result is -1.
+/// The function throws what the BCL member throws. The member of .NET 8 and .NET 10 rejects also an empty range at a
+/// start index that equals the length, and it accepts for an empty flat list only the start index 0 with the count 0,
+/// which gives -1.
 /// </para>
 /// </remarks>
 [<CompiledName "LastIndexOfRangeWith">]
