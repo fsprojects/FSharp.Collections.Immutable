@@ -21,14 +21,25 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Helper.fs" />
-    <Compile Include="FlatList.fs" />
+    <Compile Include="FlatList\FlatListTypes.fs" />
+    <Compile Include="FlatList\FlatList.fsi" />
+    <Compile Include="FlatList\FlatList.fs" />
+    <Compile Include="FlatList\FlatListOption.fsi" />
+    <Compile Include="FlatList\FlatListOption.fs" />
+    <Compile Include="FlatList\FlatListTuple.fsi" />
+    <Compile Include="FlatList\FlatListTuple.fs" />
+    <Compile Include="FlatList\FlatListBuilder.fsi" />
+    <Compile Include="FlatList\FlatListBuilder.fs" />
+    <Compile Include="FlatList\FlatListCE.fsi" />
+    <Compile Include="FlatList\FlatListCE.fs" />
     <Compile Include="Stack.fs" />
     <Compile Include="ImmutableList.fs" />
     <Compile Include="Queue.fs" />
     <Compile Include="IndexedSeq.fs" />
     <Compile Include="Maps.fs" />
     <Compile Include="Sets.fs" />
-    <Compile Include="Seq.fs" />
+    <Compile Include="ComputationExpressions.fsi" />
+    <Compile Include="ComputationExpressions.fs" />
   </ItemGroup>
 
   <ItemGroup>
