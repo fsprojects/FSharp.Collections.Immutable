@@ -48,14 +48,15 @@ type FlatListParallelTupleTests () =
 
     [<TestMethod>]
     member _.``zip throws for different lengths as the default does`` () =
-        ExceptionAssert.same
-            id
+        ExceptionAssert.Same (
+            id,
             (fun () ->
                 FSharp.Collections.Immutable.FlatList.Parallel.zip array (FlatList.singleton 1)
                 |> ignore
-            )
-            (fun () -> FlatList.Parallel.zip array (FlatList.singleton 1) |> ignore)
+            ),
+            (fun () -> FlatList.Parallel.zip array (FlatList.singleton 1) |> ignore),
             "Tuple.FlatList.Parallel.zip must throw as the default zip does"
+        )
 
     [<TestMethod; DynamicData(nameof FlatListParallelTupleTests.Sources)>]
     member _.``groupBy returns reference tuples`` (input : ParallelInput) =

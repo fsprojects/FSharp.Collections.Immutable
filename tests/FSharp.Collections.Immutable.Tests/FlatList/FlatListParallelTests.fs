@@ -306,11 +306,12 @@ type FlatListParallelTests () =
 
     [<TestMethod>]
     member _.``init throws for a negative count as Array.Parallel does`` () =
-        ExceptionAssert.same
-            id
-            (fun () -> Array.Parallel.init -1 id |> ignore)
-            (fun () -> FlatList.Parallel.init -1 id |> ignore)
+        ExceptionAssert.Same (
+            id,
+            (fun () -> Array.Parallel.init -1 id |> ignore),
+            (fun () -> FlatList.Parallel.init -1 id |> ignore),
             "FlatList.Parallel.init -1 must throw as Array.Parallel.init does"
+        )
 
     // ---- Search ----
 
@@ -467,14 +468,15 @@ type FlatListParallelTests () =
 
     [<TestMethod; DynamicData(nameof FlatListParallelTests.DifferentLengths)>]
     member _.``zip throws for different lengths as Array.Parallel does`` (first : int array, second : int array) =
-        ExceptionAssert.same
-            id
-            (fun () -> Array.Parallel.zip first second |> ignore)
+        ExceptionAssert.Same (
+            id,
+            (fun () -> Array.Parallel.zip first second |> ignore),
             (fun () ->
                 FlatList.Parallel.zip (FlatList.ofArray first) (FlatList.ofArray second)
                 |> ignore
-            )
+            ),
             "FlatList.Parallel.zip of flat lists of different lengths must throw as Array.Parallel.zip does"
+        )
 
     [<TestMethod; DynamicData(nameof FlatListParallelTests.ZipChunks)>]
     member _.``zip divides every array length into chunks without overflow``
@@ -525,11 +527,12 @@ type FlatListParallelTests () =
 
     [<TestMethod>]
     member _.``average throws for an empty flat list as Array.Parallel does`` () =
-        ExceptionAssert.same
-            id
-            (fun () -> Array.Parallel.average Array.empty<float> |> ignore)
-            (fun () -> FlatList.Parallel.average FlatList.empty<float> |> ignore)
+        ExceptionAssert.Same (
+            id,
+            (fun () -> Array.Parallel.average Array.empty<float> |> ignore),
+            (fun () -> FlatList.Parallel.average FlatList.empty<float> |> ignore),
             "FlatList.Parallel.average of an empty flat list must throw as Array.Parallel.average does"
+        )
 
     [<TestMethod; DynamicData(nameof FlatListParallelTests.NonEmptyInputs)>]
     member _.``averageBy returns the average of the projections`` (input : ParallelInput) =
@@ -543,14 +546,15 @@ type FlatListParallelTests () =
 
     [<TestMethod>]
     member _.``averageBy throws for an empty flat list as Array.Parallel does`` () =
-        ExceptionAssert.same
-            id
-            (fun () -> Array.Parallel.averageBy float Array.empty<int> |> ignore)
+        ExceptionAssert.Same (
+            id,
+            (fun () -> Array.Parallel.averageBy float Array.empty<int> |> ignore),
             (fun () ->
                 FlatList.Parallel.averageBy float FlatList.empty<int>
                 |> ignore
-            )
+            ),
             "FlatList.Parallel.averageBy of an empty flat list must throw as Array.Parallel.averageBy does"
+        )
 
     [<TestMethod; DynamicData(nameof FlatListParallelTests.AllInputs)>]
     member _.``iter visits every element once`` (input : ParallelInput) =
@@ -589,11 +593,12 @@ type FlatListParallelTests () =
 
     [<TestMethod>]
     member _.``max throws for an empty flat list as Array.Parallel does`` () =
-        ExceptionAssert.same
-            id
-            (fun () -> Array.Parallel.max Array.empty<int> |> ignore)
-            (fun () -> FlatList.Parallel.max FlatList.empty<int> |> ignore)
+        ExceptionAssert.Same (
+            id,
+            (fun () -> Array.Parallel.max Array.empty<int> |> ignore),
+            (fun () -> FlatList.Parallel.max FlatList.empty<int> |> ignore),
             "FlatList.Parallel.max of an empty flat list must throw as Array.Parallel.max does"
+        )
 
     [<TestMethod; DynamicData(nameof FlatListParallelTests.NonEmptyInputs)>]
     member _.``maxBy returns the element with the greatest projection`` (input : ParallelInput) =
@@ -618,11 +623,12 @@ type FlatListParallelTests () =
 
     [<TestMethod>]
     member _.``maxBy throws for an empty flat list as Array.Parallel does`` () =
-        ExceptionAssert.same
-            id
-            (fun () -> Array.Parallel.maxBy abs Array.empty<int> |> ignore)
-            (fun () -> FlatList.Parallel.maxBy abs FlatList.empty<int> |> ignore)
+        ExceptionAssert.Same (
+            id,
+            (fun () -> Array.Parallel.maxBy abs Array.empty<int> |> ignore),
+            (fun () -> FlatList.Parallel.maxBy abs FlatList.empty<int> |> ignore),
             "FlatList.Parallel.maxBy of an empty flat list must throw as Array.Parallel.maxBy does"
+        )
 
     [<TestMethod; DynamicData(nameof FlatListParallelTests.NonEmptyInputs)>]
     member _.``min returns the smallest element`` (input : ParallelInput) =
@@ -635,11 +641,12 @@ type FlatListParallelTests () =
 
     [<TestMethod>]
     member _.``min throws for an empty flat list as Array.Parallel does`` () =
-        ExceptionAssert.same
-            id
-            (fun () -> Array.Parallel.min Array.empty<int> |> ignore)
-            (fun () -> FlatList.Parallel.min FlatList.empty<int> |> ignore)
+        ExceptionAssert.Same (
+            id,
+            (fun () -> Array.Parallel.min Array.empty<int> |> ignore),
+            (fun () -> FlatList.Parallel.min FlatList.empty<int> |> ignore),
             "FlatList.Parallel.min of an empty flat list must throw as Array.Parallel.min does"
+        )
 
     [<TestMethod; DynamicData(nameof FlatListParallelTests.NonEmptyInputs)>]
     member _.``minBy returns the element with the smallest projection`` (input : ParallelInput) =
@@ -664,11 +671,12 @@ type FlatListParallelTests () =
 
     [<TestMethod>]
     member _.``minBy throws for an empty flat list as Array.Parallel does`` () =
-        ExceptionAssert.same
-            id
-            (fun () -> Array.Parallel.minBy abs Array.empty<int> |> ignore)
-            (fun () -> FlatList.Parallel.minBy abs FlatList.empty<int> |> ignore)
+        ExceptionAssert.Same (
+            id,
+            (fun () -> Array.Parallel.minBy abs Array.empty<int> |> ignore),
+            (fun () -> FlatList.Parallel.minBy abs FlatList.empty<int> |> ignore),
             "FlatList.Parallel.minBy of an empty flat list must throw as Array.Parallel.minBy does"
+        )
 
     [<TestMethod; DynamicData(nameof FlatListParallelTests.NonEmptyInputs)>]
     member _.``reduce combines the elements as the sequential reduce does for an associative and commutative function``
@@ -684,11 +692,12 @@ type FlatListParallelTests () =
 
     [<TestMethod>]
     member _.``reduce throws for an empty flat list as Array.Parallel does`` () =
-        ExceptionAssert.same
-            id
-            (fun () -> Array.Parallel.reduce (+) Array.empty<int> |> ignore)
-            (fun () -> FlatList.Parallel.reduce (+) FlatList.empty<int> |> ignore)
+        ExceptionAssert.Same (
+            id,
+            (fun () -> Array.Parallel.reduce (+) Array.empty<int> |> ignore),
+            (fun () -> FlatList.Parallel.reduce (+) FlatList.empty<int> |> ignore),
             "FlatList.Parallel.reduce of an empty flat list must throw as Array.Parallel.reduce does"
+        )
 
     [<TestMethod; DynamicData(nameof FlatListParallelTests.NonEmptyInputs)>]
     member _.``reduceBy combines the projections as Array.Parallel does`` (input : ParallelInput) =
@@ -710,14 +719,15 @@ type FlatListParallelTests () =
 
     [<TestMethod>]
     member _.``reduceBy throws for an empty flat list as Array.Parallel does`` () =
-        ExceptionAssert.same
-            id
-            (fun () -> Array.Parallel.reduceBy abs (+) Array.empty<int> |> ignore)
+        ExceptionAssert.Same (
+            id,
+            (fun () -> Array.Parallel.reduceBy abs (+) Array.empty<int> |> ignore),
             (fun () ->
                 FlatList.Parallel.reduceBy abs (+) FlatList.empty<int>
                 |> ignore
-            )
+            ),
             "FlatList.Parallel.reduceBy of an empty flat list must throw as Array.Parallel.reduceBy does"
+        )
 
     [<TestMethod; DynamicData(nameof FlatListParallelTests.AllInputs)>]
     member _.``sum adds the elements`` (input : ParallelInput) =
@@ -900,7 +910,7 @@ type FlatListParallelTests () =
     [<TestMethod; DynamicData(nameof FlatListParallelTests.ArrayRejections)>]
     member _.``functions reject a default flat list as Array.Parallel rejects a null array`` (name : string) =
         let struct (oracle, actual) = arrayRejections[name]
-        ExceptionAssert.same id oracle actual $"FlatList.Parallel.%s{name} must reject a default flat list"
+        ExceptionAssert.Same (id, oracle, actual, $"FlatList.Parallel.%s{name} must reject a default flat list")
 
     [<TestMethod; DynamicData(nameof FlatListParallelTests.Dereferences)>]
     member _.``sum and sumBy reject a default flat list where Array.Parallel dereferences a null array`` (name : string) =

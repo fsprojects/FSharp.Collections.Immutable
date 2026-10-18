@@ -72,20 +72,22 @@ type FlatListParallelOptionTests () =
         let source = flatListOf input
         let found : int option = FlatList.Parallel.tryFind (isAbove 6) source
 
-        OverrideAssert.optionMatches
-            (FSharp.Collections.Immutable.FlatList.Parallel.tryFind (isAbove 6) source)
-            found
+        OverrideAssert.OptionMatches (
+            FSharp.Collections.Immutable.FlatList.Parallel.tryFind (isAbove 6) source,
+            found,
             "Option.FlatList.Parallel.tryFind must match the default"
+        )
 
     [<TestMethod; DynamicData(nameof FlatListParallelOptionTests.Sources)>]
     member _.``tryFindIndex returns an option`` (input : ParallelInput) =
         let source = flatListOf input
         let found : int option = FlatList.Parallel.tryFindIndex (isAbove 6) source
 
-        OverrideAssert.optionMatches
-            (FSharp.Collections.Immutable.FlatList.Parallel.tryFindIndex (isAbove 6) source)
-            found
+        OverrideAssert.OptionMatches (
+            FSharp.Collections.Immutable.FlatList.Parallel.tryFindIndex (isAbove 6) source,
+            found,
             "Option.FlatList.Parallel.tryFindIndex must match the default"
+        )
 
     [<TestMethod; DynamicData(nameof FlatListParallelOptionTests.Sources)>]
     member _.``tryPick takes a chooser of options and returns an option`` (input : ParallelInput) =
@@ -112,7 +114,7 @@ type FlatListParallelOptionTests () =
     [<TestMethod; DynamicData(nameof FlatListParallelOptionTests.ArrayRejections)>]
     member _.``the functions reject a default flat list as Array.Parallel rejects a null array`` (name : string) =
         let struct (oracle, actual) = arrayRejections[name]
-        ExceptionAssert.same id oracle actual $"Option.FlatList.Parallel.%s{name} must reject a default flat list"
+        ExceptionAssert.Same (id, oracle, actual, $"Option.FlatList.Parallel.%s{name} must reject a default flat list")
 
     [<TestMethod>]
     member _.``the functions without an option keep resolving to the default module`` () =
