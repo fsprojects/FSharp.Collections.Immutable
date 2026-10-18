@@ -285,6 +285,23 @@ type ISetTests () =
         )
 
     [<TestMethod>]
+    member _.``filter keeps the implementation and the comparer of a sorted set`` () =
+        let descending = ComparisonIdentity.FromFunction (fun (left : int) right -> compare right left)
+        let set = (SortedSet.forComparer descending).ofArray Inputs.Several :> IImmutableSet<int>
+        let filtered = ISet.filter (fun item -> item > 0) set
+
+        let sorted =
+            Assert.IsInstanceOfType<ImmutableSortedSet<int>>(filtered, "ISet.filter must keep the sorted set of its input")
+
+        Assert.AreSame (descending, SortedSet.comparer sorted, "ISet.filter must keep the comparer of the sorted set")
+
+        CollectionAssert.AreEqual (
+            [| 12; 8; 7; 5 |],
+            SortedSet.toArray sorted,
+            "ISet.filter must keep the order of the comparer of the sorted set"
+        )
+
+    [<TestMethod>]
     member _.``isProperSuperset of a sorted set counts the elements that its comparer finds equal once`` () =
         // The sorted set orders by remainders, so it holds one element of each of the five remainders of its input; the
         // second set holds six elements with three remainders (ADR 0001, D14)
