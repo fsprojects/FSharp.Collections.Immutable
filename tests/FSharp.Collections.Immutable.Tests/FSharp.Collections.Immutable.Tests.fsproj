@@ -80,6 +80,16 @@
     <Compile Include="IndexedList\IndexedListTupleTests.fs" />
     <Compile Include="IndexedList\IIndexedListOptionTests.fs" />
     <Compile Include="IndexedList\IIndexedListTupleTests.fs" />
+    <Compile Include="Queue\QueueOps.fs" />
+    <Compile Include="Queue\IQueueOps.fs" />
+    <Compile Include="Queue\QueueContractTests.fs" />
+    <Compile Include="Queue\QueueTests.fs" />
+    <Compile Include="Queue\IQueueTests.fs" />
+    <Compile Include="Queue\QueueComputationExpressionTests.fs" />
+    <Compile Include="Queue\QueueOptionTests.fs" />
+    <Compile Include="Queue\QueueTupleTests.fs" />
+    <Compile Include="Queue\IQueueOptionTests.fs" />
+    <Compile Include="Queue\IQueueTupleTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
