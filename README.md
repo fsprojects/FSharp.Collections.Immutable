@@ -10,15 +10,17 @@ Please also join the [F# Open Source Group](http://fsharp.github.com)
 
 ## Features
 
-* `FlatList` (`ImmutableArray`)
-* `ImmutableList`
-* `Stack` (`ImmutableStack`)
-* `Queue` (`ImmutableQueue`)
-* `HashMap` (`ImmutableDictionary`)
-* `SortedMap` (`ImmutableSortedDictionary`)
-* `HashSet` (`ImmutableHashSet`)
-* `SortedSet` (`ImmutableSortedSet`)
-* `IIndexedSeq` (`IReadOnlyList`)
+| Module | .NET type | Computation expression |
+|---|---|---|
+| `FlatList` | `ImmutableArray<'T>` | – |
+| `ImmutableList` | `ImmutableList<'T>` | – |
+| `Stack` | `ImmutableStack<'T>` | – |
+| `Queue` | `ImmutableQueue<'T>` | – |
+| `HashMap` | `ImmutableDictionary<'Key, 'Value>` | – |
+| `SortedMap` | `ImmutableSortedDictionary<'Key, 'Value>` | – |
+| `HashSet` | `ImmutableHashSet<'T>` | – |
+| `SortedSet` | `ImmutableSortedSet<'T>` | – |
+| `IIndexedSeq` | `IReadOnlyList<'T>` | – |
 
 [Documentation](https://fsprojects.github.io/FSharp.Collections.Immutable/)
 
@@ -85,6 +87,7 @@ or
 - `GitHubRelease` - Publishes a [GitHub Release](https://help.github.com/en/articles/creating-releases) with the Release Notes and any NuGet packages. Runs only from `Github Actions`.
 - `FormatCode` - Runs [Fantomas](https://github.com/fsprojects/fantomas) on the solution file.
 - `CheckFormatCode` - Runs [Fantomas --check](https://fsprojects.github.io/fantomas/docs/end-users/FormattingCheck.html) on the solution file.
+- `CheckOrder` - Runs `build/check-order.fsx`, which checks that every signature file groups its functions by category in the order of ADR 0001 and sorts them alphabetically inside a category. Runs before `DotnetBuild`.
 - `BuildDocs` - Generates [Documentation](https://fsprojects.github.io/FSharp.Formatting) from `docsSrc` and the [XML Documentation Comments](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/xmldoc/) from your libraries in `src`.
 - `WatchDocs` - Generates documentation and starts a webserver locally.  It will rebuild and hot reload if it detects any changes made to `docsSrc` files, or libraries in `src`.
 

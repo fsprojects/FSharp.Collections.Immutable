@@ -163,6 +163,8 @@ module dotnet =
 
     let fantomas args = DotNet.exec id "fantomas" args
 
+    let fsi args = tool id "fsi" args
+
 module FSharpAnalyzers =
     type Arguments =
         | Project of string
@@ -588,6 +590,12 @@ let checkFormatCode ctx =
     else
         Trace.logf "Errors while formatting: %A" result.Errors
 
+/// Checks the category banners and the alphabetical order of the functions in the signature files (ADR 0001, D4)
+let checkOrder _ =
+    let script = rootDirectory </> "build" </> "check-order.fsx"
+    let sourceDirectory = rootDirectory </> "src"
+    dotnet.fsi $"\"%s{script}\" \"%s{sourceDirectory}\""
+
 
 let cleanDocsCache _ = DocsTool.cleanDocsCache ()
 
@@ -651,6 +659,7 @@ let initTargets (ctx : Context.FakeExecutionContext) =
     Target.create "GitHubRelease" githubRelease
     Target.create "FormatCode" formatCode
     Target.create "CheckFormatCode" checkFormatCode
+    Target.create "CheckOrder" checkOrder
     Target.create "Release" ignore // For local
     Target.create "Publish" ignore //For CI
     Target.create "CleanDocsCache" cleanDocsCache
@@ -698,6 +707,7 @@ let initTargets (ctx : Context.FakeExecutionContext) =
 
 
     "DotnetRestore" =?> ("CheckFormatCode", isCI.Value)
+    ==> "CheckOrder"
     ==> "DotnetBuild"
     ==> "DotnetTest"
     ==> "DotnetPack"
@@ -708,6 +718,7 @@ let initTargets (ctx : Context.FakeExecutionContext) =
     "DotnetRestore"
     =?> ("CheckFormatCode", isCI.Value)
     =?> ("GenerateAssemblyInfo", isPublishToGitHub)
+    ==> "CheckOrder"
     ==> "DotnetBuild"
     ==> "DotnetTest"
     ==> "DotnetPack"

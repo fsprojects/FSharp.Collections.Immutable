@@ -15,55 +15,70 @@
 ```text
 /
 ├── build/                                              – FAKE build scripts and release automation
+│   └── check-order.fsx                                 – checks the category order of the signature files
 ├── docsSrc/                                            – FSharp.Formatting documentation source
 ├── src/FSharp.Collections.Immutable/                    – main library
-│   ├── Helper.fs
-│   ├── ComputationExpressions.fs
+│   ├── Helper.fs                                       – argument checks and exceptions shared by the modules
 │   ├── FlatList/                                       – ImmutableArray API surface and builders
-│   │   ├── FlatList.fs / FlatList.fsi
+│   │   ├── FlatList.fs / FlatList.fsi                  – includes the nested Parallel module
+│   │   ├── FlatListOption.fs / FlatListOption.fsi      – Option namespace overrides
+│   │   ├── FlatListTuple.fs / FlatListTuple.fsi        – Tuple namespace overrides
 │   │   ├── FlatListBuilder.fs
 │   │   └── FlatListCE.fs
 │   ├── IndexedList/                                    – ImmutableList API surface and builders
-│   │   ├── IIndexedList.fs / IIndexedList.fsi
-│   │   ├── IndexedList.fs / IndexedList.fsi
+│   │   ├── IndexedList.fs / IndexedList.fsi (+ Option / Tuple)
+│   │   ├── IIndexedList.fs / IIndexedList.fsi (+ Option / Tuple)
 │   │   ├── IndexedListBuilder.fs
 │   │   └── IndexedListCE.fs
 │   ├── Queue/                                          – ImmutableQueue API surface and CE
-│   │   ├── IQueue.fs / IQueue.fsi
-│   │   ├── Queue.fs / Queue.fsi
+│   │   ├── Queue.fs / Queue.fsi (+ Option / Tuple)
+│   │   ├── IQueue.fs / IQueue.fsi (+ Option / Tuple)
 │   │   └── QueueCE.fs
 │   ├── Stack/                                          – ImmutableStack API surface and CE
-│   │   ├── IStack.fs / IStack.fsi
-│   │   ├── Stack.fs / Stack.fsi
+│   │   ├── Stack.fs / Stack.fsi (+ Option / Tuple)
+│   │   ├── IStack.fs / IStack.fsi (+ Option / Tuple)
 │   │   └── StackCE.fs
 │   ├── HashMap/                                        – ImmutableDictionary API surface and CE
-│   │   ├── IHashMap.fs / IHashMap.fsi
-│   │   ├── HashMap.fs / HashMap.fsi
+│   │   ├── HashMap.fs / HashMap.fsi (+ Option / Tuple)
+│   │   ├── IMap.fs / IMap.fsi (+ Option / Tuple)
 │   │   └── HashMapCE.fs
 │   ├── SortedMap/                                      – ImmutableSortedDictionary API surface and CE
-│   │   ├── ISortedMap.fs / ISortedMap.fsi
-│   │   ├── SortedMap.fs / SortedMap.fsi
+│   │   ├── SortedMap.fs / SortedMap.fsi (+ Option / Tuple)
 │   │   └── SortedMapCE.fs
 │   ├── HashSet/                                        – ImmutableHashSet API surface and CE
-│   │   ├── IHashSet.fs / IHashSet.fsi
-│   │   ├── HashSet.fs / HashSet.fsi
+│   │   ├── HashSet.fs / HashSet.fsi (+ Option / Tuple)
+│   │   ├── ISet.fs / ISet.fsi (+ Option / Tuple)
 │   │   └── HashSetCE.fs
-│   └── SortedSet/                                      – ImmutableSortedSet API surface and CE
-│       ├── ISortedSet.fs / ISortedSet.fsi
-│       ├── SortedSet.fs / SortedSet.fsi
-│       └── SortedSetCE.fs
+│   ├── SortedSet/                                      – ImmutableSortedSet API surface and CE
+│   │   ├── SortedSet.fs / SortedSet.fsi (+ Option / Tuple)
+│   │   └── SortedSetCE.fs
+│   ├── FrozenMap/                                      – FrozenDictionary API surface and CE
+│   │   ├── FrozenMap.fs / FrozenMap.fsi (+ Option / Tuple)
+│   │   └── FrozenMapCE.fs
+│   ├── FrozenSet/                                      – FrozenSet API surface and CE
+│   │   ├── FrozenSet.fs / FrozenSet.fsi (+ Option / Tuple)
+│   │   └── FrozenSetCE.fs
+│   └── ComputationExpressions.fs                       – the computation expression instances
 └── tests/FSharp.Collections.Immutable.Tests/            – MSTest test project
-    ├── HelperTests.fs
     ├── TestCategories.fs                               – centralized custom test category attributes
-    ├── FlatList/                                       – focused test files per operation group
-    ├── IndexedList/                                    – focused test files per operation group
-    ├── HashMap/                                        – focused test files per operation group
-    ├── SortedMap/                                      – focused test files per operation group
-    ├── HashSet/                                        – focused test files per operation group
-    ├── SortedSet/                                      – focused test files per operation group
-    ├── Queue/                                          – focused test files per operation group
-    └── Stack/                                          – focused test files per operation group
+    ├── TestCategoriesTests.fs                          – enforces the test category rules
+    ├── Contracts/                                      – shared contract bases, inputs and assertion helpers
+    └── <Collection>/                                   – ops records, contract classes, collection-specific,
+                                                          builder, computation expression, Option and Tuple tests
 ```
+
+The modules follow ADR 0001 – Per-collection modules (`docsSrc/Explanations/ADR_0001_Collection_Modules.md`):
+
+* Each module groups its functions under banner comments `// ---- Category ----` in the order `Creation`, `Builder`,
+  `Properties`, `Access`, `Search`, `Transformation`, `Folding`, `Partitioning and grouping`, `Sorting`, `Random`,
+  `Conversion`, `Type-specific`, and sorts the functions of a category alphabetically (ordinal), active patterns last.
+  The `.fs` file repeats the order of its `.fsi` file. `build/check-order.fsx` (FAKE target `CheckOrder`) enforces it.
+* `try*` functions return `voption`, tuples are struct tuples. The namespaces `FSharp.Collections.Immutable.Option` and
+  `FSharp.Collections.Immutable.Tuple` repeat these functions with `option` results and reference tuples.
+* A function throws what the FSharp.Core function of the mirrored module throws for the same input: `Array` for
+  `FlatList`, `List` for the other sequence-like modules, `Map` and `Set` for maps and sets.
+* Contract test bases in `Contracts/` take a record of the module's functions; a collection derives one test class per
+  capability that it supports. Expected values and exceptions come from FSharp.Core.
 
 ## Libraries in Use
 

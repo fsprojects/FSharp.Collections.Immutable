@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
     <AssemblyName>$(AssemblyBaseName).Tests</AssemblyName>
 
     <OutputType>Exe</OutputType>
@@ -17,13 +17,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="FlatList.fs" />
-    <Compile Include="Stack.fs" />
-    <Compile Include="ImmutableList.fs" />
-    <Compile Include="Queue.fs" />
-    <Compile Include="IndexedSeq.fs" />
-    <Compile Include="Maps.fs" />
-    <Compile Include="Sets.fs" />
+    <Compile Include="TestCategories.fs" />
+    <Compile Include="Contracts\ExceptionAssert.fs" />
+    <Compile Include="Contracts\Inputs.fs" />
+    <Compile Include="Contracts\OverrideAssert.fs" />
+    <Compile Include="TestCategoriesTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
