@@ -44,6 +44,10 @@
     <Compile Include="FlatList\FlatListBuilder.fs" />
     <Compile Include="FlatList\FlatListCE.fsi" />
     <Compile Include="FlatList\FlatListCE.fs" />
+    <Compile Include="EquatableArray/EquatableArray.fsi" />
+    <Compile Include="EquatableArray/EquatableArray.fs" />
+    <Compile Include="EquatableArray/EquatableArrayPatterns.fsi" />
+    <Compile Include="EquatableArray/EquatableArrayPatterns.fs" />
     <Compile Include="Stack.fs" />
     <Compile Include="ImmutableList.fs" />
     <Compile Include="Queue.fs" />
