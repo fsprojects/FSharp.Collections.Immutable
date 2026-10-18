@@ -4,7 +4,7 @@ open System
 open System.Reflection
 open Microsoft.VisualStudio.TestTools.UnitTesting
 
-/// Enforces the category rules of `.github/instructions/test-categories.instructions.md` and of the copilot instructions.
+/// Enforces the category rules of `.github/instructions/test-categories.instructions.md` and of ADR 0001, D8.
 [<TestClass; ConventionTestCategory>]
 type TestCategoriesTests () =
 
@@ -26,7 +26,7 @@ type TestCategoriesTests () =
     /// A category attribute of this project, as opposed to the `TestCategory` attribute of MSTest.
     static let isProjectCategory (attribute : TestCategoryBaseAttribute) = attribute.GetType().Assembly = assembly
 
-    [<TestMethod; TestCategory(nameof TestCategoryBaseAttribute)>]
+    [<TestMethod>]
     member _.``Every category attribute gives one category named after its type`` () =
         Assert.IsNotEmpty (categoryAttributeTypes, "TestCategories.fs must define category attributes")
 
@@ -52,7 +52,7 @@ type TestCategoriesTests () =
 
             Assert.IsTrue (Char.IsUpper category[0], $"The category of %s{name} must start with a capital letter")
 
-    [<TestMethod; TestCategory(nameof TestCategoryBaseAttribute)>]
+    [<TestMethod>]
     member _.``Category attributes are sorted by type name`` () =
         let names = categoryAttributeTypes |> Array.map _.Name
         let sorted =
@@ -60,7 +60,7 @@ type TestCategoriesTests () =
             |> Array.sortWith (fun left right -> String.CompareOrdinal (left, right))
         CollectionAssert.AreEqual (sorted, names, "TestCategories.fs must keep its attributes sorted by type name")
 
-    [<TestMethod; TestCategory(nameof TestClassAttribute)>]
+    [<TestMethod>]
     member _.``Every test class has a category attribute of this project`` () =
         Assert.IsNotEmpty (testClasses, "The assembly must contain test classes")
 
@@ -71,8 +71,17 @@ type TestCategoriesTests () =
 
             Assert.IsNotEmpty (categories, $"%s{testClass.Name} must carry the category attribute of what it examines")
 
-    [<TestMethod; TestCategory(nameof TestMethodAttribute)>]
-    member _.``Every test method has an operation category`` () =
+    [<TestMethod>]
+    member _.``No test class has a category written as a string`` () =
+        for testClass in testClasses do
+            Assert.IsFalse (
+                testClass.IsDefined (typeof<TestCategoryAttribute>, true),
+                $"%s{testClass.Name} must take its categories from the attributes of TestCategories.fs, not from TestCategory"
+            )
+
+    [<TestMethod>]
+    member _.``Test methods carry no categories`` () =
+        // The categories belong to the test classes, so every test of a class shares them
         for testClass in testClasses do
             let testMethods =
                 testClass.GetMethods (BindingFlags.Public ||| BindingFlags.Instance)
@@ -80,4 +89,4 @@ type TestCategoriesTests () =
 
             for testMethod in testMethods do
                 let categories = testMethod.GetCustomAttributes<TestCategoryBaseAttribute>(true)
-                Assert.IsNotEmpty (categories, $"%s{testClass.Name}.%s{testMethod.Name} must carry an operation category")
+                Assert.IsEmpty (categories, $"%s{testClass.Name}.%s{testMethod.Name} must not carry a category")

@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <Compile Include="TestCategories.fs" />
+    <Compile Include="Contracts\Mirror.fs" />
     <Compile Include="Contracts\ExceptionAssert.fs" />
     <Compile Include="Contracts\Inputs.fs" />
     <Compile Include="Contracts\OverrideAssert.fs" />

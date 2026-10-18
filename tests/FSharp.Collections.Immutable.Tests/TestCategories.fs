@@ -5,6 +5,8 @@ open Microsoft.VisualStudio.TestTools.UnitTesting
 
 // Each attribute gives one category: its type name without the `TestCategoryAttribute` suffix, written as separate words.
 // The attributes are sorted by type name (ordinal); a new attribute goes to its sorted position.
+// The attributes go on the test classes only, for the collection and the area that a class examines; test methods carry
+// no categories (ADR 0001, D8).
 
 /// The builder functions and the builder modules.
 type BuilderTestCategoryAttribute () =

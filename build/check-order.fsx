@@ -57,9 +57,10 @@ let fileModuleRegex =
 // An identifier or an active pattern such as `(|Cons|_|)`, optionally preceded by attributes on the same line
 let private nameGroup = @"(?<name>\(\|[^)]*\|\)|[A-Za-z_][A-Za-z0-9_']*)"
 
+// The access modifier is its own group, so that `val internal f` is a non-public `f`, not a value named `internal`
 let valRegex =
     Regex (
-        @"^(?<indent> *)(?:\[<.*>\]\s*)?val\s+(?:inline\s+)?"
+        @"^(?<indent> *)(?:\[<.*>\]\s*)?val\s+(?:inline\s+)?(?<access>(?:private|internal)\s+)?(?:inline\s+)?"
         + nameGroup,
         RegexOptions.CultureInvariant
     )
