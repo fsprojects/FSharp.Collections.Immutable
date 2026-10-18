@@ -53,8 +53,10 @@ type ExceptionAssert =
     /// with the same headline and, for an argument exception, the parameter name that
     /// <paramref name="paramName"/> maps the parameter name of the oracle to.
     /// </summary>
-    static member Same (paramName : string -> string, oracle : unit -> unit, actual : unit -> unit, ?message : string) =
-        let message = message |> Option.defaultValue ""
+    static member Same
+        (paramName : string -> string, oracle : unit -> unit, actual : unit -> unit, [<Struct>] ?message : string)
+        =
+        let message = message |> ValueOption.defaultValue ""
 
         let expected =
             ExceptionAssert.Invariant (fun () -> Assert.Throws<exn>(Action oracle, "The FSharp.Core oracle must throw"))
@@ -85,7 +87,7 @@ type ExceptionAssert =
             arrayOracle : unit -> unit,
             listOracle : unit -> unit,
             actual : unit -> unit,
-            ?message : string
+            [<Struct>] ?message : string
         )
         =
         let oracle =
