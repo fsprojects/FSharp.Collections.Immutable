@@ -20,70 +20,69 @@ type SeqLikeRandomContract<'C> (ops : SeqOps<'C>) =
         let random = Random seed
         fun () -> random.NextDouble ()
 
-    /// The elements of a result as a sorted list, for the comparison of multisets.
-    static let sorted (items : int list) = List.sort items
+    /// The elements of a result, sorted, for the comparison of multisets.
+    static let sorted (items : int array) = Array.sort items
 
-    [<TestMethod>]
-    member this.``randomChoice returns an element`` () =
-        this.ForEach (
-            Inputs.nonEmpty,
-            fun collection elements ->
-                let chosen = ops.RandomChoice collection
-                Assert.Contains (chosen, elements, $"%s{ops.Name}.randomChoice must return an element of %A{elements}")
-        )
+    /// The counts and the inputs that randomChoices rejects: a negative count, and a count of an empty input.
+    static member ChoicesFailures = seq {
+        struct (-1, Inputs.Several)
+        struct (3, Inputs.Empty)
+    }
+
+    [<TestMethod; DynamicData(nameof Inputs.NonEmpty, typeof<Inputs>)>]
+    member this.``randomChoice returns an element`` (input : int array) =
+        let struct (collection, elements) = this.Create input
+        let chosen = ops.RandomChoice collection
+        Assert.Contains (chosen, elements, $"%s{ops.Name}.randomChoice must return an element of the collection")
 
     [<TestMethod>]
     member this.``randomChoice throws for an empty collection as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.randomChoice Array.empty<int>),
             (fun () -> List.randomChoice List.empty<int>),
-            (fun () -> ops.RandomChoice (ops.OfSeq Inputs.empty)),
+            (fun () -> ops.RandomChoice (ops.OfSeq Inputs.Empty)),
             "randomChoice of an empty collection must throw"
         )
 
-    [<TestMethod>]
-    member this.``randomChoiceBy chooses as FSharp.Core does with the same randomizer`` () =
-        this.ForEach (
-            Inputs.nonEmpty,
-            fun collection elements ->
-                let expected =
-                    this.Mirrored (
-                        (fun () -> Array.randomChoiceBy (randomizer ()) (List.toArray elements)),
-                        fun () -> List.randomChoiceBy (randomizer ()) elements
-                    )
+    [<TestMethod; DynamicData(nameof Inputs.NonEmpty, typeof<Inputs>)>]
+    member this.``randomChoiceBy chooses as FSharp.Core does with the same randomizer`` (input : int array) =
+        let struct (collection, elements) = this.Create input
 
-                Assert.AreEqual<int>(
-                    expected,
-                    ops.RandomChoiceBy (randomizer ()) collection,
-                    $"%s{ops.Name}.randomChoiceBy of %A{elements}"
-                )
+        let expected =
+            this.Mirrored (
+                (fun () -> Array.randomChoiceBy (randomizer ()) elements),
+                fun () -> List.randomChoiceBy (randomizer ()) (List.ofArray elements)
+            )
+
+        Assert.AreEqual<int>(
+            expected,
+            ops.RandomChoiceBy (randomizer ()) collection,
+            $"%s{ops.Name}.randomChoiceBy must choose as FSharp.Core does with the same randomizer"
         )
 
     [<TestMethod>]
     member this.``randomChoiceBy throws for a randomizer outside the range as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
-            (fun () -> Array.randomChoiceBy (fun () -> 1.0) (List.toArray Inputs.several)),
-            (fun () -> List.randomChoiceBy (fun () -> 1.0) Inputs.several),
-            (fun () -> ops.RandomChoiceBy (fun () -> 1.0) (ops.OfSeq Inputs.several)),
+            (fun () -> Array.randomChoiceBy (fun () -> 1.0) Inputs.Several),
+            (fun () -> List.randomChoiceBy (fun () -> 1.0) (List.ofArray Inputs.Several)),
+            (fun () -> ops.RandomChoiceBy (fun () -> 1.0) (ops.OfSeq Inputs.Several)),
             "randomChoiceBy with a randomizer that returns 1.0 must throw"
         )
 
-    [<TestMethod>]
-    member this.``randomChoiceWith chooses as FSharp.Core does with the same generator`` () =
-        this.ForEach (
-            Inputs.nonEmpty,
-            fun collection elements ->
-                let expected =
-                    this.Mirrored (
-                        (fun () -> Array.randomChoiceWith (Random seed) (List.toArray elements)),
-                        fun () -> List.randomChoiceWith (Random seed) elements
-                    )
+    [<TestMethod; DynamicData(nameof Inputs.NonEmpty, typeof<Inputs>)>]
+    member this.``randomChoiceWith chooses as FSharp.Core does with the same generator`` (input : int array) =
+        let struct (collection, elements) = this.Create input
 
-                Assert.AreEqual<int>(
-                    expected,
-                    ops.RandomChoiceWith (Random seed) collection,
-                    $"%s{ops.Name}.randomChoiceWith of %A{elements}"
-                )
+        let expected =
+            this.Mirrored (
+                (fun () -> Array.randomChoiceWith (Random seed) elements),
+                fun () -> List.randomChoiceWith (Random seed) (List.ofArray elements)
+            )
+
+        Assert.AreEqual<int>(
+            expected,
+            ops.RandomChoiceWith (Random seed) collection,
+            $"%s{ops.Name}.randomChoiceWith must choose as FSharp.Core does with the same generator"
         )
 
     [<TestMethod>]
@@ -91,201 +90,173 @@ type SeqLikeRandomContract<'C> (ops : SeqOps<'C>) =
         let random = Unchecked.defaultof<Random>
 
         this.ThrowsLikeFSharpCore (
-            (fun () -> Array.randomChoiceWith random (List.toArray Inputs.several)),
-            (fun () -> List.randomChoiceWith random Inputs.several),
-            (fun () -> ops.RandomChoiceWith random (ops.OfSeq Inputs.several)),
+            (fun () -> Array.randomChoiceWith random Inputs.Several),
+            (fun () -> List.randomChoiceWith random (List.ofArray Inputs.Several)),
+            (fun () -> ops.RandomChoiceWith random (ops.OfSeq Inputs.Several)),
             "randomChoiceWith of a null generator must throw"
         )
 
-    [<TestMethod>]
-    member this.``randomChoices returns the given number of elements`` () =
-        this.ForEach (
-            Inputs.nonEmpty,
-            fun collection elements ->
-                let chosen = ops.ToList (ops.RandomChoices 20 collection)
-                Assert.HasCount (20, chosen, $"%s{ops.Name}.randomChoices 20 must return 20 elements")
+    [<TestMethod; DynamicData(nameof Inputs.NonEmpty, typeof<Inputs>)>]
+    member this.``randomChoices returns the given number of elements`` (input : int array) =
+        let struct (collection, elements) = this.Create input
+        let chosen = ops.ToArray (ops.RandomChoices 20 collection)
+        Assert.HasCount (20, chosen, $"%s{ops.Name}.randomChoices 20 must return 20 elements")
 
-                for item in chosen do
-                    Assert.Contains (item, elements, $"%s{ops.Name}.randomChoices must return elements of %A{elements}")
+        for item in chosen do
+            Assert.Contains (item, elements, $"%s{ops.Name}.randomChoices must return elements of the collection")
+
+    [<TestMethod; DynamicData(nameof SeqLikeRandomContract<'C>.ChoicesFailures)>]
+    member this.``randomChoices throws for a negative count or an empty collection as FSharp.Core does``
+        (count : int, input : int array)
+        =
+        this.ThrowsLikeFSharpCore (
+            (fun () -> Array.randomChoices count input),
+            (fun () -> List.randomChoices count (List.ofArray input)),
+            (fun () -> ops.RandomChoices count (ops.OfSeq input)),
+            "randomChoices of a negative count or of an empty collection must throw"
         )
 
-    [<TestMethod>]
-    member this.``randomChoices throws for a negative count or an empty collection as FSharp.Core does`` () =
-        for struct (count, input) in [ struct (-1, Inputs.several); struct (3, Inputs.empty) ] do
-            this.ThrowsLikeFSharpCore (
-                (fun () -> Array.randomChoices count (List.toArray input)),
-                (fun () -> List.randomChoices count input),
-                (fun () -> ops.RandomChoices count (ops.OfSeq input)),
-                $"randomChoices %d{count} of %A{input} must throw"
+    [<TestMethod; DynamicData(nameof Inputs.NonEmpty, typeof<Inputs>)>]
+    member this.``randomChoicesBy chooses as FSharp.Core does with the same randomizer`` (input : int array) =
+        let struct (collection, elements) = this.Create input
+
+        let expected =
+            this.Mirrored (
+                (fun () -> Array.randomChoicesBy (randomizer ()) 5 elements),
+                fun () ->
+                    List.randomChoicesBy (randomizer ()) 5 (List.ofArray elements)
+                    |> List.toArray
             )
 
-    [<TestMethod>]
-    member this.``randomChoicesBy chooses as FSharp.Core does with the same randomizer`` () =
-        this.ForEach (
-            Inputs.nonEmpty,
-            fun collection elements ->
-                let expected =
-                    this.Mirrored (
-                        (fun () ->
-                            Array.randomChoicesBy (randomizer ()) 5 (List.toArray elements)
-                            |> List.ofArray
-                        ),
-                        fun () -> List.randomChoicesBy (randomizer ()) 5 elements
-                    )
-
-                Assert.AreEqual<int list>(
-                    expected,
-                    ops.ToList (ops.RandomChoicesBy (randomizer ()) 5 collection),
-                    $"%s{ops.Name}.randomChoicesBy of %A{elements}"
-                )
+        CollectionAssert.AreEqual (
+            expected,
+            ops.ToArray (ops.RandomChoicesBy (randomizer ()) 5 collection),
+            $"%s{ops.Name}.randomChoicesBy must choose as FSharp.Core does with the same randomizer"
         )
 
-    [<TestMethod>]
-    member this.``randomChoicesWith chooses as FSharp.Core does with the same generator`` () =
-        this.ForEach (
-            Inputs.nonEmpty,
-            fun collection elements ->
-                let expected =
-                    this.Mirrored (
-                        (fun () ->
-                            Array.randomChoicesWith (Random seed) 5 (List.toArray elements)
-                            |> List.ofArray
-                        ),
-                        fun () -> List.randomChoicesWith (Random seed) 5 elements
-                    )
+    [<TestMethod; DynamicData(nameof Inputs.NonEmpty, typeof<Inputs>)>]
+    member this.``randomChoicesWith chooses as FSharp.Core does with the same generator`` (input : int array) =
+        let struct (collection, elements) = this.Create input
 
-                Assert.AreEqual<int list>(
-                    expected,
-                    ops.ToList (ops.RandomChoicesWith (Random seed) 5 collection),
-                    $"%s{ops.Name}.randomChoicesWith of %A{elements}"
-                )
-        )
-
-    [<TestMethod>]
-    member this.``randomSample returns elements at distinct indices`` () =
-        this.ForEach (
-            Inputs.nonEmpty,
-            fun collection elements ->
-                let count = min 3 elements.Length
-                let sample = ops.ToList (ops.RandomSample count collection)
-                Assert.HasCount (count, sample, $"%s{ops.Name}.randomSample %d{count} must return %d{count} elements")
-
-                // Every sampled element must be available in the input as often as it is sampled
-                let remaining = ResizeArray elements
-
-                for item in sample do
-                    Assert.IsTrue (
-                        remaining.Remove item,
-                        $"%s{ops.Name}.randomSample must take each element of %A{elements} once at most"
-                    )
-        )
-
-    [<TestMethod>]
-    member this.``randomSample throws for a negative count or one beyond the length as FSharp.Core does`` () =
-        for count in [ -1; 9 ] do
-            this.ThrowsLikeFSharpCore (
-                (fun () -> Array.randomSample count (List.toArray Inputs.several)),
-                (fun () -> List.randomSample count Inputs.several),
-                (fun () -> ops.RandomSample count (ops.OfSeq Inputs.several)),
-                $"randomSample %d{count} must throw"
+        let expected =
+            this.Mirrored (
+                (fun () -> Array.randomChoicesWith (Random seed) 5 elements),
+                fun () ->
+                    List.randomChoicesWith (Random seed) 5 (List.ofArray elements)
+                    |> List.toArray
             )
 
-    [<TestMethod>]
-    member this.``randomSampleBy samples as FSharp.Core does with the same randomizer`` () =
-        this.ForEach (
-            Inputs.nonEmpty,
-            fun collection elements ->
-                let count = min 3 elements.Length
-
-                let expected =
-                    this.Mirrored (
-                        (fun () ->
-                            Array.randomSampleBy (randomizer ()) count (List.toArray elements)
-                            |> List.ofArray
-                        ),
-                        fun () -> List.randomSampleBy (randomizer ()) count elements
-                    )
-
-                Assert.AreEqual<int list>(
-                    expected,
-                    ops.ToList (ops.RandomSampleBy (randomizer ()) count collection),
-                    $"%s{ops.Name}.randomSampleBy of %A{elements}"
-                )
+        CollectionAssert.AreEqual (
+            expected,
+            ops.ToArray (ops.RandomChoicesWith (Random seed) 5 collection),
+            $"%s{ops.Name}.randomChoicesWith must choose as FSharp.Core does with the same generator"
         )
 
-    [<TestMethod>]
-    member this.``randomSampleWith samples as FSharp.Core does with the same generator`` () =
-        this.ForEach (
-            Inputs.nonEmpty,
-            fun collection elements ->
-                let count = min 3 elements.Length
+    [<TestMethod; DynamicData(nameof Inputs.NonEmpty, typeof<Inputs>)>]
+    member this.``randomSample returns elements at distinct indices`` (input : int array) =
+        let struct (collection, elements) = this.Create input
+        let count = min 3 elements.Length
+        let sample = ops.ToArray (ops.RandomSample count collection)
+        Assert.HasCount (count, sample, $"%s{ops.Name}.randomSample must return the given number of elements")
 
-                let expected =
-                    this.Mirrored (
-                        (fun () ->
-                            Array.randomSampleWith (Random seed) count (List.toArray elements)
-                            |> List.ofArray
-                        ),
-                        fun () -> List.randomSampleWith (Random seed) count elements
-                    )
+        // Every sampled element must be available in the input as often as it is sampled
+        let remaining = ResizeArray elements
 
-                Assert.AreEqual<int list>(
-                    expected,
-                    ops.ToList (ops.RandomSampleWith (Random seed) count collection),
-                    $"%s{ops.Name}.randomSampleWith of %A{elements}"
-                )
+        for item in sample do
+            Assert.IsTrue (
+                remaining.Remove item,
+                $"%s{ops.Name}.randomSample must take each element of the collection once at most"
+            )
+
+    [<TestMethod; DataRow -1; DataRow 9>]
+    member this.``randomSample throws for a negative count or one beyond the length as FSharp.Core does`` (count : int) =
+        this.ThrowsLikeFSharpCore (
+            (fun () -> Array.randomSample count Inputs.Several),
+            (fun () -> List.randomSample count (List.ofArray Inputs.Several)),
+            (fun () -> ops.RandomSample count (ops.OfSeq Inputs.Several)),
+            "randomSample of a negative count or beyond the length must throw"
         )
 
-    [<TestMethod>]
-    member this.``randomShuffle returns a permutation of the elements`` () =
-        this.ForEach (
-            Inputs.all,
-            fun collection elements ->
-                Assert.AreEqual<int list>(
-                    sorted elements,
-                    sorted (ops.ToList (ops.RandomShuffle collection)),
-                    $"%s{ops.Name}.randomShuffle must keep the elements of %A{elements}"
-                )
+    [<TestMethod; DynamicData(nameof Inputs.NonEmpty, typeof<Inputs>)>]
+    member this.``randomSampleBy samples as FSharp.Core does with the same randomizer`` (input : int array) =
+        let struct (collection, elements) = this.Create input
+        let count = min 3 elements.Length
+
+        let expected =
+            this.Mirrored (
+                (fun () -> Array.randomSampleBy (randomizer ()) count elements),
+                fun () ->
+                    List.randomSampleBy (randomizer ()) count (List.ofArray elements)
+                    |> List.toArray
+            )
+
+        CollectionAssert.AreEqual (
+            expected,
+            ops.ToArray (ops.RandomSampleBy (randomizer ()) count collection),
+            $"%s{ops.Name}.randomSampleBy must sample as FSharp.Core does with the same randomizer"
         )
 
-    [<TestMethod>]
-    member this.``randomShuffleBy shuffles as FSharp.Core does with the same randomizer`` () =
-        this.ForEach (
-            Inputs.all,
-            fun collection elements ->
-                let expected =
-                    this.Mirrored (
-                        (fun () ->
-                            Array.randomShuffleBy (randomizer ()) (List.toArray elements)
-                            |> List.ofArray
-                        ),
-                        fun () -> List.randomShuffleBy (randomizer ()) elements
-                    )
+    [<TestMethod; DynamicData(nameof Inputs.NonEmpty, typeof<Inputs>)>]
+    member this.``randomSampleWith samples as FSharp.Core does with the same generator`` (input : int array) =
+        let struct (collection, elements) = this.Create input
+        let count = min 3 elements.Length
 
-                Assert.AreEqual<int list>(
-                    expected,
-                    ops.ToList (ops.RandomShuffleBy (randomizer ()) collection),
-                    $"%s{ops.Name}.randomShuffleBy of %A{elements}"
-                )
+        let expected =
+            this.Mirrored (
+                (fun () -> Array.randomSampleWith (Random seed) count elements),
+                fun () ->
+                    List.randomSampleWith (Random seed) count (List.ofArray elements)
+                    |> List.toArray
+            )
+
+        CollectionAssert.AreEqual (
+            expected,
+            ops.ToArray (ops.RandomSampleWith (Random seed) count collection),
+            $"%s{ops.Name}.randomSampleWith must sample as FSharp.Core does with the same generator"
         )
 
-    [<TestMethod>]
-    member this.``randomShuffleWith shuffles as FSharp.Core does with the same generator`` () =
-        this.ForEach (
-            Inputs.all,
-            fun collection elements ->
-                let expected =
-                    this.Mirrored (
-                        (fun () ->
-                            Array.randomShuffleWith (Random seed) (List.toArray elements)
-                            |> List.ofArray
-                        ),
-                        fun () -> List.randomShuffleWith (Random seed) elements
-                    )
+    [<TestMethod; DynamicData(nameof Inputs.All, typeof<Inputs>)>]
+    member this.``randomShuffle returns a permutation of the elements`` (input : int array) =
+        let struct (collection, elements) = this.Create input
 
-                Assert.AreEqual<int list>(
-                    expected,
-                    ops.ToList (ops.RandomShuffleWith (Random seed) collection),
-                    $"%s{ops.Name}.randomShuffleWith of %A{elements}"
-                )
+        CollectionAssert.AreEqual (
+            sorted elements,
+            sorted (ops.ToArray (ops.RandomShuffle collection)),
+            $"%s{ops.Name}.randomShuffle must keep the elements"
+        )
+
+    [<TestMethod; DynamicData(nameof Inputs.All, typeof<Inputs>)>]
+    member this.``randomShuffleBy shuffles as FSharp.Core does with the same randomizer`` (input : int array) =
+        let struct (collection, elements) = this.Create input
+
+        let expected =
+            this.Mirrored (
+                (fun () -> Array.randomShuffleBy (randomizer ()) elements),
+                fun () ->
+                    List.randomShuffleBy (randomizer ()) (List.ofArray elements)
+                    |> List.toArray
+            )
+
+        CollectionAssert.AreEqual (
+            expected,
+            ops.ToArray (ops.RandomShuffleBy (randomizer ()) collection),
+            $"%s{ops.Name}.randomShuffleBy must shuffle as FSharp.Core does with the same randomizer"
+        )
+
+    [<TestMethod; DynamicData(nameof Inputs.All, typeof<Inputs>)>]
+    member this.``randomShuffleWith shuffles as FSharp.Core does with the same generator`` (input : int array) =
+        let struct (collection, elements) = this.Create input
+
+        let expected =
+            this.Mirrored (
+                (fun () -> Array.randomShuffleWith (Random seed) elements),
+                fun () ->
+                    List.randomShuffleWith (Random seed) (List.ofArray elements)
+                    |> List.toArray
+            )
+
+        CollectionAssert.AreEqual (
+            expected,
+            ops.ToArray (ops.RandomShuffleWith (Random seed) collection),
+            $"%s{ops.Name}.randomShuffleWith must shuffle as FSharp.Core does with the same generator"
         )

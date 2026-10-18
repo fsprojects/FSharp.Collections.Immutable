@@ -8,379 +8,366 @@ open Microsoft.VisualStudio.TestTools.UnitTesting
 type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
     inherit SeqLikeSearchContract<'C> (ops)
 
-    static let toStructPairs (pairs : ('T1 * 'T2) list) =
+    static let toStructPairs (pairs : ('T1 * 'T2) array) =
         pairs
-        |> List.map (fun (first, second) -> struct (first, second))
+        |> Array.map (fun (first, second) -> struct (first, second))
 
-    static let toStructTriples (triples : ('T1 * 'T2 * 'T3) list) =
+    static let toStructTriples (triples : ('T1 * 'T2 * 'T3) array) =
         triples
-        |> List.map (fun (first, second, third) -> struct (first, second, third))
+        |> Array.map (fun (first, second, third) -> struct (first, second, third))
 
-    [<TestMethod>]
-    member this.``allPairs pairs every element with every element of the other collection`` () =
-        let other = ops.OfSeq [ 1; 2; 3 ]
-        let otherElements = ops.ToList other
+    /// Every input with every input, for the functions of two collections of any lengths.
+    static member InputPairs = seq {
+        for first in Inputs.All do
+            for second in Inputs.All do
+                struct (first, second)
+    }
 
-        this.ForEach (
-            Inputs.all,
-            fun collection elements ->
-                Assert.AreEqual<struct (int * int) list>(
-                    List.allPairs elements otherElements |> toStructPairs,
-                    ops.AllPairs collection other,
-                    $"%s{ops.Name}.allPairs of %A{elements} and %A{otherElements}"
-                )
+    /// Every input with each size of a chunk or a window: one, inside the length, the length and beyond it.
+    static member InputsAndSizes = seq {
+        for input in Inputs.All do
+            for size in [| 1; 3; 8; 9 |] do
+                struct (input, size)
+    }
+
+    [<TestMethod; DynamicData(nameof Inputs.All, typeof<Inputs>)>]
+    member this.``allPairs pairs every element with every element of the other collection`` (input : int array) =
+        let struct (collection, elements) = this.Create input
+        let struct (other, otherElements) = this.Create [| 1; 2; 3 |]
+
+        CollectionAssert.AreEqual (
+            Array.allPairs elements otherElements |> toStructPairs,
+            ops.AllPairs collection other,
+            $"%s{ops.Name}.allPairs must pair every element with every element of the other collection"
+        )
+
+    [<TestMethod; DynamicData(nameof SeqLikeTransformationContract<'C>.InputPairs)>]
+    member this.``append concatenates two collections`` (first : int array, second : int array) =
+        let struct (collection, elements) = this.Create first
+        let struct (other, otherElements) = this.Create second
+
+        CollectionAssert.AreEqual (
+            Array.append elements otherElements,
+            ops.ToArray (ops.Append collection other),
+            $"%s{ops.Name}.append must concatenate two collections"
+        )
+
+    [<TestMethod; DynamicData(nameof Inputs.All, typeof<Inputs>)>]
+    member this.``choose keeps the chosen values in order`` (input : int array) =
+        let struct (collection, elements) = this.Create input
+        let chooser (item : int) = if item > 0 then ValueSome (item * 10) else ValueNone
+        let chooserOption (item : int) = if item > 0 then Some (item * 10) else None
+
+        CollectionAssert.AreEqual (
+            Array.choose chooserOption elements,
+            ops.ToArray (ops.Choose chooser collection),
+            $"%s{ops.Name}.choose must keep the chosen values in order"
+        )
+
+    [<TestMethod; DynamicData(nameof SeqLikeTransformationContract<'C>.InputsAndSizes)>]
+    member this.``chunkBySize divides the elements into chunks`` (input : int array, size : int) =
+        let struct (collection, elements) = this.Create input
+
+        CollectionAssert.AreEqual (
+            Array.chunkBySize size elements,
+            ops.ChunkBySize size collection,
+            $"%s{ops.Name}.chunkBySize must divide the elements into chunks"
+        )
+
+    [<TestMethod; DataRow 0; DataRow -1>]
+    member this.``chunkBySize throws for a size that is not positive as FSharp.Core does`` (size : int) =
+        this.ThrowsLikeFSharpCore (
+            (fun () -> Array.chunkBySize size Inputs.Several),
+            (fun () -> List.chunkBySize size (List.ofArray Inputs.Several)),
+            (fun () -> ops.ChunkBySize size (ops.OfSeq Inputs.Several)),
+            "chunkBySize of a size that is not positive must throw"
+        )
+
+    [<TestMethod; DynamicData(nameof Inputs.All, typeof<Inputs>)>]
+    member this.``collect concatenates the collections of the elements`` (input : int array) =
+        let struct (collection, elements) = this.Create input
+
+        CollectionAssert.AreEqual (
+            Array.collect (fun item -> [| item; item * 10 |]) elements,
+            ops.ToArray (ops.Collect (fun item -> ops.OfSeq [| item; item * 10 |]) collection),
+            $"%s{ops.Name}.collect must concatenate the collections of the elements"
         )
 
     [<TestMethod>]
-    member this.``append concatenates two collections`` () =
-        for first in Inputs.all do
-            for second in Inputs.all do
-                let collection = ops.OfSeq first
-                let other = ops.OfSeq second
+    member _.``concat concatenates a sequence of collections`` () =
+        // A call converts an array to the sequence that OfSeq takes; the function value itself does not take an array
+        let collections =
+            Inputs.All
+            |> Seq.map (fun input -> ops.OfSeq input)
+            |> Seq.toArray
+        let elements = collections |> Array.map ops.ToArray
 
-                Assert.AreEqual<int list>(
-                    ops.ToList collection @ ops.ToList other,
-                    ops.ToList (ops.Append collection other),
-                    $"%s{ops.Name}.append of %A{first} and %A{second}"
-                )
-
-    [<TestMethod>]
-    member this.``choose keeps the chosen values in order`` () =
-        this.ForEach (
-            Inputs.all,
-            fun collection elements ->
-                let chooser (item : int) = if item > 0 then ValueSome (item * 10) else ValueNone
-                let chooserOption (item : int) = if item > 0 then Some (item * 10) else None
-
-                Assert.AreEqual<int list>(
-                    List.choose chooserOption elements,
-                    ops.ToList (ops.Choose chooser collection),
-                    $"%s{ops.Name}.choose of %A{elements}"
-                )
+        CollectionAssert.AreEqual (
+            Array.concat elements,
+            ops.ToArray (ops.Concat collections),
+            $"%s{ops.Name}.concat must concatenate the collections in order"
         )
 
-    [<TestMethod>]
-    member this.``chunkBySize divides the elements into chunks`` () =
-        this.ForEach (
-            Inputs.all,
-            fun collection elements ->
-                for size in [ 1; 3; 8; 9 ] do
-                    Assert.AreEqual<int list list>(
-                        List.chunkBySize size elements,
-                        ops.ChunkBySize size collection,
-                        $"%s{ops.Name}.chunkBySize %d{size} of %A{elements}"
-                    )
+        Assert.IsEmpty (ops.ToArray (ops.Concat Array.empty), $"%s{ops.Name}.concat of no collections must be empty")
+
+    [<TestMethod; DynamicData(nameof Inputs.All, typeof<Inputs>)>]
+    member this.``filter keeps the elements that satisfy the predicate`` (input : int array) =
+        let struct (collection, elements) = this.Create input
+
+        CollectionAssert.AreEqual (
+            Array.filter (fun item -> item > 0) elements,
+            ops.ToArray (ops.Filter (fun item -> item > 0) collection),
+            $"%s{ops.Name}.filter must keep the elements that satisfy the predicate"
         )
 
-    [<TestMethod>]
-    member this.``chunkBySize throws for a size that is not positive as FSharp.Core does`` () =
-        for size in [ 0; -1 ] do
-            this.ThrowsLikeFSharpCore (
-                (fun () -> Array.chunkBySize size (List.toArray Inputs.several)),
-                (fun () -> List.chunkBySize size Inputs.several),
-                (fun () -> ops.ChunkBySize size (ops.OfSeq Inputs.several)),
-                $"chunkBySize %d{size} must throw"
-            )
+    [<TestMethod; DynamicData(nameof Inputs.All, typeof<Inputs>)>]
+    member this.``indexed pairs every element with its index`` (input : int array) =
+        let struct (collection, elements) = this.Create input
 
-    [<TestMethod>]
-    member this.``collect concatenates the collections of the elements`` () =
-        this.ForEach (
-            Inputs.all,
-            fun collection elements ->
-                Assert.AreEqual<int list>(
-                    List.collect (fun item -> [ item; item * 10 ]) elements,
-                    ops.ToList (ops.Collect (fun item -> ops.OfSeq [ item; item * 10 ]) collection),
-                    $"%s{ops.Name}.collect of %A{elements}"
-                )
+        CollectionAssert.AreEqual (
+            Array.indexed elements |> toStructPairs,
+            ops.Indexed collection,
+            $"%s{ops.Name}.indexed must pair every element with its index"
         )
 
-    [<TestMethod>]
-    member this.``concat concatenates a sequence of collections`` () =
-        let collections = Inputs.all |> List.map (fun input -> ops.OfSeq input)
-        let elements = collections |> List.map ops.ToList
+    [<TestMethod; DynamicData(nameof Inputs.All, typeof<Inputs>)>]
+    member this.``map transforms every element`` (input : int array) =
+        let struct (collection, elements) = this.Create input
 
-        Assert.AreEqual<int list>(
-            List.concat elements,
-            ops.ToList (ops.Concat collections),
-            $"%s{ops.Name}.concat of %A{elements}"
-        )
-        Assert.AreEqual<int list>([], ops.ToList (ops.Concat []), $"%s{ops.Name}.concat of no collections")
-
-    [<TestMethod>]
-    member this.``filter keeps the elements that satisfy the predicate`` () =
-        this.ForEach (
-            Inputs.all,
-            fun collection elements ->
-                Assert.AreEqual<int list>(
-                    List.filter (fun item -> item > 0) elements,
-                    ops.ToList (ops.Filter (fun item -> item > 0) collection),
-                    $"%s{ops.Name}.filter of %A{elements}"
-                )
-        )
-
-    [<TestMethod>]
-    member this.``indexed pairs every element with its index`` () =
-        this.ForEach (
-            Inputs.all,
-            fun collection elements ->
-                Assert.AreEqual<struct (int * int) list>(
-                    List.indexed elements |> toStructPairs,
-                    ops.Indexed collection,
-                    $"%s{ops.Name}.indexed of %A{elements}"
-                )
-        )
-
-    [<TestMethod>]
-    member this.``map transforms every element`` () =
-        this.ForEach (
-            Inputs.all,
-            fun collection elements ->
-                Assert.AreEqual<int list>(
-                    List.map (fun item -> item * 3) elements,
-                    ops.ToList (ops.Map (fun item -> item * 3) collection),
-                    $"%s{ops.Name}.map of %A{elements}"
-                )
+        CollectionAssert.AreEqual (
+            Array.map (fun item -> item * 3) elements,
+            ops.ToArray (ops.Map (fun item -> item * 3) collection),
+            $"%s{ops.Name}.map must transform every element"
         )
 
     [<TestMethod>]
     member this.``map2 transforms the pairs at the same index`` () =
-        let collection = ops.OfSeq Inputs.several
-        let other = ops.OfSeq Inputs.other
+        let struct (collection, elements) = this.Create Inputs.Several
+        let struct (other, otherElements) = this.Create Inputs.Other
 
-        Assert.AreEqual<int list>(
-            List.map2 (fun a b -> a * 100 + b) (ops.ToList collection) (ops.ToList other),
-            ops.ToList (ops.Map2 (fun a b -> a * 100 + b) collection other),
-            $"%s{ops.Name}.map2 of two collections"
+        CollectionAssert.AreEqual (
+            Array.map2 (fun a b -> a * 100 + b) elements otherElements,
+            ops.ToArray (ops.Map2 (fun a b -> a * 100 + b) collection other),
+            $"%s{ops.Name}.map2 must transform the pairs at the same index"
         )
 
     [<TestMethod>]
     member this.``map2 throws for different lengths as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
-            (fun () -> Array.map2 (+) (List.toArray Inputs.singleton) (List.toArray Inputs.several)),
-            (fun () -> List.map2 (+) Inputs.singleton Inputs.several),
-            (fun () -> ops.Map2 (+) (ops.OfSeq Inputs.singleton) (ops.OfSeq Inputs.several)),
+            (fun () -> Array.map2 (+) Inputs.Singleton Inputs.Several),
+            (fun () -> List.map2 (+) (List.ofArray Inputs.Singleton) (List.ofArray Inputs.Several)),
+            (fun () -> ops.Map2 (+) (ops.OfSeq Inputs.Singleton) (ops.OfSeq Inputs.Several)),
             "map2 of collections of different lengths must throw"
         )
 
     [<TestMethod>]
     member this.``map3 transforms the triples at the same index`` () =
-        let collection = ops.OfSeq Inputs.several
-        let other = ops.OfSeq Inputs.other
-        let third = ops.OfSeq Inputs.third
+        let struct (collection, elements) = this.Create Inputs.Several
+        let struct (other, otherElements) = this.Create Inputs.Other
+        let struct (third, thirdElements) = this.Create Inputs.Third
 
-        Assert.AreEqual<int list>(
-            List.map3 (fun a b c -> a * 10000 + b * 100 + c) (ops.ToList collection) (ops.ToList other) (ops.ToList third),
-            ops.ToList (ops.Map3 (fun a b c -> a * 10000 + b * 100 + c) collection other third),
-            $"%s{ops.Name}.map3 of three collections"
+        CollectionAssert.AreEqual (
+            Array.map3 (fun a b c -> a * 10000 + b * 100 + c) elements otherElements thirdElements,
+            ops.ToArray (ops.Map3 (fun a b c -> a * 10000 + b * 100 + c) collection other third),
+            $"%s{ops.Name}.map3 must transform the triples at the same index"
         )
 
     [<TestMethod>]
     member this.``map3 throws for different lengths as FSharp.Core does`` () =
-        let shortArray = List.toArray Inputs.singleton
-        let longArray = List.toArray Inputs.several
-
         this.ThrowsLikeFSharpCore (
-            (fun () -> Array.map3 (fun a b c -> a + b + c) longArray shortArray longArray),
-            (fun () -> List.map3 (fun a b c -> a + b + c) Inputs.several Inputs.singleton Inputs.several),
+            (fun () -> Array.map3 (fun a b c -> a + b + c) Inputs.Several Inputs.Singleton Inputs.Several),
+            (fun () ->
+                List.map3
+                    (fun a b c -> a + b + c)
+                    (List.ofArray Inputs.Several)
+                    (List.ofArray Inputs.Singleton)
+                    (List.ofArray Inputs.Several)
+            ),
             (fun () ->
                 ops.Map3
                     (fun a b c -> a + b + c)
-                    (ops.OfSeq Inputs.several)
-                    (ops.OfSeq Inputs.singleton)
-                    (ops.OfSeq Inputs.several)
+                    (ops.OfSeq Inputs.Several)
+                    (ops.OfSeq Inputs.Singleton)
+                    (ops.OfSeq Inputs.Several)
             ),
             "map3 of collections of different lengths must throw"
         )
 
-    [<TestMethod>]
-    member this.``mapi transforms every element with its index`` () =
-        this.ForEach (
-            Inputs.all,
-            fun collection elements ->
-                Assert.AreEqual<int list>(
-                    List.mapi (fun index item -> index * 1000 + item) elements,
-                    ops.ToList (ops.Mapi (fun index item -> index * 1000 + item) collection),
-                    $"%s{ops.Name}.mapi of %A{elements}"
-                )
+    [<TestMethod; DynamicData(nameof Inputs.All, typeof<Inputs>)>]
+    member this.``mapi transforms every element with its index`` (input : int array) =
+        let struct (collection, elements) = this.Create input
+
+        CollectionAssert.AreEqual (
+            Array.mapi (fun index item -> index * 1000 + item) elements,
+            ops.ToArray (ops.Mapi (fun index item -> index * 1000 + item) collection),
+            $"%s{ops.Name}.mapi must transform every element with its index"
         )
 
     [<TestMethod>]
     member this.``mapi2 transforms the pairs at the same index with the index`` () =
-        let collection = ops.OfSeq Inputs.several
-        let other = ops.OfSeq Inputs.other
+        let struct (collection, elements) = this.Create Inputs.Several
+        let struct (other, otherElements) = this.Create Inputs.Other
 
-        Assert.AreEqual<int list>(
-            List.mapi2 (fun index a b -> index * 10000 + a * 100 + b) (ops.ToList collection) (ops.ToList other),
-            ops.ToList (ops.Mapi2 (fun index a b -> index * 10000 + a * 100 + b) collection other),
-            $"%s{ops.Name}.mapi2 of two collections"
+        CollectionAssert.AreEqual (
+            Array.mapi2 (fun index a b -> index * 10000 + a * 100 + b) elements otherElements,
+            ops.ToArray (ops.Mapi2 (fun index a b -> index * 10000 + a * 100 + b) collection other),
+            $"%s{ops.Name}.mapi2 must transform the pairs at the same index with the index"
         )
 
     [<TestMethod>]
     member this.``mapi2 throws for different lengths as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
-            (fun () -> Array.mapi2 (fun _ a b -> a + b) (List.toArray Inputs.singleton) (List.toArray Inputs.several)),
-            (fun () -> List.mapi2 (fun _ a b -> a + b) Inputs.singleton Inputs.several),
-            (fun () -> ops.Mapi2 (fun _ a b -> a + b) (ops.OfSeq Inputs.singleton) (ops.OfSeq Inputs.several)),
+            (fun () -> Array.mapi2 (fun _ a b -> a + b) Inputs.Singleton Inputs.Several),
+            (fun () -> List.mapi2 (fun _ a b -> a + b) (List.ofArray Inputs.Singleton) (List.ofArray Inputs.Several)),
+            (fun () -> ops.Mapi2 (fun _ a b -> a + b) (ops.OfSeq Inputs.Singleton) (ops.OfSeq Inputs.Several)),
             "mapi2 of collections of different lengths must throw"
         )
 
-    [<TestMethod>]
-    member this.``pairwise pairs every element with its successor`` () =
-        this.ForEach (
-            Inputs.all,
-            fun collection elements ->
-                Assert.AreEqual<struct (int * int) list>(
-                    List.pairwise elements |> toStructPairs,
-                    ops.Pairwise collection,
-                    $"%s{ops.Name}.pairwise of %A{elements}"
-                )
+    [<TestMethod; DynamicData(nameof Inputs.All, typeof<Inputs>)>]
+    member this.``pairwise pairs every element with its successor`` (input : int array) =
+        let struct (collection, elements) = this.Create input
+
+        CollectionAssert.AreEqual (
+            Array.pairwise elements |> toStructPairs,
+            ops.Pairwise collection,
+            $"%s{ops.Name}.pairwise must pair every element with its successor"
         )
 
-    [<TestMethod>]
-    member this.``permute moves every element to its new index`` () =
-        this.ForEach (
-            Inputs.nonEmpty,
-            fun collection elements ->
-                let length = List.length elements
-                let indexMap index = (index + 3) % length
+    [<TestMethod; DynamicData(nameof Inputs.NonEmpty, typeof<Inputs>)>]
+    member this.``permute moves every element to its new index`` (input : int array) =
+        let struct (collection, elements) = this.Create input
+        let indexMap index = (index + 3) % elements.Length
 
-                Assert.AreEqual<int list>(
-                    List.permute indexMap elements,
-                    ops.ToList (ops.Permute indexMap collection),
-                    $"%s{ops.Name}.permute of %A{elements}"
-                )
+        CollectionAssert.AreEqual (
+            Array.permute indexMap elements,
+            ops.ToArray (ops.Permute indexMap collection),
+            $"%s{ops.Name}.permute must move every element to its new index"
         )
 
     [<TestMethod>]
     member this.``permute throws for a function that is not a permutation as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
-            (fun () -> Array.permute (fun _ -> 0) (List.toArray Inputs.several)),
-            (fun () -> List.permute (fun _ -> 0) Inputs.several),
-            (fun () -> ops.Permute (fun _ -> 0) (ops.OfSeq Inputs.several)),
+            (fun () -> Array.permute (fun _ -> 0) Inputs.Several),
+            (fun () -> List.permute (fun _ -> 0) (List.ofArray Inputs.Several)),
+            (fun () -> ops.Permute (fun _ -> 0) (ops.OfSeq Inputs.Several)),
             "permute with a function that is not a permutation must throw"
         )
 
-    [<TestMethod>]
-    member this.``rev reverses the elements`` () =
-        this.ForEach (
-            Inputs.all,
-            fun collection elements ->
-                Assert.AreEqual<int list>(List.rev elements, ops.ToList (ops.Rev collection), $"%s{ops.Name}.rev of %A{elements}")
+    [<TestMethod; DynamicData(nameof Inputs.All, typeof<Inputs>)>]
+    member this.``rev reverses the elements`` (input : int array) =
+        let struct (collection, elements) = this.Create input
+        CollectionAssert.AreEqual (
+            Array.rev elements,
+            ops.ToArray (ops.Rev collection),
+            $"%s{ops.Name}.rev must reverse the elements"
         )
 
     [<TestMethod>]
-    member this.``transpose turns the collections into their columns`` () =
+    member _.``transpose turns the collections into their columns`` () =
         let collections =
-            [ Inputs.several; Inputs.other; Inputs.third ]
-            |> List.map (fun input -> ops.OfSeq input)
-        let elements = collections |> List.map ops.ToList
+            [| Inputs.Several; Inputs.Other; Inputs.Third |]
+            |> Array.map (fun input -> ops.OfSeq input)
+        let elements = collections |> Array.map ops.ToArray
 
-        Assert.AreEqual<int list list>(
-            List.transpose elements,
+        CollectionAssert.AreEqual (
+            Array.transpose elements,
             ops.Transpose collections,
-            $"%s{ops.Name}.transpose of %A{elements}"
+            $"%s{ops.Name}.transpose must turn the collections into their columns"
         )
 
     [<TestMethod>]
     member this.``transpose throws for collections of different lengths as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
-            (fun () -> Array.transpose [ List.toArray Inputs.several; List.toArray Inputs.singleton ]),
-            (fun () -> List.transpose [ Inputs.several; Inputs.singleton ]),
-            (fun () -> ops.Transpose [ ops.OfSeq Inputs.several; ops.OfSeq Inputs.singleton ]),
+            (fun () -> Array.transpose [| Inputs.Several; Inputs.Singleton |]),
+            (fun () -> List.transpose [| List.ofArray Inputs.Several; List.ofArray Inputs.Singleton |]),
+            (fun () -> ops.Transpose [| ops.OfSeq Inputs.Several; ops.OfSeq Inputs.Singleton |]),
             "transpose of collections of different lengths must throw"
         )
 
     [<TestMethod>]
     member _.``unzip splits the pairs`` () =
-        let pairs = List.zip Inputs.several Inputs.other
+        let pairs = Array.zip Inputs.Several Inputs.Other
         let struct (first, second) = ops.Unzip (toStructPairs pairs)
-        let expectedFirst, expectedSecond = List.unzip pairs
-        Assert.AreEqual<int list>(expectedFirst, first, $"%s{ops.Name}.unzip must return the first components")
-        Assert.AreEqual<int list>(expectedSecond, second, $"%s{ops.Name}.unzip must return the second components")
+        let expectedFirst, expectedSecond = Array.unzip pairs
+        CollectionAssert.AreEqual (expectedFirst, first, $"%s{ops.Name}.unzip must return the first components")
+        CollectionAssert.AreEqual (expectedSecond, second, $"%s{ops.Name}.unzip must return the second components")
 
     [<TestMethod>]
     member _.``unzip3 splits the triples`` () =
-        let triples = List.zip3 Inputs.several Inputs.other Inputs.third
+        let triples = Array.zip3 Inputs.Several Inputs.Other Inputs.Third
         let struct (first, second, third) = ops.Unzip3 (toStructTriples triples)
-        let expectedFirst, expectedSecond, expectedThird = List.unzip3 triples
-        Assert.AreEqual<int list>(expectedFirst, first, $"%s{ops.Name}.unzip3 must return the first components")
-        Assert.AreEqual<int list>(expectedSecond, second, $"%s{ops.Name}.unzip3 must return the second components")
-        Assert.AreEqual<int list>(expectedThird, third, $"%s{ops.Name}.unzip3 must return the third components")
+        let expectedFirst, expectedSecond, expectedThird = Array.unzip3 triples
+        CollectionAssert.AreEqual (expectedFirst, first, $"%s{ops.Name}.unzip3 must return the first components")
+        CollectionAssert.AreEqual (expectedSecond, second, $"%s{ops.Name}.unzip3 must return the second components")
+        CollectionAssert.AreEqual (expectedThird, third, $"%s{ops.Name}.unzip3 must return the third components")
 
-    [<TestMethod>]
-    member this.``where keeps the elements that satisfy the predicate`` () =
-        this.ForEach (
-            Inputs.all,
-            fun collection elements ->
-                Assert.AreEqual<int list>(
-                    List.where (fun item -> item % 2 = 0) elements,
-                    ops.ToList (ops.Where (fun item -> item % 2 = 0) collection),
-                    $"%s{ops.Name}.where of %A{elements}"
-                )
+    [<TestMethod; DynamicData(nameof Inputs.All, typeof<Inputs>)>]
+    member this.``where keeps the elements that satisfy the predicate`` (input : int array) =
+        let struct (collection, elements) = this.Create input
+
+        CollectionAssert.AreEqual (
+            Array.where (fun item -> item % 2 = 0) elements,
+            ops.ToArray (ops.Where (fun item -> item % 2 = 0) collection),
+            $"%s{ops.Name}.where must keep the elements that satisfy the predicate"
+        )
+
+    [<TestMethod; DynamicData(nameof SeqLikeTransformationContract<'C>.InputsAndSizes)>]
+    member this.``windowed returns the windows that slide over the elements`` (input : int array, size : int) =
+        let struct (collection, elements) = this.Create input
+
+        CollectionAssert.AreEqual (
+            Array.windowed size elements,
+            ops.Windowed size collection,
+            $"%s{ops.Name}.windowed must return the windows that slide over the elements"
+        )
+
+    [<TestMethod; DataRow 0; DataRow -1>]
+    member this.``windowed throws for a size that is not positive as FSharp.Core does`` (size : int) =
+        this.ThrowsLikeFSharpCore (
+            (fun () -> Array.windowed size Inputs.Several),
+            (fun () -> List.windowed size (List.ofArray Inputs.Several)),
+            (fun () -> ops.Windowed size (ops.OfSeq Inputs.Several)),
+            "windowed of a size that is not positive must throw"
         )
 
     [<TestMethod>]
-    member this.``windowed returns the windows that slide over the elements`` () =
-        this.ForEach (
-            Inputs.all,
-            fun collection elements ->
-                for size in [ 1; 3; 8; 9 ] do
-                    Assert.AreEqual<int list list>(
-                        List.windowed size elements,
-                        ops.Windowed size collection,
-                        $"%s{ops.Name}.windowed %d{size} of %A{elements}"
-                    )
-        )
+    member this.``zip pairs the elements at the same index`` () =
+        let struct (collection, elements) = this.Create Inputs.Several
+        let struct (other, otherElements) = this.Create Inputs.Other
 
-    [<TestMethod>]
-    member this.``windowed throws for a size that is not positive as FSharp.Core does`` () =
-        for size in [ 0; -1 ] do
-            this.ThrowsLikeFSharpCore (
-                (fun () -> Array.windowed size (List.toArray Inputs.several)),
-                (fun () -> List.windowed size Inputs.several),
-                (fun () -> ops.Windowed size (ops.OfSeq Inputs.several)),
-                $"windowed %d{size} must throw"
-            )
-
-    [<TestMethod>]
-    member _.``zip pairs the elements at the same index`` () =
-        let collection = ops.OfSeq Inputs.several
-        let other = ops.OfSeq Inputs.other
-
-        Assert.AreEqual<struct (int * int) list>(
-            List.zip (ops.ToList collection) (ops.ToList other)
-            |> toStructPairs,
+        CollectionAssert.AreEqual (
+            Array.zip elements otherElements |> toStructPairs,
             ops.Zip collection other,
-            $"%s{ops.Name}.zip of two collections"
+            $"%s{ops.Name}.zip must pair the elements at the same index"
         )
 
     [<TestMethod>]
     member this.``zip throws for different lengths as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
-            (fun () -> Array.zip (List.toArray Inputs.singleton) (List.toArray Inputs.several)),
-            (fun () -> List.zip Inputs.singleton Inputs.several),
-            (fun () -> ops.Zip (ops.OfSeq Inputs.singleton) (ops.OfSeq Inputs.several)),
+            (fun () -> Array.zip Inputs.Singleton Inputs.Several),
+            (fun () -> List.zip (List.ofArray Inputs.Singleton) (List.ofArray Inputs.Several)),
+            (fun () -> ops.Zip (ops.OfSeq Inputs.Singleton) (ops.OfSeq Inputs.Several)),
             "zip of collections of different lengths must throw"
         )
 
     [<TestMethod>]
-    member _.``zip3 combines the elements at the same index`` () =
-        let collection = ops.OfSeq Inputs.several
-        let other = ops.OfSeq Inputs.other
-        let third = ops.OfSeq Inputs.third
+    member this.``zip3 combines the elements at the same index`` () =
+        let struct (collection, elements) = this.Create Inputs.Several
+        let struct (other, otherElements) = this.Create Inputs.Other
+        let struct (third, thirdElements) = this.Create Inputs.Third
 
-        Assert.AreEqual<struct (int * int * int) list>(
-            List.zip3 (ops.ToList collection) (ops.ToList other) (ops.ToList third)
+        CollectionAssert.AreEqual (
+            Array.zip3 elements otherElements thirdElements
             |> toStructTriples,
             ops.Zip3 collection other third,
-            $"%s{ops.Name}.zip3 of three collections"
+            $"%s{ops.Name}.zip3 must combine the elements at the same index"
         )
 
     [<TestMethod>]
     member this.``zip3 throws for different lengths as FSharp.Core does`` () =
         this.ThrowsLikeFSharpCore (
-            (fun () -> Array.zip3 (List.toArray Inputs.several) (List.toArray Inputs.singleton) (List.toArray Inputs.several)),
-            (fun () -> List.zip3 Inputs.several Inputs.singleton Inputs.several),
-            (fun () -> ops.Zip3 (ops.OfSeq Inputs.several) (ops.OfSeq Inputs.singleton) (ops.OfSeq Inputs.several)),
+            (fun () -> Array.zip3 Inputs.Several Inputs.Singleton Inputs.Several),
+            (fun () -> List.zip3 (List.ofArray Inputs.Several) (List.ofArray Inputs.Singleton) (List.ofArray Inputs.Several)),
+            (fun () -> ops.Zip3 (ops.OfSeq Inputs.Several) (ops.OfSeq Inputs.Singleton) (ops.OfSeq Inputs.Several)),
             "zip3 of collections of different lengths must throw"
         )

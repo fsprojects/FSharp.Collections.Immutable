@@ -5,10 +5,10 @@ module FSharp.Collections.Immutable.Tests.FlatListOps
 open System
 open FSharp.Collections.Immutable
 
-let private toLists (lists : FlatList<FlatList<int>>) = lists |> FlatList.toList |> List.map FlatList.toList
+let private toArrays (arrays : FlatList<FlatList<int>>) = arrays |> FlatList.toArray |> Array.map FlatList.toArray
 
-let private toListPair (struct (first : FlatList<'T1>, second : FlatList<'T2>)) =
-    struct (FlatList.toList first, FlatList.toList second)
+let private toArrayPair (struct (first : FlatList<'T1>, second : FlatList<'T2>)) =
+    struct (FlatList.toArray first, FlatList.toArray second)
 
 /// The functions of the sequence-like facet. `FlatList` names its parameters as the `Array` module does.
 let seqLike : SeqOps<FlatList<int>> = {
@@ -16,7 +16,7 @@ let seqLike : SeqOps<FlatList<int>> = {
     Mirror = ArrayMirror
     ParamName = id
     OfSeq = FlatList.ofSeq
-    ToList = FlatList.toList
+    ToArray = FlatList.toArray
 
     IsEmpty = FlatList.isEmpty
     Length = FlatList.length
@@ -46,34 +46,34 @@ let seqLike : SeqOps<FlatList<int>> = {
     TryFindIndexBack = FlatList.tryFindIndexBack
     TryPick = FlatList.tryPick
 
-    AllPairs = fun array1 array2 -> FlatList.allPairs array1 array2 |> FlatList.toList
+    AllPairs = fun array1 array2 -> FlatList.allPairs array1 array2 |> FlatList.toArray
     Append = FlatList.append
     Choose = FlatList.choose
-    ChunkBySize = fun chunkSize array -> FlatList.chunkBySize chunkSize array |> toLists
+    ChunkBySize = fun chunkSize array -> FlatList.chunkBySize chunkSize array |> toArrays
     Collect = FlatList.collect
     Concat = FlatList.concat
     Filter = FlatList.filter
-    Indexed = FlatList.indexed >> FlatList.toList
+    Indexed = FlatList.indexed >> FlatList.toArray
     Map = FlatList.map
     Map2 = FlatList.map2
     Map3 = FlatList.map3
     Mapi = FlatList.mapi
     Mapi2 = FlatList.mapi2
-    Pairwise = FlatList.pairwise >> FlatList.toList
+    Pairwise = FlatList.pairwise >> FlatList.toArray
     Permute = FlatList.permute
     Rev = FlatList.rev
-    Transpose = fun arrays -> FlatList.transpose arrays |> toLists
-    Unzip = fun pairs -> FlatList.unzip (FlatList.ofList pairs) |> toListPair
+    Transpose = fun arrays -> FlatList.transpose arrays |> toArrays
+    Unzip = fun pairs -> FlatList.unzip (FlatList.ofArray pairs) |> toArrayPair
     Unzip3 =
         fun triples ->
-            let struct (first, second, third) = FlatList.unzip3 (FlatList.ofList triples)
-            struct (FlatList.toList first, FlatList.toList second, FlatList.toList third)
+            let struct (first, second, third) = FlatList.unzip3 (FlatList.ofArray triples)
+            struct (FlatList.toArray first, FlatList.toArray second, FlatList.toArray third)
     Where = FlatList.where
-    Windowed = fun windowSize array -> FlatList.windowed windowSize array |> toLists
-    Zip = fun array1 array2 -> FlatList.zip array1 array2 |> FlatList.toList
-    Zip3 = fun array1 array2 array3 -> FlatList.zip3 array1 array2 array3 |> FlatList.toList
+    Windowed = fun windowSize array -> FlatList.windowed windowSize array |> toArrays
+    Zip = fun array1 array2 -> FlatList.zip array1 array2 |> FlatList.toArray
+    Zip3 = fun array1 array2 array3 -> FlatList.zip3 array1 array2 array3 |> FlatList.toArray
 
-    Average = fun items -> FlatList.average (FlatList.ofList items)
+    Average = fun items -> FlatList.average (FlatList.ofArray items)
     AverageBy = FlatList.averageBy
     CompareWith = FlatList.compareWith
     Fold = FlatList.fold
@@ -87,38 +87,38 @@ let seqLike : SeqOps<FlatList<int>> = {
     MapFold =
         fun mapping state array ->
             let struct (results, final) = FlatList.mapFold mapping state array
-            struct (FlatList.toList results, final)
+            struct (FlatList.toArray results, final)
     MapFoldBack =
         fun mapping array state ->
             let struct (results, final) = FlatList.mapFoldBack mapping array state
-            struct (FlatList.toList results, final)
+            struct (FlatList.toArray results, final)
     Max = FlatList.max
     MaxBy = FlatList.maxBy
     Min = FlatList.min
     MinBy = FlatList.minBy
     Reduce = FlatList.reduce
     ReduceBack = FlatList.reduceBack
-    Scan = fun folder state array -> FlatList.scan folder state array |> FlatList.toList
-    ScanBack = fun folder array state -> FlatList.scanBack folder array state |> FlatList.toList
+    Scan = fun folder state array -> FlatList.scan folder state array |> FlatList.toArray
+    ScanBack = fun folder array state -> FlatList.scanBack folder array state |> FlatList.toArray
     Sum = FlatList.sum
     SumBy = FlatList.sumBy
 
-    CountBy = fun projection array -> FlatList.countBy projection array |> FlatList.toList
+    CountBy = fun projection array -> FlatList.countBy projection array |> FlatList.toArray
     Distinct = FlatList.distinct
     DistinctBy = FlatList.distinctBy
     Except = FlatList.except
     GroupBy =
         fun projection array ->
             FlatList.groupBy projection array
-            |> FlatList.toList
-            |> List.map (fun struct (key, items) -> struct (key, FlatList.toList items))
+            |> FlatList.toArray
+            |> Array.map (fun struct (key, items) -> struct (key, FlatList.toArray items))
     Partition = FlatList.partition
-    PartitionWith = fun partitioner array -> FlatList.partitionWith partitioner array |> toListPair
+    PartitionWith = fun partitioner array -> FlatList.partitionWith partitioner array |> toArrayPair
     Skip = FlatList.skip
     SkipLast = FlatList.skipLast
     SkipWhile = FlatList.skipWhile
     SplitAt = FlatList.splitAt
-    SplitInto = fun count array -> FlatList.splitInto count array |> toLists
+    SplitInto = fun count array -> FlatList.splitInto count array |> toArrays
     Take = FlatList.take
     TakeLast = FlatList.takeLast
     TakeWhile = FlatList.takeWhile
@@ -144,7 +144,7 @@ let seqLike : SeqOps<FlatList<int>> = {
     RandomShuffleBy = FlatList.randomShuffleBy
     RandomShuffleWith = FlatList.randomShuffleWith
 
-    ToArray = FlatList.toArray
+    ToList = FlatList.toList
     ToSeq = FlatList.toSeq
 }
 
@@ -153,7 +153,7 @@ let creation : SeqCreationOps<FlatList<int>> = {
     Name = nameof FlatList
     Mirror = ArrayMirror
     ParamName = id
-    ToList = FlatList.toList
+    ToArray = FlatList.toArray
 
     Empty = fun () -> FlatList.empty
     Init = FlatList.init
@@ -173,7 +173,7 @@ let indexed : IndexedOps<FlatList<int>> = {
     Mirror = ArrayMirror
     ParamName = id
     OfSeq = FlatList.ofSeq
-    ToList = FlatList.toList
+    ToArray = FlatList.toArray
 
     Item = FlatList.item
     TryItem = FlatList.tryItem

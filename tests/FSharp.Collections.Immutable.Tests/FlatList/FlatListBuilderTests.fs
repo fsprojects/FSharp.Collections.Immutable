@@ -12,13 +12,13 @@ type FlatListBuilderTests () =
     /// A builder that holds the elements of the input with several elements.
     static let filled () =
         let builder = FlatList.builder<int>()
-        builder.AddRange Inputs.several
+        builder.AddRange Inputs.Several
         builder
 
     [<TestMethod>]
     member _.``build returns the elements that the action adds`` () =
-        let array = FlatList.build (fun builder -> builder.AddRange Inputs.several)
-        Assert.AreEqual<int list>(Inputs.several, FlatList.toList array, "FlatList.build must return the added elements")
+        let array = FlatList.build (fun builder -> builder.AddRange Inputs.Several)
+        CollectionAssert.AreEqual (Inputs.Several, FlatList.toArray array, "FlatList.build must return the added elements")
 
     [<TestMethod>]
     member _.``builder starts empty`` () =
@@ -42,9 +42,9 @@ type FlatListBuilderTests () =
     [<TestMethod>]
     member _.``moveFromBuilder takes the contents of a full builder`` () =
         let builder = FlatList.builderWith<int> 3
-        builder.AddRange [ 1; 2; 3 ]
+        builder.AddRange [| 1; 2; 3 |]
         let array = FlatList.moveFromBuilder builder
-        Assert.AreEqual<int list>([ 1; 2; 3 ], FlatList.toList array, "FlatList.moveFromBuilder must return the elements")
+        CollectionAssert.AreEqual ([| 1; 2; 3 |], FlatList.toArray array, "FlatList.moveFromBuilder must return the elements")
         Assert.AreEqual<int>(0, builder.Count, "FlatList.moveFromBuilder must empty the builder")
 
     [<TestMethod>]
@@ -63,8 +63,8 @@ type FlatListBuilderTests () =
         let builder = filled ()
         let array = FlatList.ofBuilder builder
         builder.Add 99
-        Assert.AreEqual<int list>(Inputs.several, FlatList.toList array, "FlatList.ofBuilder must copy the elements")
-        Assert.AreEqual<int>(Inputs.several.Length + 1, builder.Count, "FlatList.ofBuilder must keep the builder usable")
+        CollectionAssert.AreEqual (Inputs.Several, FlatList.toArray array, "FlatList.ofBuilder must copy the elements")
+        Assert.AreEqual<int>(Inputs.Several.Length + 1, builder.Count, "FlatList.ofBuilder must keep the builder usable")
 
     [<TestMethod>]
     member _.``ofBuilder throws for a null builder`` () =
@@ -81,18 +81,24 @@ type FlatListBuilderTests () =
 
     [<TestMethod>]
     member _.``toBuilder copies the elements into a new builder`` () =
-        let array = FlatList.ofList Inputs.several
+        let array = FlatList.ofArray Inputs.Several
         let builder = FlatList.toBuilder array
         builder.Add 99
-        Assert.AreEqual<int list>(Inputs.several @ [ 99 ], List.ofSeq builder, "FlatList.toBuilder must hold the elements")
-        Assert.AreEqual<int list>(Inputs.several, FlatList.toList array, "FlatList.toBuilder must not change the flat list")
+
+        CollectionAssert.AreEqual (
+            Array.append Inputs.Several [| 99 |],
+            Seq.toArray builder,
+            "FlatList.toBuilder must hold the elements"
+        )
+
+        CollectionAssert.AreEqual (Inputs.Several, FlatList.toArray array, "FlatList.toBuilder must not change the flat list")
 
     [<TestMethod>]
     member _.``update applies the action to a copy`` () =
-        let array = FlatList.ofList Inputs.several
+        let array = FlatList.ofArray Inputs.Several
         let updated = FlatList.update (fun builder -> builder.RemoveAt 0) array
-        Assert.AreEqual<int list>(List.tail Inputs.several, FlatList.toList updated, "FlatList.update must apply the action")
-        Assert.AreEqual<int list>(Inputs.several, FlatList.toList array, "FlatList.update must not change the input")
+        CollectionAssert.AreEqual (Array.tail Inputs.Several, FlatList.toArray updated, "FlatList.update must apply the action")
+        CollectionAssert.AreEqual (Inputs.Several, FlatList.toArray array, "FlatList.update must not change the input")
 
     [<TestMethod>]
     member _.``add, addRange and insertAt return the same builder`` () =
@@ -103,7 +109,7 @@ type FlatListBuilderTests () =
             |> FlatListBuilder.addRange [ 2; 3 ]
             |> FlatListBuilder.insertAt 0 0
         Assert.AreSame (builder, result, "The functions that change a builder must return it")
-        Assert.AreEqual<int list>([ 0; 1; 2; 3 ], List.ofSeq builder, "add, addRange and insertAt must change the builder")
+        CollectionAssert.AreEqual ([| 0; 1; 2; 3 |], Seq.toArray builder, "add, addRange and insertAt must change the builder")
 
     [<TestMethod>]
     member _.``capacity, setCapacity and length report the builder`` () =
@@ -131,11 +137,13 @@ type FlatListBuilderTests () =
     member _.``drainToFlatList returns the elements and empties the builder`` () =
         let builder = filled ()
         let array = FlatListBuilder.drainToFlatList builder
-        Assert.AreEqual<int list>(
-            Inputs.several,
-            FlatList.toList array,
+
+        CollectionAssert.AreEqual (
+            Inputs.Several,
+            FlatList.toArray array,
             "FlatListBuilder.drainToFlatList must return the elements"
         )
+
         Assert.AreEqual<int>(0, FlatListBuilder.length builder, "FlatListBuilder.drainToFlatList must empty the builder")
 
     [<TestMethod>]
@@ -149,33 +157,33 @@ type FlatListBuilderTests () =
         Assert.IsTrue (FlatListBuilder.remove -3 builder, "FlatListBuilder.remove must report a removed element")
         Assert.IsFalse (FlatListBuilder.remove 1000 builder, "FlatListBuilder.remove must report a missing element")
         FlatListBuilder.removeAt 0 builder |> ignore
-        Assert.AreEqual<int list>([ 8; 5; 0; -3; 12; 7 ], List.ofSeq builder, "remove and removeAt must remove the elements")
+        CollectionAssert.AreEqual ([| 8; 5; 0; -3; 12; 7 |], Seq.toArray builder, "remove and removeAt must remove the elements")
 
     [<TestMethod>]
     member _.``rev reverses the builder`` () =
         let builder = filled () |> FlatListBuilder.rev
-        Assert.AreEqual<int list>(List.rev Inputs.several, List.ofSeq builder, "FlatListBuilder.rev must reverse the elements")
+        CollectionAssert.AreEqual (Array.rev Inputs.Several, Seq.toArray builder, "FlatListBuilder.rev must reverse the elements")
 
     [<TestMethod>]
     member _.``sort, sortWith and sortWithComparer order the builder`` () =
-        Assert.AreEqual<int list>(
-            List.sort Inputs.several,
-            List.ofSeq (filled () |> FlatListBuilder.sort),
+        CollectionAssert.AreEqual (
+            Array.sort Inputs.Several,
+            Seq.toArray (filled () |> FlatListBuilder.sort),
             "FlatListBuilder.sort must sort ascending"
         )
 
-        Assert.AreEqual<int list>(
-            List.sortDescending Inputs.several,
-            List.ofSeq (
+        CollectionAssert.AreEqual (
+            Array.sortDescending Inputs.Several,
+            Seq.toArray (
                 filled ()
                 |> FlatListBuilder.sortWith (fun left right -> compare right left)
             ),
             "FlatListBuilder.sortWith must use the comparison function"
         )
 
-        Assert.AreEqual<int list>(
-            List.sortDescending Inputs.several,
-            List.ofSeq (
+        CollectionAssert.AreEqual (
+            Array.sortDescending Inputs.Several,
+            Seq.toArray (
                 filled ()
                 |> FlatListBuilder.sortWithComparer (Comparer<int>.Create (fun left right -> compare right left))
             ),
@@ -186,7 +194,7 @@ type FlatListBuilderTests () =
     member _.``toArray copies the elements`` () =
         let builder = filled ()
         CollectionAssert.AreEqual (
-            List.toArray Inputs.several,
+            Inputs.Several,
             FlatListBuilder.toArray builder,
             "FlatListBuilder.toArray must copy the elements"
         )

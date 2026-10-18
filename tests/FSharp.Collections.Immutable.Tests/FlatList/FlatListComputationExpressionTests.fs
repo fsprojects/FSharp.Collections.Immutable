@@ -21,7 +21,7 @@ type FlatListComputationExpressionTests () =
             yield 3
         }
 
-        Assert.AreEqual<int list>([ 1; 2; 3 ], FlatList.toList array, "flatList must keep the order of yield")
+        CollectionAssert.AreEqual ([| 1; 2; 3 |], FlatList.toArray array, "flatList must keep the order of yield")
 
     [<TestMethod>]
     member _.``implicit yields add the elements in order`` () =
@@ -31,7 +31,7 @@ type FlatListComputationExpressionTests () =
             3
         }
 
-        Assert.AreEqual<int list>([ 1; 2; 3 ], FlatList.toList array, "flatList must keep the order of implicit yields")
+        CollectionAssert.AreEqual ([| 1; 2; 3 |], FlatList.toArray array, "flatList must keep the order of implicit yields")
 
     [<TestMethod>]
     member _.``yield! adds a sequence, an array, a flat list and another expression`` () =
@@ -40,11 +40,11 @@ type FlatListComputationExpressionTests () =
         let array = flatList {
             yield! [ 1; 2 ]
             yield! [| 3; 4 |]
-            yield! FlatList.ofList [ 5; 6 ]
+            yield! FlatList.ofArray [| 5; 6 |]
             yield! inner
         }
 
-        Assert.AreEqual<int list>([ 1; 2; 3; 4; 5; 6; 7 ], FlatList.toList array, "flatList must add the elements of yield!")
+        CollectionAssert.AreEqual ([| 1; 2; 3; 4; 5; 6; 7 |], FlatList.toArray array, "flatList must add the elements of yield!")
 
     [<TestMethod>]
     member _.``for adds the elements of the body for each item`` () =
@@ -53,7 +53,7 @@ type FlatListComputationExpressionTests () =
                 yield item * 10
         }
 
-        Assert.AreEqual<int list>([ 10; 20; 30 ], FlatList.toList array, "flatList must run the body of for for each item")
+        CollectionAssert.AreEqual ([| 10; 20; 30 |], FlatList.toArray array, "flatList must run the body of for for each item")
 
     [<TestMethod>]
     member _.``while adds the elements while the guard holds`` () =
@@ -65,7 +65,11 @@ type FlatListComputationExpressionTests () =
                 yield count
         }
 
-        Assert.AreEqual<int list>([ 1; 2; 3 ], FlatList.toList array, "flatList must run the body of while while the guard holds")
+        CollectionAssert.AreEqual (
+            [| 1; 2; 3 |],
+            FlatList.toArray array,
+            "flatList must run the body of while while the guard holds"
+        )
 
     [<TestMethod>]
     member _.``if without else and following elements combine`` () =
@@ -79,7 +83,7 @@ type FlatListComputationExpressionTests () =
                 yield 2
         }
 
-        Assert.AreEqual<int list>([ 1; 2 ], FlatList.toList array, "flatList must combine conditional and plain elements")
+        CollectionAssert.AreEqual ([| 1; 2 |], FlatList.toArray array, "flatList must combine conditional and plain elements")
 
     [<TestMethod>]
     member _.``try with adds the elements of the handler after an exception`` () =
@@ -91,9 +95,9 @@ type FlatListComputationExpressionTests () =
                 yield 2
         }
 
-        Assert.AreEqual<int list>(
-            [ 1; 2 ],
-            FlatList.toList array,
+        CollectionAssert.AreEqual (
+            [| 1; 2 |],
+            FlatList.toArray array,
             "flatList must keep the elements before the exception and add the handler's"
         )
 
@@ -109,7 +113,7 @@ type FlatListComputationExpressionTests () =
         }
 
         Assert.IsTrue (compensated, "flatList must run the compensation of try finally")
-        Assert.AreEqual<int list>([ 1 ], FlatList.toList array, "flatList must keep the elements of the body of try finally")
+        CollectionAssert.AreEqual ([| 1 |], FlatList.toArray array, "flatList must keep the elements of the body of try finally")
 
     [<TestMethod>]
     member _.``use disposes the resource after the body`` () =
@@ -125,4 +129,4 @@ type FlatListComputationExpressionTests () =
         }
 
         Assert.IsTrue (disposed, "flatList must dispose the resource of use")
-        Assert.AreEqual<int list>([ 1 ], FlatList.toList array, "flatList must keep the elements of the body of use")
+        CollectionAssert.AreEqual ([| 1 |], FlatList.toArray array, "flatList must keep the elements of the body of use")

@@ -10,11 +10,11 @@ open Microsoft.VisualStudio.TestTools.UnitTesting
 [<TestClass; FlatListTestCategory; TupleNamespaceTestCategory>]
 type FlatListTupleTests () =
 
-    static let array = FlatList.ofList Inputs.several
+    static let array = FlatList.ofArray Inputs.Several
 
-    static let other = FlatList.ofList Inputs.other
+    static let other = FlatList.ofArray Inputs.Other
 
-    static let third = FlatList.ofList Inputs.third
+    static let third = FlatList.ofArray Inputs.Third
 
     [<TestMethod>]
     member _.``unfold takes a generator of value options of reference tuples`` () =
@@ -24,58 +24,74 @@ type FlatListTupleTests () =
             else
                 ValueNone
         let generated : FlatList<int> = FlatList.unfold generator 3
-        Assert.AreEqual<int list>([ 3; 2; 1 ], FlatList.toList generated, "Tuple.FlatList.unfold must generate the elements")
+        CollectionAssert.AreEqual ([| 3; 2; 1 |], FlatList.toArray generated, "Tuple.FlatList.unfold must generate the elements")
 
     [<TestMethod>]
     member _.``allPairs returns reference tuples`` () =
         let pairs : FlatList<int * int> = FlatList.allPairs array other
 
-        Assert.AreEqual<(int * int) list>(
-            List.allPairs Inputs.several Inputs.other,
-            FlatList.toList pairs,
-            "Tuple.FlatList.allPairs must pair as List.allPairs does"
+        CollectionAssert.AreEqual (
+            Array.allPairs Inputs.Several Inputs.Other,
+            FlatList.toArray pairs,
+            "Tuple.FlatList.allPairs must pair as Array.allPairs does"
         )
 
     [<TestMethod>]
     member _.``indexed returns reference tuples`` () =
         let pairs : FlatList<int * int> = FlatList.indexed array
-        Assert.AreEqual<(int * int) list>(
-            List.indexed Inputs.several,
-            FlatList.toList pairs,
-            "Tuple.FlatList.indexed must index as List.indexed does"
+        CollectionAssert.AreEqual (
+            Array.indexed Inputs.Several,
+            FlatList.toArray pairs,
+            "Tuple.FlatList.indexed must index as Array.indexed does"
         )
 
     [<TestMethod>]
     member _.``pairwise returns reference tuples`` () =
         let pairs : FlatList<int * int> = FlatList.pairwise array
 
-        Assert.AreEqual<(int * int) list>(
-            List.pairwise Inputs.several,
-            FlatList.toList pairs,
-            "Tuple.FlatList.pairwise must pair as List.pairwise does"
+        CollectionAssert.AreEqual (
+            Array.pairwise Inputs.Several,
+            FlatList.toArray pairs,
+            "Tuple.FlatList.pairwise must pair as Array.pairwise does"
         )
 
     [<TestMethod>]
     member _.``unzip takes and returns reference tuples`` () =
         let (first : FlatList<int>), (second : FlatList<int>) = FlatList.unzip (FlatList.zip array other)
-        Assert.AreEqual<int list>(Inputs.several, FlatList.toList first, "Tuple.FlatList.unzip must return the first components")
-        Assert.AreEqual<int list>(Inputs.other, FlatList.toList second, "Tuple.FlatList.unzip must return the second components")
+        CollectionAssert.AreEqual (
+            Inputs.Several,
+            FlatList.toArray first,
+            "Tuple.FlatList.unzip must return the first components"
+        )
+        CollectionAssert.AreEqual (
+            Inputs.Other,
+            FlatList.toArray second,
+            "Tuple.FlatList.unzip must return the second components"
+        )
 
     [<TestMethod>]
     member _.``unzip3 takes and returns reference tuples`` () =
         let (first : FlatList<int>), (second : FlatList<int>), (last : FlatList<int>) =
             FlatList.unzip3 (FlatList.zip3 array other third)
-        Assert.AreEqual<int list>(Inputs.several, FlatList.toList first, "Tuple.FlatList.unzip3 must return the first components")
-        Assert.AreEqual<int list>(Inputs.other, FlatList.toList second, "Tuple.FlatList.unzip3 must return the second components")
-        Assert.AreEqual<int list>(Inputs.third, FlatList.toList last, "Tuple.FlatList.unzip3 must return the third components")
+        CollectionAssert.AreEqual (
+            Inputs.Several,
+            FlatList.toArray first,
+            "Tuple.FlatList.unzip3 must return the first components"
+        )
+        CollectionAssert.AreEqual (
+            Inputs.Other,
+            FlatList.toArray second,
+            "Tuple.FlatList.unzip3 must return the second components"
+        )
+        CollectionAssert.AreEqual (Inputs.Third, FlatList.toArray last, "Tuple.FlatList.unzip3 must return the third components")
 
     [<TestMethod>]
     member _.``zip returns reference tuples`` () =
         let pairs : FlatList<int * int> = FlatList.zip array other
-        Assert.AreEqual<(int * int) list>(
-            List.zip Inputs.several Inputs.other,
-            FlatList.toList pairs,
-            "Tuple.FlatList.zip must zip as List.zip does"
+        CollectionAssert.AreEqual (
+            Array.zip Inputs.Several Inputs.Other,
+            FlatList.toArray pairs,
+            "Tuple.FlatList.zip must zip as Array.zip does"
         )
 
     [<TestMethod>]
@@ -93,10 +109,10 @@ type FlatListTupleTests () =
     member _.``zip3 returns reference tuples`` () =
         let triples : FlatList<int * int * int> = FlatList.zip3 array other third
 
-        Assert.AreEqual<(int * int * int) list>(
-            List.zip3 Inputs.several Inputs.other Inputs.third,
-            FlatList.toList triples,
-            "Tuple.FlatList.zip3 must zip as List.zip3 does"
+        CollectionAssert.AreEqual (
+            Array.zip3 Inputs.Several Inputs.Other Inputs.Third,
+            FlatList.toArray triples,
+            "Tuple.FlatList.zip3 must zip as Array.zip3 does"
         )
 
     [<TestMethod>]
@@ -104,62 +120,71 @@ type FlatListTupleTests () =
         let (results : FlatList<int>), (state : int) =
             FlatList.mapFold (fun state item -> item * state, state + 1) 1 array
         let expectedResults, expectedState =
-            List.mapFold (fun state item -> item * state, state + 1) 1 Inputs.several
-        Assert.AreEqual<int list>(
+            Array.mapFold (fun state item -> item * state, state + 1) 1 Inputs.Several
+        CollectionAssert.AreEqual (
             expectedResults,
-            FlatList.toList results,
-            "Tuple.FlatList.mapFold must map as List.mapFold does"
+            FlatList.toArray results,
+            "Tuple.FlatList.mapFold must map as Array.mapFold does"
         )
-        Assert.AreEqual<int>(expectedState, state, "Tuple.FlatList.mapFold must thread the state as List.mapFold does")
+        Assert.AreEqual<int>(expectedState, state, "Tuple.FlatList.mapFold must thread the state as Array.mapFold does")
 
     [<TestMethod>]
     member _.``mapFoldBack takes and returns reference tuples`` () =
         let (results : FlatList<int>), (state : int) =
             FlatList.mapFoldBack (fun item state -> item * state, state + 1) array 1
         let expectedResults, expectedState =
-            List.mapFoldBack (fun item state -> item * state, state + 1) Inputs.several 1
-        Assert.AreEqual<int list>(
+            Array.mapFoldBack (fun item state -> item * state, state + 1) Inputs.Several 1
+        CollectionAssert.AreEqual (
             expectedResults,
-            FlatList.toList results,
-            "Tuple.FlatList.mapFoldBack must map as List.mapFoldBack does"
+            FlatList.toArray results,
+            "Tuple.FlatList.mapFoldBack must map as Array.mapFoldBack does"
         )
-        Assert.AreEqual<int>(expectedState, state, "Tuple.FlatList.mapFoldBack must thread the state as List.mapFoldBack does")
+        Assert.AreEqual<int>(expectedState, state, "Tuple.FlatList.mapFoldBack must thread the state as Array.mapFoldBack does")
 
     [<TestMethod>]
     member _.``countBy returns reference tuples`` () =
         let counts : FlatList<int * int> = FlatList.countBy (fun item -> item % 3) array
 
-        Assert.AreEqual<(int * int) list>(
-            List.countBy (fun item -> item % 3) Inputs.several,
-            FlatList.toList counts,
-            "Tuple.FlatList.countBy must count as List.countBy does"
+        CollectionAssert.AreEqual (
+            Array.countBy (fun item -> item % 3) Inputs.Several,
+            FlatList.toArray counts,
+            "Tuple.FlatList.countBy must count as Array.countBy does"
         )
 
     [<TestMethod>]
     member _.``groupBy returns reference tuples`` () =
         let groups : FlatList<int * FlatList<int>> = FlatList.groupBy (fun item -> item % 3) array
+        let expected = Array.groupBy (fun item -> item % 3) Inputs.Several
 
-        Assert.AreEqual<(int * int list) list>(
-            List.groupBy (fun item -> item % 3) Inputs.several,
+        // A group pairs its key with its elements, which a pair compares by reference, so the keys and the elements are
+        // compared apart
+        CollectionAssert.AreEqual (
+            Array.map fst expected,
+            groups |> FlatList.toArray |> Array.map fst,
+            "Tuple.FlatList.groupBy must return the keys as Array.groupBy does"
+        )
+
+        CollectionAssert.AreEqual (
+            Array.map snd expected,
             groups
-            |> FlatList.toList
-            |> List.map (fun (key, items) -> key, FlatList.toList items),
-            "Tuple.FlatList.groupBy must group as List.groupBy does"
+            |> FlatList.toArray
+            |> Array.map (fun (_, items) -> FlatList.toArray items),
+            "Tuple.FlatList.groupBy must group the elements as Array.groupBy does"
         )
 
     [<TestMethod>]
     member _.``partition returns a reference tuple`` () =
         let (accepted : FlatList<int>), (rejected : FlatList<int>) =
             FlatList.partition (fun item -> item > 0) array
-        let expectedAccepted, expectedRejected = List.partition (fun item -> item > 0) Inputs.several
-        Assert.AreEqual<int list>(
+        let expectedAccepted, expectedRejected = Array.partition (fun item -> item > 0) Inputs.Several
+        CollectionAssert.AreEqual (
             expectedAccepted,
-            FlatList.toList accepted,
+            FlatList.toArray accepted,
             "Tuple.FlatList.partition must return the accepted elements"
         )
-        Assert.AreEqual<int list>(
+        CollectionAssert.AreEqual (
             expectedRejected,
-            FlatList.toList rejected,
+            FlatList.toArray rejected,
             "Tuple.FlatList.partition must return the rejected elements"
         )
 
@@ -171,24 +196,24 @@ type FlatListTupleTests () =
             else
                 Choice2Of2 (string item)
         let (first : FlatList<int>), (second : FlatList<string>) = FlatList.partitionWith partitioner array
-        let expectedFirst, expectedSecond = List.partitionWith partitioner Inputs.several
-        Assert.AreEqual<int list>(
+        let expectedFirst, expectedSecond = Array.partitionWith partitioner Inputs.Several
+        CollectionAssert.AreEqual (
             expectedFirst,
-            FlatList.toList first,
+            FlatList.toArray first,
             "Tuple.FlatList.partitionWith must return the first choices"
         )
-        Assert.AreEqual<string list>(
+        CollectionAssert.AreEqual (
             expectedSecond,
-            FlatList.toList second,
+            FlatList.toArray second,
             "Tuple.FlatList.partitionWith must return the second choices"
         )
 
     [<TestMethod>]
     member _.``splitAt returns a reference tuple`` () =
         let (before : FlatList<int>), (after : FlatList<int>) = FlatList.splitAt 3 array
-        let expectedBefore, expectedAfter = List.splitAt 3 Inputs.several
-        Assert.AreEqual<int list>(expectedBefore, FlatList.toList before, "Tuple.FlatList.splitAt must return the first part")
-        Assert.AreEqual<int list>(expectedAfter, FlatList.toList after, "Tuple.FlatList.splitAt must return the second part")
+        let expectedBefore, expectedAfter = Array.splitAt 3 Inputs.Several
+        CollectionAssert.AreEqual (expectedBefore, FlatList.toArray before, "Tuple.FlatList.splitAt must return the first part")
+        CollectionAssert.AreEqual (expectedAfter, FlatList.toArray after, "Tuple.FlatList.splitAt must return the second part")
 
     [<TestMethod>]
     member _.``the functions without a tuple keep resolving to the default module`` () =

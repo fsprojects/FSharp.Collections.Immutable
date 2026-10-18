@@ -10,8 +10,8 @@ open System.Collections.Generic
 /// fields follow the order of the signature files.
 /// </para>
 /// <para>
-/// Results of another element type are lists: the instance of a collection converts its results with its own
-/// <c>toList</c>, so that one record type serves every collection.
+/// Results of another element type are arrays: the instance of a collection converts its results with its own
+/// <c>toArray</c>, so that one record type serves every collection.
 /// </para>
 /// </remarks>
 type SeqOps<'C> = {
@@ -23,8 +23,9 @@ type SeqOps<'C> = {
     ParamName : string -> string
     /// Creates a collection that enumerates the given elements in their order.
     OfSeq : seq<int> -> 'C
-    /// The elements in the order in which the collection enumerates them.
-    ToList : 'C -> int list
+    /// The elements in the order in which the collection enumerates them: the `toArray` of the module, which the
+    /// conversion tests check as well.
+    ToArray : 'C -> int array
 
     IsEmpty : 'C -> bool
     Length : 'C -> int
@@ -54,69 +55,69 @@ type SeqOps<'C> = {
     TryFindIndexBack : (int -> bool) -> 'C -> int voption
     TryPick : (int -> int voption) -> 'C -> int voption
 
-    AllPairs : 'C -> 'C -> struct (int * int) list
+    AllPairs : 'C -> 'C -> struct (int * int) array
     Append : 'C -> 'C -> 'C
     Choose : (int -> int voption) -> 'C -> 'C
-    ChunkBySize : int -> 'C -> int list list
+    ChunkBySize : int -> 'C -> int array array
     Collect : (int -> 'C) -> 'C -> 'C
-    Concat : 'C list -> 'C
+    Concat : seq<'C> -> 'C
     Filter : (int -> bool) -> 'C -> 'C
-    Indexed : 'C -> struct (int * int) list
+    Indexed : 'C -> struct (int * int) array
     Map : (int -> int) -> 'C -> 'C
     Map2 : (int -> int -> int) -> 'C -> 'C -> 'C
     Map3 : (int -> int -> int -> int) -> 'C -> 'C -> 'C -> 'C
     Mapi : (int -> int -> int) -> 'C -> 'C
     Mapi2 : (int -> int -> int -> int) -> 'C -> 'C -> 'C
-    Pairwise : 'C -> struct (int * int) list
+    Pairwise : 'C -> struct (int * int) array
     Permute : (int -> int) -> 'C -> 'C
     Rev : 'C -> 'C
-    Transpose : 'C list -> int list list
+    Transpose : seq<'C> -> int array array
     /// Unzips a collection of the given pairs.
-    Unzip : struct (int * int) list -> struct (int list * int list)
+    Unzip : struct (int * int) array -> struct (int array * int array)
     /// Unzips a collection of the given triples.
-    Unzip3 : struct (int * int * int) list -> struct (int list * int list * int list)
+    Unzip3 : struct (int * int * int) array -> struct (int array * int array * int array)
     Where : (int -> bool) -> 'C -> 'C
-    Windowed : int -> 'C -> int list list
-    Zip : 'C -> 'C -> struct (int * int) list
-    Zip3 : 'C -> 'C -> 'C -> struct (int * int * int) list
+    Windowed : int -> 'C -> int array array
+    Zip : 'C -> 'C -> struct (int * int) array
+    Zip3 : 'C -> 'C -> 'C -> struct (int * int * int) array
 
     /// Averages a collection of the given floats.
-    Average : float list -> float
+    Average : float array -> float
     AverageBy : (int -> float) -> 'C -> float
     CompareWith : (int -> int -> int) -> 'C -> 'C -> int
-    Fold : (int list -> int -> int list) -> int list -> 'C -> int list
-    Fold2 : (int list -> int -> int -> int list) -> int list -> 'C -> 'C -> int list
-    FoldBack : (int -> int list -> int list) -> 'C -> int list -> int list
-    FoldBack2 : (int -> int -> int list -> int list) -> 'C -> 'C -> int list -> int list
+    Fold : (int array -> int -> int array) -> int array -> 'C -> int array
+    Fold2 : (int array -> int -> int -> int array) -> int array -> 'C -> 'C -> int array
+    FoldBack : (int -> int array -> int array) -> 'C -> int array -> int array
+    FoldBack2 : (int -> int -> int array -> int array) -> 'C -> 'C -> int array -> int array
     Iter : (int -> unit) -> 'C -> unit
     Iter2 : (int -> int -> unit) -> 'C -> 'C -> unit
     Iteri : (int -> int -> unit) -> 'C -> unit
     Iteri2 : (int -> int -> int -> unit) -> 'C -> 'C -> unit
-    MapFold : (int -> int -> struct (int * int)) -> int -> 'C -> struct (int list * int)
-    MapFoldBack : (int -> int -> struct (int * int)) -> 'C -> int -> struct (int list * int)
+    MapFold : (int -> int -> struct (int * int)) -> int -> 'C -> struct (int array * int)
+    MapFoldBack : (int -> int -> struct (int * int)) -> 'C -> int -> struct (int array * int)
     Max : 'C -> int
     MaxBy : (int -> int) -> 'C -> int
     Min : 'C -> int
     MinBy : (int -> int) -> 'C -> int
     Reduce : (int -> int -> int) -> 'C -> int
     ReduceBack : (int -> int -> int) -> 'C -> int
-    Scan : (int list -> int -> int list) -> int list -> 'C -> int list list
-    ScanBack : (int -> int list -> int list) -> 'C -> int list -> int list list
+    Scan : (int array -> int -> int array) -> int array -> 'C -> int array array
+    ScanBack : (int -> int array -> int array) -> 'C -> int array -> int array array
     Sum : 'C -> int
     SumBy : (int -> int) -> 'C -> int
 
-    CountBy : (int -> int) -> 'C -> struct (int * int) list
+    CountBy : (int -> int) -> 'C -> struct (int * int) array
     Distinct : 'C -> 'C
     DistinctBy : (int -> int) -> 'C -> 'C
     Except : seq<int> -> 'C -> 'C
-    GroupBy : (int -> int) -> 'C -> struct (int * int list) list
+    GroupBy : (int -> int) -> 'C -> struct (int * int array) array
     Partition : (int -> bool) -> 'C -> struct ('C * 'C)
-    PartitionWith : (int -> Choice<int, string>) -> 'C -> struct (int list * string list)
+    PartitionWith : (int -> Choice<int, string>) -> 'C -> struct (int array * string array)
     Skip : int -> 'C -> 'C
     SkipLast : int -> 'C -> 'C
     SkipWhile : (int -> bool) -> 'C -> 'C
     SplitAt : int -> 'C -> struct ('C * 'C)
-    SplitInto : int -> 'C -> int list list
+    SplitInto : int -> 'C -> int array array
     Take : int -> 'C -> 'C
     TakeLast : int -> 'C -> 'C
     TakeWhile : (int -> bool) -> 'C -> 'C
@@ -142,7 +143,7 @@ type SeqOps<'C> = {
     RandomShuffleBy : (unit -> float) -> 'C -> 'C
     RandomShuffleWith : Random -> 'C -> 'C
 
-    ToArray : 'C -> int array
+    ToList : 'C -> int list
     ToSeq : 'C -> seq<int>
 }
 
@@ -156,7 +157,7 @@ type SeqCreationOps<'C> = {
     /// Maps the name of a parameter of the FSharp.Core oracle to the name of the parameter of the module.
     ParamName : string -> string
     /// The elements in the order in which the collection enumerates them.
-    ToList : 'C -> int list
+    ToArray : 'C -> int array
 
     Empty : unit -> 'C
     Init : int -> (int -> int) -> 'C
@@ -181,7 +182,7 @@ type IndexedOps<'C> = {
     /// Creates a collection that enumerates the given elements in their order.
     OfSeq : seq<int> -> 'C
     /// The elements in the order in which the collection enumerates them.
-    ToList : 'C -> int list
+    ToArray : 'C -> int array
 
     Item : int -> 'C -> int
     TryItem : int -> 'C -> int voption

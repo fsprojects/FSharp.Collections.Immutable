@@ -13,16 +13,15 @@ type SeqCreationContract<'C> (ops : SeqCreationOps<'C>) =
 
     [<TestMethod>]
     member _.``empty has no elements`` () =
-        Assert.IsEmpty (ops.ToList (ops.Empty ()), $"%s{ops.Name}.empty must have no elements")
+        Assert.IsEmpty (ops.ToArray (ops.Empty ()), $"%s{ops.Name}.empty must have no elements")
 
-    [<TestMethod>]
-    member _.``init creates the elements in index order`` () =
-        for count in [ 0; 1; 5 ] do
-            Assert.AreEqual<int list>(
-                List.init count (fun index -> index * index),
-                ops.ToList (ops.Init count (fun index -> index * index)),
-                $"%s{ops.Name}.init %d{count}"
-            )
+    [<TestMethod; DataRow 0; DataRow 1; DataRow 5>]
+    member _.``init creates the elements in index order`` (count : int) =
+        CollectionAssert.AreEqual (
+            Array.init count (fun index -> index * index),
+            ops.ToArray (ops.Init count (fun index -> index * index)),
+            $"%s{ops.Name}.init must create the elements in index order"
+        )
 
     [<TestMethod>]
     member this.``init throws for a negative count as FSharp.Core does`` () =
@@ -33,16 +32,16 @@ type SeqCreationContract<'C> (ops : SeqCreationOps<'C>) =
             "init -1 must throw"
         )
 
-    [<TestMethod>]
-    member _.``ofArray copies the elements in order`` () =
-        for input in Inputs.all do
-            let source = List.toArray input
-            let collection = ops.OfArray source
+    [<TestMethod; DynamicData(nameof Inputs.All, typeof<Inputs>)>]
+    member _.``ofArray copies the elements in order`` (input : int array) =
+        // The test changes the source after the creation, so it changes a copy of its row
+        let source = Array.copy input
+        let collection = ops.OfArray source
 
-            if source.Length > 0 then
-                source[0] <- 1000
+        if source.Length > 0 then
+            source[0] <- 1000
 
-            Assert.AreEqual<int list>(input, ops.ToList collection, $"%s{ops.Name}.ofArray must copy %A{input}")
+        CollectionAssert.AreEqual (input, ops.ToArray collection, $"%s{ops.Name}.ofArray must copy the elements in order")
 
     [<TestMethod>]
     member this.``ofArray throws for a null array as FSharp.Core does`` () =
@@ -55,36 +54,41 @@ type SeqCreationContract<'C> (ops : SeqCreationOps<'C>) =
             "ofArray of a null array must throw"
         )
 
-    [<TestMethod>]
-    member _.``ofList keeps the elements in order`` () =
-        for input in Inputs.all do
-            Assert.AreEqual<int list>(input, ops.ToList (ops.OfList input), $"%s{ops.Name}.ofList of %A{input}")
+    [<TestMethod; DynamicData(nameof Inputs.All, typeof<Inputs>)>]
+    member _.``ofList keeps the elements in order`` (input : int array) =
+        CollectionAssert.AreEqual (
+            input,
+            ops.ToArray (ops.OfList (List.ofArray input)),
+            $"%s{ops.Name}.ofList must keep the elements in order"
+        )
 
-    [<TestMethod>]
-    member _.``ofReadOnlySpan copies the elements in order`` () =
-        for input in Inputs.all do
-            Assert.AreEqual<int list>(
-                input,
-                ops.ToList (ops.OfReadOnlySpan (List.toArray input)),
-                $"%s{ops.Name}.ofReadOnlySpan of %A{input}"
-            )
+    [<TestMethod; DynamicData(nameof Inputs.All, typeof<Inputs>)>]
+    member _.``ofReadOnlySpan copies the elements in order`` (input : int array) =
+        CollectionAssert.AreEqual (
+            input,
+            ops.ToArray (ops.OfReadOnlySpan input),
+            $"%s{ops.Name}.ofReadOnlySpan must copy the elements in order"
+        )
 
-    [<TestMethod>]
-    member _.``ofSeq keeps the elements in order`` () =
-        for input in Inputs.all do
-            Assert.AreEqual<int list>(input, ops.ToList (ops.OfSeq input), $"%s{ops.Name}.ofSeq of the list %A{input}")
+    [<TestMethod; DynamicData(nameof Inputs.All, typeof<Inputs>)>]
+    member _.``ofSeq keeps the elements in order`` (input : int array) =
+        CollectionAssert.AreEqual (
+            input,
+            ops.ToArray (ops.OfSeq (List.ofArray input)),
+            $"%s{ops.Name}.ofSeq of a list must keep the elements in order"
+        )
 
-            Assert.AreEqual<int list>(
-                input,
-                ops.ToList (ops.OfSeq (List.toArray input)),
-                $"%s{ops.Name}.ofSeq of the array %A{input}"
-            )
+        CollectionAssert.AreEqual (
+            input,
+            ops.ToArray (ops.OfSeq input),
+            $"%s{ops.Name}.ofSeq of an array must keep the elements in order"
+        )
 
-            Assert.AreEqual<int list>(
-                input,
-                ops.ToList (ops.OfSeq (Seq.map id input)),
-                $"%s{ops.Name}.ofSeq of a lazy sequence of %A{input}"
-            )
+        CollectionAssert.AreEqual (
+            input,
+            ops.ToArray (ops.OfSeq (Seq.map id input)),
+            $"%s{ops.Name}.ofSeq of a lazy sequence must keep the elements in order"
+        )
 
     [<TestMethod>]
     member this.``ofSeq throws for a null sequence as FSharp.Core does`` () =
@@ -97,19 +101,17 @@ type SeqCreationContract<'C> (ops : SeqCreationOps<'C>) =
             "ofSeq of a null sequence must throw"
         )
 
-    [<TestMethod>]
-    member _.``ofSpan copies the elements in order`` () =
-        for input in Inputs.all do
-            Assert.AreEqual<int list>(input, ops.ToList (ops.OfSpan (List.toArray input)), $"%s{ops.Name}.ofSpan of %A{input}")
+    [<TestMethod; DynamicData(nameof Inputs.All, typeof<Inputs>)>]
+    member _.``ofSpan copies the elements in order`` (input : int array) =
+        CollectionAssert.AreEqual (input, ops.ToArray (ops.OfSpan input), $"%s{ops.Name}.ofSpan must copy the elements in order")
 
-    [<TestMethod>]
-    member _.``replicate repeats the value`` () =
-        for count in [ 0; 1; 4 ] do
-            Assert.AreEqual<int list>(
-                List.replicate count 7,
-                ops.ToList (ops.Replicate count 7),
-                $"%s{ops.Name}.replicate %d{count}"
-            )
+    [<TestMethod; DataRow 0; DataRow 1; DataRow 4>]
+    member _.``replicate repeats the value`` (count : int) =
+        CollectionAssert.AreEqual (
+            Array.replicate count 7,
+            ops.ToArray (ops.Replicate count 7),
+            $"%s{ops.Name}.replicate must repeat the value"
+        )
 
     [<TestMethod>]
     member this.``replicate throws for a negative count as FSharp.Core does`` () =
@@ -122,20 +124,20 @@ type SeqCreationContract<'C> (ops : SeqCreationOps<'C>) =
 
     [<TestMethod>]
     member _.``singleton has one element`` () =
-        Assert.AreEqual<int list>([ 42 ], ops.ToList (ops.Singleton 42), $"%s{ops.Name}.singleton must have one element")
+        CollectionAssert.AreEqual ([| 42 |], ops.ToArray (ops.Singleton 42), $"%s{ops.Name}.singleton must have one element")
 
-    [<TestMethod>]
-    member _.``unfold generates the elements until the generator stops`` () =
+    [<TestMethod; DataRow 0; DataRow 1; DataRow 5>]
+    member _.``unfold generates the elements until the generator stops`` (start : int) =
         let generator (state : int) =
             if state > 0 then
                 ValueSome (struct (state * 10, state - 1))
             else
                 ValueNone
+
         let generatorOption (state : int) = if state > 0 then Some (state * 10, state - 1) else None
 
-        for start in [ 0; 1; 5 ] do
-            Assert.AreEqual<int list>(
-                List.unfold generatorOption start,
-                ops.ToList (ops.Unfold generator start),
-                $"%s{ops.Name}.unfold from %d{start}"
-            )
+        CollectionAssert.AreEqual (
+            Array.unfold generatorOption start,
+            ops.ToArray (ops.Unfold generator start),
+            $"%s{ops.Name}.unfold must generate the elements until the generator stops"
+        )

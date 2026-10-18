@@ -12,7 +12,7 @@ open Microsoft.VisualStudio.TestTools.UnitTesting
 [<TestClass; FlatListTestCategory; OptionNamespaceTestCategory>]
 type FlatListOptionTests () =
 
-    static let array = FlatList.ofList Inputs.several
+    static let array = FlatList.ofArray Inputs.Several
 
     static let negatedIfNegative (item : int) = if item < 0 then Some (-item) else None
 
@@ -20,10 +20,11 @@ type FlatListOptionTests () =
     member _.``unfold takes a generator of options of reference tuples`` () =
         let generator (state : int) = if state > 0 then Some (state, state - 1) else None
         let generated : FlatList<int> = FlatList.unfold generator 3
-        Assert.AreEqual<int list>(
-            List.unfold generator 3,
-            FlatList.toList generated,
-            "Option.FlatList.unfold must generate as List.unfold does"
+
+        CollectionAssert.AreEqual (
+            Array.unfold generator 3,
+            FlatList.toArray generated,
+            "Option.FlatList.unfold must generate as Array.unfold does"
         )
 
     [<TestMethod>]
@@ -43,15 +44,14 @@ type FlatListOptionTests () =
             found
             "Option.FlatList.tryHead must match the default"
 
-    [<TestMethod>]
-    member _.``tryItem returns an option`` () =
-        for index in [ -1; 2; 8 ] do
-            let found : int option = FlatList.tryItem index array
+    [<TestMethod; DataRow -1; DataRow 2; DataRow 8>]
+    member _.``tryItem returns an option`` (index : int) =
+        let found : int option = FlatList.tryItem index array
 
-            OverrideAssert.optionMatches
-                (FSharp.Collections.Immutable.FlatList.tryItem index array)
-                found
-                $"Option.FlatList.tryItem %d{index} must match the default"
+        OverrideAssert.optionMatches
+            (FSharp.Collections.Immutable.FlatList.tryItem index array)
+            found
+            "Option.FlatList.tryItem must match the default"
 
     [<TestMethod>]
     member _.``tryLast returns an option`` () =
@@ -63,23 +63,27 @@ type FlatListOptionTests () =
 
     [<TestMethod>]
     member _.``tryTail returns an option`` () =
+        let expected = FSharp.Collections.Immutable.FlatList.tryTail array
         let found : FlatList<int> option = FlatList.tryTail array
+        Assert.AreEqual<bool>(expected.IsSome, found.IsSome, "Option.FlatList.tryTail must return a tail when the default does")
 
-        Assert.AreEqual<int list option>(
-            FSharp.Collections.Immutable.FlatList.tryTail array
-            |> ValueOption.map FlatList.toList
-            |> ValueOption.toOption,
-            found |> Option.map FlatList.toList,
-            "Option.FlatList.tryTail must match the default"
-        )
+        // The tails are compared element by element
+        match expected, found with
+        | ValueSome expected, Some found ->
+            CollectionAssert.AreEqual (
+                FlatList.toArray expected,
+                FlatList.toArray found,
+                "Option.FlatList.tryTail must return the tail of the default"
+            )
+        | _ -> ()
 
     [<TestMethod>]
     member _.``pick takes a chooser of options`` () =
         let picked : int = FlatList.pick negatedIfNegative array
         Assert.AreEqual<int>(
-            List.pick negatedIfNegative Inputs.several,
+            Array.pick negatedIfNegative Inputs.Several,
             picked,
-            "Option.FlatList.pick must pick as List.pick does"
+            "Option.FlatList.pick must pick as Array.pick does"
         )
 
     [<TestMethod>]
@@ -122,32 +126,32 @@ type FlatListOptionTests () =
     member _.``tryPick takes a chooser of options and returns an option`` () =
         let found : int option = FlatList.tryPick negatedIfNegative array
         Assert.AreEqual<int option>(
-            List.tryPick negatedIfNegative Inputs.several,
+            Array.tryPick negatedIfNegative Inputs.Several,
             found,
-            "Option.FlatList.tryPick must pick as List.tryPick does"
+            "Option.FlatList.tryPick must pick as Array.tryPick does"
         )
 
     [<TestMethod>]
     member _.``choose takes a chooser of options`` () =
         let chosen : FlatList<int> = FlatList.choose negatedIfNegative array
 
-        Assert.AreEqual<int list>(
-            List.choose negatedIfNegative Inputs.several,
-            FlatList.toList chosen,
-            "Option.FlatList.choose must choose as List.choose does"
+        CollectionAssert.AreEqual (
+            Array.choose negatedIfNegative Inputs.Several,
+            FlatList.toArray chosen,
+            "Option.FlatList.choose must choose as Array.choose does"
         )
 
     [<TestMethod>]
     member _.``the functions without an option keep resolving to the default module`` () =
         let mapped : FlatList<int> = FlatList.map (fun item -> item * 2) array
         let zipped : FlatList<int * int> = FlatList.zip array array
-        Assert.AreEqual<int list>(
-            List.map (fun item -> item * 2) Inputs.several,
-            FlatList.toList mapped,
+        CollectionAssert.AreEqual (
+            Array.map (fun item -> item * 2) Inputs.Several,
+            FlatList.toArray mapped,
             "FlatList.map must resolve to the default module"
         )
-        Assert.AreEqual<(int * int) list>(
-            List.zip Inputs.several Inputs.several,
-            FlatList.toList zipped,
+        CollectionAssert.AreEqual (
+            Array.zip Inputs.Several Inputs.Several,
+            FlatList.toArray zipped,
             "FlatList.zip must resolve to the Tuple module"
         )
