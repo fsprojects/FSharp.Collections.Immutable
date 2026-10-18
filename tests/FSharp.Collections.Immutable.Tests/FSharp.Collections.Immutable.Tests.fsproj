@@ -49,6 +49,13 @@
     <Compile Include="Contracts\SeqLike\SeqLikeContract.fs" />
     <Compile Include="Contracts\SeqCreationContract.fs" />
     <Compile Include="Contracts\IndexedContract.fs" />
+    <Compile Include="Contracts\SetInputs.fs" />
+    <Compile Include="Contracts\SetParamNames.fs" />
+    <Compile Include="Contracts\SetOps.fs" />
+    <Compile Include="Contracts\SetContract.fs" />
+    <Compile Include="Contracts\SetTransformContract.fs" />
+    <Compile Include="Contracts\SetMutationContract.fs" />
+    <Compile Include="Contracts\SetCreationContract.fs" />
     <Compile Include="TestCategoriesTests.fs" />
     <Compile Include="FlatList\FlatListOps.fs" />
     <Compile Include="FlatList\FlatListAssert.fs" />
@@ -63,6 +70,18 @@
     <Compile Include="FlatList\FlatListParallelTests.fs" />
     <Compile Include="FlatList\FlatListParallelOptionTests.fs" />
     <Compile Include="FlatList\FlatListParallelTupleTests.fs" />
+    <Compile Include="HashSet\HashSetOps.fs" />
+    <Compile Include="HashSet\HashSetContractTests.fs" />
+    <Compile Include="HashSet\HashSetTests.fs" />
+    <Compile Include="HashSet\HashSetBuilderTests.fs" />
+    <Compile Include="HashSet\HashSetComputationExpressionTests.fs" />
+    <Compile Include="HashSet\HashSetOptionTests.fs" />
+    <Compile Include="HashSet\HashSetTupleTests.fs" />
+    <Compile Include="HashSet\ISetOps.fs" />
+    <Compile Include="HashSet\ISetContractTests.fs" />
+    <Compile Include="HashSet\ISetTests.fs" />
+    <Compile Include="HashSet\ISetOptionTests.fs" />
+    <Compile Include="HashSet\ISetTupleTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
