@@ -14,6 +14,9 @@
 exception is the `XTypes.fs` file of a folder, which holds only type abbreviations and is its own signature: a signature
 file without an implementation file does not compile (FS0240).
 
+The comparer struct and the extension files of a module carry `<DependentUpon>` in the project file, the `.fsi` on the
+module's `.fsi` and the `.fs` on its `.fs`, so that Visual Studio shows them as a tree under the module.
+
 ```text
 /
 ├── build/                                              – FAKE build scripts and release automation
@@ -26,59 +29,87 @@ file without an implementation file does not compile (FS0240).
 │   │   ├── FlatList.fs / FlatList.fsi                  – includes the nested Parallel module
 │   │   ├── FlatListOption.fs / FlatListOption.fsi      – Option namespace overrides
 │   │   ├── FlatListTuple.fs / FlatListTuple.fsi        – Tuple namespace overrides
-│   │   ├── FlatListBuilder.fs
-│   │   └── FlatListCE.fs
+│   │   ├── FlatListBuilder.fs / FlatListBuilder.fsi
+│   │   └── FlatListCE.fs / FlatListCE.fsi
 │   ├── IndexedList/                                    – ImmutableList API surface and builders
 │   │   ├── IndexedListTypes.fs
-│   │   ├── IndexedList.fs / IndexedList.fsi (+ Option / Tuple)
-│   │   ├── IIndexedList.fs / IIndexedList.fsi (+ Option / Tuple)
-│   │   ├── IndexedListBuilder.fs
-│   │   └── IndexedListCE.fs
+│   │   ├── IndexedList.fs / IndexedList.fsi
+│   │   ├── IndexedListOption.fs / IndexedListOption.fsi
+│   │   ├── IndexedListTuple.fs / IndexedListTuple.fsi
+│   │   ├── IIndexedList.fs / IIndexedList.fsi
+│   │   ├── IIndexedListOption.fs / IIndexedListOption.fsi
+│   │   ├── IIndexedListTuple.fs / IIndexedListTuple.fsi
+│   │   ├── IndexedListBuilder.fs / IndexedListBuilder.fsi
+│   │   └── IndexedListCE.fs / IndexedListCE.fsi
 │   ├── Queue/                                          – ImmutableQueue API surface and CE
 │   │   ├── QueueTypes.fs                               – the Queue and IQueue abbreviations
-│   │   ├── Queue.fs / Queue.fsi (+ Option / Tuple)
-│   │   ├── IQueue.fs / IQueue.fsi (+ Option / Tuple)
-│   │   └── QueueCE.fs
+│   │   ├── Queue.fs / Queue.fsi
+│   │   ├── QueueOption.fs / QueueOption.fsi
+│   │   ├── QueueTuple.fs / QueueTuple.fsi
+│   │   ├── IQueue.fs / IQueue.fsi
+│   │   ├── IQueueOption.fs / IQueueOption.fsi
+│   │   ├── IQueueTuple.fs / IQueueTuple.fsi
+│   │   └── QueueCE.fs / QueueCE.fsi
 │   ├── Stack/                                          – ImmutableStack API surface and CE
 │   │   ├── StackTypes.fs                               – the Stack and IStack abbreviations
-│   │   ├── Stack.fs / Stack.fsi (+ Option / Tuple)
-│   │   ├── IStack.fs / IStack.fsi (+ Option / Tuple)
-│   │   └── StackCE.fs
+│   │   ├── Stack.fs / Stack.fsi
+│   │   ├── StackOption.fs / StackOption.fsi
+│   │   ├── StackTuple.fs / StackTuple.fsi
+│   │   ├── IStack.fs / IStack.fsi
+│   │   ├── IStackOption.fs / IStackOption.fsi
+│   │   ├── IStackTuple.fs / IStackTuple.fsi
+│   │   └── StackCE.fs / StackCE.fsi
 │   ├── HashMap/                                        – ImmutableDictionary API surface and CE
 │   │   ├── HashMapTypes.fs                             – the HashMap and IMap abbreviations
-│   │   ├── HashMap.fs / HashMap.fsi (+ Option / Tuple) – nested Tuple / ValueTuple submodules
-│   │   ├── CustomComparersHashMap.fs / .fsi            – creates hash maps with comparers
-│   │   ├── HashMapExtensions.fs / .fsi                 – ofArray / ofList / ofSeq for every binding shape
-│   │   ├── IMap.fs / IMap.fsi (+ Option / Tuple)
-│   │   └── HashMapCE.fs
+│   │   ├── HashMap.fs / HashMap.fsi                    – nested Tuple / ValueTuple submodules
+│   │   │   ├── HashMap.CustomComparers.fs / .fsi       – creates hash maps with comparers
+│   │   │   └── HashMap.Extensions.fs / .fsi            – ofArray / ofList / ofSeq for every binding shape
+│   │   ├── HashMapOption.fs / HashMapOption.fsi
+│   │   ├── HashMapTuple.fs / HashMapTuple.fsi
+│   │   ├── IMap.fs / IMap.fsi
+│   │   ├── IMapOption.fs / IMapOption.fsi
+│   │   ├── IMapTuple.fs / IMapTuple.fsi
+│   │   └── HashMapCE.fs / HashMapCE.fsi
 │   ├── SortedMap/                                      – ImmutableSortedDictionary API surface and CE
 │   │   ├── SortedMapTypes.fs
-│   │   ├── SortedMap.fs / SortedMap.fsi (+ Option / Tuple)
-│   │   ├── CustomComparersSortedMap.fs / .fsi
-│   │   ├── SortedMapExtensions.fs / .fsi
-│   │   └── SortedMapCE.fs
+│   │   ├── SortedMap.fs / SortedMap.fsi
+│   │   │   ├── SortedMap.CustomComparers.fs / .fsi
+│   │   │   └── SortedMap.Extensions.fs / .fsi
+│   │   ├── SortedMapOption.fs / SortedMapOption.fsi
+│   │   ├── SortedMapTuple.fs / SortedMapTuple.fsi
+│   │   └── SortedMapCE.fs / SortedMapCE.fsi
 │   ├── HashSet/                                        – ImmutableHashSet API surface and CE
 │   │   ├── HashSetTypes.fs
-│   │   ├── HashSet.fs / HashSet.fsi (+ Option / Tuple)
-│   │   ├── CustomComparerHashSet.fs / .fsi             – creates hash sets with a comparer
-│   │   ├── ISet.fs / ISet.fsi (+ Option / Tuple)
-│   │   └── HashSetCE.fs
+│   │   ├── HashSet.fs / HashSet.fsi
+│   │   │   └── HashSet.CustomComparer.fs / .fsi        – creates hash sets with a comparer
+│   │   ├── HashSetOption.fs / HashSetOption.fsi
+│   │   ├── HashSetTuple.fs / HashSetTuple.fsi
+│   │   ├── ISet.fs / ISet.fsi
+│   │   ├── ISetOption.fs / ISetOption.fsi
+│   │   ├── ISetTuple.fs / ISetTuple.fsi
+│   │   └── HashSetCE.fs / HashSetCE.fsi
 │   ├── SortedSet/                                      – ImmutableSortedSet API surface and CE
 │   │   ├── SortedSetTypes.fs
-│   │   ├── SortedSet.fs / SortedSet.fsi (+ Option / Tuple)
-│   │   ├── CustomComparerSortedSet.fs / .fsi
-│   │   └── SortedSetCE.fs
+│   │   ├── SortedSet.fs / SortedSet.fsi
+│   │   │   └── SortedSet.CustomComparer.fs / .fsi
+│   │   ├── SortedSetOption.fs / SortedSetOption.fsi
+│   │   ├── SortedSetTuple.fs / SortedSetTuple.fsi
+│   │   └── SortedSetCE.fs / SortedSetCE.fsi
 │   ├── FrozenMap/                                      – FrozenDictionary API surface and CE
 │   │   ├── FrozenMapTypes.fs
-│   │   ├── FrozenMap.fs / FrozenMap.fsi (+ Option / Tuple)
-│   │   ├── CustomComparersFrozenMap.fs / .fsi
-│   │   ├── FrozenMapExtensions.fs / .fsi
-│   │   └── FrozenMapCE.fs
+│   │   ├── FrozenMap.fs / FrozenMap.fsi
+│   │   │   ├── FrozenMap.CustomComparers.fs / .fsi
+│   │   │   └── FrozenMap.Extensions.fs / .fsi
+│   │   ├── FrozenMapOption.fs / FrozenMapOption.fsi
+│   │   ├── FrozenMapTuple.fs / FrozenMapTuple.fsi
+│   │   └── FrozenMapCE.fs / FrozenMapCE.fsi
 │   ├── FrozenSet/                                      – FrozenSet API surface and CE (the BCL type keeps its name)
-│   │   ├── FrozenSet.fs / FrozenSet.fsi (+ Option / Tuple)
-│   │   ├── CustomComparerFrozenSet.fs / .fsi
-│   │   └── FrozenSetCE.fs
-│   └── ComputationExpressions.fs                       – the computation expression instances
+│   │   ├── FrozenSet.fs / FrozenSet.fsi
+│   │   │   └── FrozenSet.CustomComparer.fs / .fsi
+│   │   ├── FrozenSetOption.fs / FrozenSetOption.fsi
+│   │   ├── FrozenSetTuple.fs / FrozenSetTuple.fsi
+│   │   └── FrozenSetCE.fs / FrozenSetCE.fsi
+│   └── ComputationExpressions.fs / .fsi                – the computation expression instances
 └── tests/FSharp.Collections.Immutable.Tests/            – MSTest test project
     ├── TestCategories.fs                               – centralized custom test category attributes
     ├── TestCategoriesTests.fs                          – enforces the test category rules
