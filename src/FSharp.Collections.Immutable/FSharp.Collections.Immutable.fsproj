@@ -33,6 +33,7 @@
     <Compile Include="Helper\ArrayChecks.fs" />
     <Compile Include="Helper\Arrays.fs" />
     <Compile Include="Helper\ParallelArrays.fs" />
+    <Compile Include="Helper\Dictionaries.fs" />
     <Compile Include="FlatList\FlatListTypes.fs" />
     <Compile Include="FlatList\FlatList.fsi" />
     <Compile Include="FlatList\FlatList.fs" />
@@ -44,6 +45,33 @@
     <Compile Include="FlatList\FlatListBuilder.fs" />
     <Compile Include="FlatList\FlatListCE.fsi" />
     <Compile Include="FlatList\FlatListCE.fs" />
+    <Compile Include="HashMap\HashMapTypes.fs" />
+    <Compile Include="HashMap\HashMap.CustomComparers.fsi">
+      <DependentUpon>HashMap.fsi</DependentUpon>
+    </Compile>
+    <Compile Include="HashMap\HashMap.CustomComparers.fs">
+      <DependentUpon>HashMap.fs</DependentUpon>
+    </Compile>
+    <Compile Include="HashMap\HashMap.fsi" />
+    <Compile Include="HashMap\HashMap.fs" />
+    <Compile Include="HashMap\HashMapOption.fsi" />
+    <Compile Include="HashMap\HashMapOption.fs" />
+    <Compile Include="HashMap\HashMapTuple.fsi" />
+    <Compile Include="HashMap\HashMapTuple.fs" />
+    <Compile Include="HashMap\HashMap.Extensions.fsi">
+      <DependentUpon>HashMap.fsi</DependentUpon>
+    </Compile>
+    <Compile Include="HashMap\HashMap.Extensions.fs">
+      <DependentUpon>HashMap.fs</DependentUpon>
+    </Compile>
+    <Compile Include="HashMap\IMap.fsi" />
+    <Compile Include="HashMap\IMap.fs" />
+    <Compile Include="HashMap\IMapOption.fsi" />
+    <Compile Include="HashMap\IMapOption.fs" />
+    <Compile Include="HashMap\IMapTuple.fsi" />
+    <Compile Include="HashMap\IMapTuple.fs" />
+    <Compile Include="HashMap\HashMapCE.fsi" />
+    <Compile Include="HashMap\HashMapCE.fs" />
     <Compile Include="Stack.fs" />
     <Compile Include="ImmutableList.fs" />
     <Compile Include="Queue.fs" />

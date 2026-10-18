@@ -65,5 +65,9 @@ let invalidOpListNotEnoughElements (index : int) : 'T =
 /// No element satisfies the predicate of a `find` or `pick` function.
 let indexNotFound () : 'T = raise (KeyNotFoundException ErrorStrings.KeyNotFoundAlt)
 
+/// A map has no binding of a key, or no binding gives a value to `pick`: `Map.find` and `Map.pick` throw the exception
+/// with its default message.
+let keyNotFound () : 'T = raise (KeyNotFoundException ())
+
 /// A collection has fewer elements than a function needs.
 let notEnoughElements () : 'T = raise (InvalidOperationException ErrorStrings.NotEnoughElements)
