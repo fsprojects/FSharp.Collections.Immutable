@@ -20,7 +20,7 @@ module's `.fsi` and the `.fs` on its `.fs`, so that Visual Studio shows them as 
 ```text
 /
 ├── build/                                              – FAKE build scripts and release automation
-│   └── check-order.fsx                                 – checks the category order of the signature files
+│   └── CheckOrder.fs                                   – checks the category order of the signature files with the Fantomas parser
 ├── docsSrc/                                            – FSharp.Formatting documentation source
 ├── src/FSharp.Collections.Immutable/                    – main library
 │   ├── Helper.fs                                       – argument checks and exceptions shared by the modules
@@ -123,7 +123,7 @@ The modules follow ADR 0001 – Per-collection modules (`docsSrc/Explanations/AD
 * Each module groups its functions under banner comments `// ---- Category ----` in the order `Creation`, `Builder`,
   `Properties`, `Access`, `Search`, `Transformation`, `Folding`, `Partitioning and grouping`, `Sorting`, `Random`,
   `Conversion`, `Type-specific`, and sorts the functions of a category alphabetically (ordinal), active patterns last.
-  The `.fs` file repeats the order of its `.fsi` file. `build/check-order.fsx` (FAKE target `CheckOrder`) enforces it.
+  The `.fs` file repeats the order of its `.fsi` file. `build/CheckOrder.fs` (FAKE target `CheckOrder`) enforces it.
 * A file with one module declares it as the root module of the file (`module FSharp.Collections.Immutable.FlatList`);
   the type abbreviations of a folder live in its `XTypes.fs`. No module carries `[<CompiledName>]`.
 * `try*` functions return `voption`, tuples are struct tuples. The namespaces `FSharp.Collections.Immutable.Option` and

@@ -163,8 +163,6 @@ module dotnet =
 
     let fantomas args = DotNet.exec id "fantomas" args
 
-    let fsi args = tool id "fsi" args
-
 module FSharpAnalyzers =
     type Arguments =
         | Project of string
@@ -592,9 +590,15 @@ let checkFormatCode ctx =
 
 /// Checks the category banners and the alphabetical order of the functions in the signature files (ADR 0001, D4)
 let checkOrder _ =
-    let script = rootDirectory </> "build" </> "check-order.fsx"
-    let sourceDirectory = rootDirectory </> "src"
-    dotnet.fsi $"\"%s{script}\" \"%s{sourceDirectory}\""
+    let struct (fileCount, violations) = CheckOrder.check (rootDirectory </> "src")
+
+    if violations.Length = 0 then
+        Trace.log $"check-order: %d{fileCount} signature files are in order"
+    else
+        for violation in violations do
+            Trace.traceError $"%s{violation.Path}(%d{violation.Line}): %s{violation.Message}"
+
+        failwith $"check-order: %d{violations.Length} violations"
 
 
 let cleanDocsCache _ = DocsTool.cleanDocsCache ()
