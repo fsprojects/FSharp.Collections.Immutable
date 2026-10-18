@@ -24,15 +24,17 @@ While F# has its own built-in immutable collections, System.Collections.Immutabl
 
 ## Available Collections
 
-- `FlatList` (`ImmutableArray`)
-- `ImmutableList`
-- `Stack` (`ImmutableStack`)
-- `Queue` (`ImmutableQueue`)
-- `HashMap` (`ImmutableDictionary`)
-- `SortedMap` (`ImmutableSortedDictionary`)
-- `HashSet` (`ImmutableHashSet`)
-- `SortedSet` (`ImmutableSortedSet`)
-- `IIndexedSeq` (`IReadOnlyList`)
+| Module | .NET type | Computation expression |
+|---|---|---|
+| `FlatList` | `ImmutableArray<'T>` | – |
+| `ImmutableList` | `ImmutableList<'T>` | – |
+| `Stack` | `ImmutableStack<'T>` | – |
+| `Queue` | `ImmutableQueue<'T>` | – |
+| `HashMap` | `ImmutableDictionary<'Key, 'Value>` | – |
+| `SortedMap` | `ImmutableSortedDictionary<'Key, 'Value>` | – |
+| `HashSet` | `ImmutableHashSet<'T>` | – |
+| `SortedSet` | `ImmutableSortedSet<'T>` | – |
+| `IIndexedSeq` | `IReadOnlyList<'T>` | – |
 
 ---
 

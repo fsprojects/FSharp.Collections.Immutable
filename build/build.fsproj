@@ -13,6 +13,7 @@
   <ItemGroup>
     <Compile Include="Changelog.fs" />
     <Compile Include="FsDocs.fs" />
+    <Compile Include="CheckOrder.fs" />
     <Compile Include="build.fs" />
   </ItemGroup>
 
@@ -29,6 +30,7 @@
     <PackageReference Include="Fake.DotNet.Paket" />
     <PackageReference Include="Fake.IO.FileSystem" />
     <PackageReference Include="Fake.Tools.Git" />
+    <PackageReference Include="Fantomas.FCS" />
     <PackageReference Include="FSharp.Control.Reactive" />
     <PackageReference Include="MSBuild.StructuredLogger" />
     <PackageReference Include="NuGet.Common" />
