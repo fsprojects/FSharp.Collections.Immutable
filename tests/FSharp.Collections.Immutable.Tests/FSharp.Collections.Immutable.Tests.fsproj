@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="TestCategories.fs" />
     <Compile Include="FlatList.fs" />
     <Compile Include="Stack.fs" />
     <Compile Include="ImmutableList.fs" />
