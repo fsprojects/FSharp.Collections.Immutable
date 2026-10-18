@@ -67,6 +67,20 @@
     <Compile Include="HashSet\ISetTuple.fs" />
     <Compile Include="HashSet\HashSetCE.fsi" />
     <Compile Include="HashSet\HashSetCE.fs" />
+    <Compile Include="FrozenSet\FrozenSet.CustomComparer.fsi">
+      <DependentUpon>FrozenSet.fsi</DependentUpon>
+    </Compile>
+    <Compile Include="FrozenSet\FrozenSet.CustomComparer.fs">
+      <DependentUpon>FrozenSet.fs</DependentUpon>
+    </Compile>
+    <Compile Include="FrozenSet\FrozenSet.fsi" />
+    <Compile Include="FrozenSet\FrozenSet.fs" />
+    <Compile Include="FrozenSet\FrozenSetOption.fsi" />
+    <Compile Include="FrozenSet\FrozenSetOption.fs" />
+    <Compile Include="FrozenSet\FrozenSetTuple.fsi" />
+    <Compile Include="FrozenSet\FrozenSetTuple.fs" />
+    <Compile Include="FrozenSet\FrozenSetCE.fsi" />
+    <Compile Include="FrozenSet\FrozenSetCE.fs" />
     <Compile Include="Stack.fs" />
     <Compile Include="ImmutableList.fs" />
     <Compile Include="Queue.fs" />
