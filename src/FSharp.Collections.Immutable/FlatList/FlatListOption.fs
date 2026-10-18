@@ -5,7 +5,6 @@ open FSharp.Collections.Immutable
 // The functions call the FSharp.Core Array functions, which take and return options, over the underlying array, or
 // convert the result of the default module where it implements the function itself.
 [<RequireQualifiedAccess>]
-[<CompiledName "ImmutableArrayModule">]
 module FlatList =
 
     // ---- Creation ----

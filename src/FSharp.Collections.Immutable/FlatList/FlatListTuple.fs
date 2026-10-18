@@ -5,7 +5,6 @@ open FSharp.Collections.Immutable
 // The functions that build a tuple per element share their algorithm with the default module and only pass another
 // tuple constructor; the others delegate to the default module and repack the tuples, which costs no second pass.
 [<RequireQualifiedAccess>]
-[<CompiledName "ImmutableArrayModule">]
 module FlatList =
 
     // ---- Creation ----

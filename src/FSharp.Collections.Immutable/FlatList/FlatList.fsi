@@ -18,8 +18,8 @@ type FlatList<'T> = ImmutableArray<'T>
 /// </para>
 /// <para>
 /// A default immutable array has no underlying array. Every function except
-/// <see cref="M:FSharp.Collections.Immutable.ImmutableArrayModule.IsDefault``1(System.Collections.Immutable.ImmutableArray{``0})"/>
-/// and <see cref="M:FSharp.Collections.Immutable.ImmutableArrayModule.IsDefaultOrEmpty``1(System.Collections.Immutable.ImmutableArray{``0})"/>
+/// <see cref="M:FSharp.Collections.Immutable.FlatList.IsDefault``1(System.Collections.Immutable.ImmutableArray{``0})"/>
+/// and <see cref="M:FSharp.Collections.Immutable.FlatList.IsDefaultOrEmpty``1(System.Collections.Immutable.ImmutableArray{``0})"/>
 /// throws <see cref="T:System.ArgumentNullException"/> for it, as <see cref="T:Microsoft.FSharp.Collections.ArrayModule"/>
 /// does for a <see langword="null"/> array.
 /// </para>
@@ -31,7 +31,6 @@ type FlatList<'T> = ImmutableArray<'T>
 /// </para>
 /// </remarks>
 [<RequireQualifiedAccess>]
-[<CompiledName "ImmutableArrayModule">]
 module FlatList =
 
     // ---- Creation ----
@@ -282,7 +281,7 @@ module FlatList =
     /// </returns>
     /// <remarks>
     /// O(log n). The function compares with <see cref="P:Microsoft.FSharp.Core.LanguagePrimitives.FastGenericComparer``1"/>,
-    /// the order that <see cref="M:FSharp.Collections.Immutable.ImmutableArrayModule.Sort``1(System.Collections.Immutable.ImmutableArray{``0})"/> produces.
+    /// the order that <see cref="M:FSharp.Collections.Immutable.FlatList.Sort``1(System.Collections.Immutable.ImmutableArray{``0})"/> produces.
     /// </remarks>
     [<CompiledName "BinarySearch">]
     val binarySearch : value : 'T -> array : FlatList<'T> -> int when 'T : comparison
@@ -680,7 +679,7 @@ module FlatList =
     /// <param name="predicate">The function to test the elements.</param>
     /// <param name="array">The input flat list.</param>
     /// <returns>The elements that satisfy the predicate, in their order.</returns>
-    /// <remarks>O(n). A synonym of <see cref="M:FSharp.Collections.Immutable.ImmutableArrayModule.Filter``1(Microsoft.FSharp.Core.FSharpFunc{``0,System.Boolean},System.Collections.Immutable.ImmutableArray{``0})"/>.</remarks>
+    /// <remarks>O(n). A synonym of <see cref="M:FSharp.Collections.Immutable.FlatList.Filter``1(Microsoft.FSharp.Core.FSharpFunc{``0,System.Boolean},System.Collections.Immutable.ImmutableArray{``0})"/>.</remarks>
     [<CompiledName "Where">]
     val where : predicate : ('T -> bool) -> array : FlatList<'T> -> FlatList<'T>
 

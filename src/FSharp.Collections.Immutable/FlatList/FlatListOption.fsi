@@ -3,7 +3,7 @@ namespace FSharp.Collections.Immutable.Option
 open FSharp.Collections.Immutable
 
 /// <summary>
-/// The functions of <see cref="T:FSharp.Collections.Immutable.ImmutableArrayModule"/> that take or return an optional
+/// The functions of <see cref="T:FSharp.Collections.Immutable.FlatList"/> that take or return an optional
 /// value, with <see cref="T:Microsoft.FSharp.Core.FSharpOption`1"/> instead of
 /// <see cref="T:Microsoft.FSharp.Core.FSharpValueOption`1"/>.
 /// </summary>
@@ -13,7 +13,6 @@ open FSharp.Collections.Immutable
 /// name in <see cref="T:Microsoft.FSharp.Collections.ArrayModule"/> where that module has one.
 /// </remarks>
 [<RequireQualifiedAccess>]
-[<CompiledName "ImmutableArrayModule">]
 module FlatList =
 
     // ---- Creation ----

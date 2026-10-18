@@ -10,7 +10,6 @@ type FlatList<'T> = ImmutableArray<'T>
 // Most functions unwrap the underlying array without a copy, call the FSharp.Core Array function, and wrap its fresh
 // result without a copy (ADR 0001, D5), so that they have the semantics and the exceptions of the Array module (D6).
 [<RequireQualifiedAccess>]
-[<CompiledName "ImmutableArrayModule">]
 module FlatList =
 
     // ---- Creation ----

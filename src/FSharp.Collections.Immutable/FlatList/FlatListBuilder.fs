@@ -9,12 +9,11 @@ open System.Collections.Immutable
 /// </summary>
 /// <remarks>
 /// The builder is mutable. The functions that change it return the same builder, so that the calls chain with the pipe
-/// operator. <see cref="M:FSharp.Collections.Immutable.ImmutableArrayModule.CreateBuilder``1"/> creates a builder, and
-/// <see cref="M:FSharp.Collections.Immutable.ImmutableArrayModule.OfBuilder``1(System.Collections.Immutable.ImmutableArray{``0}.Builder)"/>
+/// operator. <see cref="M:FSharp.Collections.Immutable.FlatList.CreateBuilder``1"/> creates a builder, and
+/// <see cref="M:FSharp.Collections.Immutable.FlatList.OfBuilder``1(System.Collections.Immutable.ImmutableArray{``0}.Builder)"/>
 /// returns its contents as a flat list.
 /// </remarks>
 [<RequireQualifiedAccess>]
-[<CompiledName "ImmutableArrayBuilderModule">]
 module FlatListBuilder =
 
     // ---- Properties ----

@@ -3,7 +3,7 @@ namespace FSharp.Collections.Immutable.Tuple
 open FSharp.Collections.Immutable
 
 /// <summary>
-/// The functions of <see cref="T:FSharp.Collections.Immutable.ImmutableArrayModule"/> that take or return tuples, with
+/// The functions of <see cref="T:FSharp.Collections.Immutable.FlatList"/> that take or return tuples, with
 /// reference tuples instead of struct tuples.
 /// </summary>
 /// <remarks>
@@ -14,7 +14,6 @@ open FSharp.Collections.Immutable
 /// <see cref="T:Microsoft.FSharp.Collections.ArrayModule"/>.
 /// </remarks>
 [<RequireQualifiedAccess>]
-[<CompiledName "ImmutableArrayModule">]
 module FlatList =
 
     // ---- Creation ----
