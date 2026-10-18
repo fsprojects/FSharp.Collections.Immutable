@@ -261,7 +261,16 @@ module MyTypeExtensions =
 ## Testing
 
 * Tests use MSTest 4.
-* `CollectionAssert` cannot work with F# lists – use F# array syntax (`[| ... |]`) instead.
+* Collections in tests are arrays: build and inspect them with `toArray` and `[| ... |]`, and compare them with `CollectionAssert.AreEqual`. Arrays are faster to build than F# lists, and `CollectionAssert` compares them element by element, nested arrays included; it cannot work with F# lists. Convert to a list (`toList`, `List.ofSeq`) only to pattern-match on it or to call the `List` function that the tested function mirrors; a list that is an input of the tested function (`ofList`, a list given to `ofSeq`) is a case of its own.
+  * Never compare arrays with `Assert.AreEqual` – it compares references.
+  * `CollectionAssert` compares tuple elements with `Equals`, so an array inside a tuple is compared by reference; check such results with Unquote, where `=` compares the array structurally.
+* Give the cases of a test as data rows and parameters of the test method instead of a loop over a list of cases inside the test: `[<DataRow>]` for constants (`[<TestMethod; DataRow 0; DataRow -1>]`), `[<DynamicData>]` for rows that are computed or shared by several tests. Each row runs and reports as a separate test named after its arguments: a failing case does not stop the others, and the message does not need to repeat the input.
+  * A `DynamicData` source is a public static property that builds its rows on each read (`static member Rows = ...`, not `static member val`, whose rows every class that inherits the test would share), and a test never changes its row.
+  * `typeof<_>` cannot name an F# module, so the sources that several test classes share go into a static class (`[<AbstractClass; Sealed>]`): `DynamicData (nameof TestData.Rows, typeof<TestData>)`. The sources of one class, a generic contract class included, are its own static members: `DynamicData (nameof MyContract<'C>.Rows)`.
+  * A row is a single value, a tuple, which is unpacked into the parameters of the method, or a `TestDataRow<'T>`. Nested loops become one source: `seq { for index in ... do for count in ... do struct (index, count) }`.
+  * MSTest names a row by the `ToString` of its values, so a row holds printable data – numbers, strings, arrays of them, F# union cases – and the test builds the collections and picks the functions from it. A collection or a function in a row gives a name like ``ImmutableHashSet`1[System.String]``.
+  * Wrap a row that is an array of a reference type (`string array`, an array of reference tuples) in `TestDataRow`: MSTest spreads such an array into the parameters, as it does an `obj array`.
+  * Do not set `TestDataRow.DisplayName`: it replaces the whole name of the test, the name of the method included.
 * `StringAssert` has overloads with `StringComparison`.
 * Use `Assert.Contains` instead of `Assert.IsTrue (str.Contains ..., "message")`, and do not put the actual value into the message.
 * Check collection size with `Assert.HasCount (expected, collection, "message")` instead of `Assert.AreEqual (expected, collection.Length, "message")` (or `.Count` / `Seq.length`); use `Assert.IsEmpty`, `Assert.IsNotEmpty` and `Assert.ContainsSingle` for the zero, non-zero and single-item cases. On failure they report the actual count and items.
