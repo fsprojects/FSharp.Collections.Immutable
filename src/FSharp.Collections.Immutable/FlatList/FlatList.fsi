@@ -39,7 +39,7 @@ open System.Collections.Immutable
 val create : count : int -> value : 'T -> FlatList<'T>
 
 /// <summary>The empty flat list.</summary>
-/// <remarks>O(1). The value is <see cref="P:System.Collections.Immutable.ImmutableArray`1.Empty"/>.</remarks>
+/// <remarks>O(1). The value is <see cref="F:System.Collections.Immutable.ImmutableArray`1.Empty"/>.</remarks>
 [<GeneralizableValue>]
 [<CompiledName "Empty">]
 val empty<'T> : FlatList<'T>
