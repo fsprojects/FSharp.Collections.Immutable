@@ -8,6 +8,8 @@ open Microsoft.VisualStudio.TestTools.UnitTesting
 [<TestClass; FlatListTestCategory; ComputationExpressionTestCategory>]
 type FlatListComputationExpressionTests () =
 
+    static let defaultArray = Unchecked.defaultof<FlatList<int>>
+
     [<TestMethod>]
     member _.``an expression without elements is empty`` () =
         let array : FlatList<int> = flatList { () }
@@ -45,6 +47,26 @@ type FlatListComputationExpressionTests () =
         }
 
         CollectionAssert.AreEqual ([| 1; 2; 3; 4; 5; 6; 7 |], FlatList.toArray array, "flatList must add the elements of yield!")
+
+    [<TestMethod>]
+    member _.``yield! rejects a default flat list as the functions of FlatList do`` () =
+        let ex =
+            Assert.ThrowsExactly<ArgumentNullException>(
+                Action (fun () -> flatList { yield! defaultArray } |> ignore),
+                "flatList must reject a default flat list in yield!"
+            )
+
+        Assert.AreEqual<string | null>("items", ex.ParamName, "flatList must name the parameter of the default flat list")
+
+    [<TestMethod>]
+    member _.``yield! rejects a default flat list given as a sequence as FlatList.ofSeq does`` () =
+        let ex =
+            Assert.ThrowsExactly<ArgumentNullException>(
+                Action (fun () -> flatList { yield! (defaultArray :> seq<int>) } |> ignore),
+                "flatList must reject a default flat list in yield! of a sequence"
+            )
+
+        Assert.AreEqual<string | null>("items", ex.ParamName, "flatList must name the parameter of the default flat list")
 
     [<TestMethod>]
     member _.``for adds the elements of the body for each item`` () =
