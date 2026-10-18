@@ -67,6 +67,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `lastIndexOfRange`, `lastIndexOfRangeWith`, `binarySearch`, `binarySearchWithComparer`,
   `binarySearchRangeWithComparer`) and copies elements into an array (`blit`). `replace` throws `ArgumentException` for a
   value that no element equals, as the builder of an indexed list does.
+* `Queue` has every function of the FSharp.Core `List` module that applies to an immutable queue, over the elements in the
+  order in which they leave the queue, with its semantics and exceptions and with stable sorts, plus `enqueueMany`,
+  `ofReadOnlySpan`, `ofSpan`, `skipLast`, `sortWithComparer`, `takeLast`, `tryTail`, `tryUncons` and `uncons`. Its
+  parameters and exceptions name the queues `queue`, `queue1`, `queue2`, `queue3` and `queues` where `List` names its
+  lists. `enqueueMany`, `uncons`, `tryHead`, `tryTail` and `tryUncons` compile to `EnqueueMany`, `PeekDequeue`,
+  `TryPeek`, `TryDequeue` and `TryPeekDequeue`, in the `IQueue`, `Option` and `Tuple` modules too. A function that takes
+  a sequence throws `ArgumentNullException` that names the parameter for a `null` sequence and for a default `FlatList`
+  given as a sequence, which the BCL would reject with `InvalidOperationException` while it enumerates it; the `IQueue`
+  module and the `queue { }` expression do the same.
+* The `IQueue` module has the functions of `Queue` for `IImmutableQueue<'T>`, without the creation functions, plus
+  `clear`. Its functions keep the implementation of the input queue where the result has the element type of the input,
+  and return a `Queue` otherwise. `append` enqueues the second queue into the first one, so its result keeps the
+  implementation of the first queue, also when that queue is empty.
+* The `FSharp.Collections.Immutable.Option` and `FSharp.Collections.Immutable.Tuple` namespaces have `Queue` and `IQueue`
+  modules that repeat the functions that use value options or struct tuples with options and reference tuples.
+* `queue { }` builds a queue.
 
 ### Changed
 
@@ -124,6 +140,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * `IndexedList.rev` builds the reversed list from a reversed copy of the elements. At 100 000 integers it takes about 3 ms
   where `reverse`, which called `ImmutableList.Reverse`, took about 23 ms, and it allocates 5.2 MB where `reverse`
   allocated 4.8 MB.
+* `Queue` works on `Queue<'T>` (`ImmutableQueue<'T>`) instead of `IQueue<'T>`, and `enqueue`, `tail` and `filter` return a
+  `Queue<'T>`; the functions for `IImmutableQueue<'T>` are in the new `IQueue` module.
+* `Queue`: `tryFind`, `tryFindIndex` and `tryPick` return `voption`, and `pick` and `tryPick` take functions that return
+  `voption`. The complete active pattern `Cons | Nil`, whose `Cons` case matched a reference tuple of the head and the
+  tail, is replaced by the struct partial active patterns `Cons`, which matches a struct tuple of the head and the tail,
+  and `Nil`.
+* `Queue`: every function throws what the FSharp.Core `List` function of the same name throws. `head` and `tail` of an
+  empty queue throw `ArgumentException`, where they threw `InvalidOperationException`, and `iter2` of queues of
+  different lengths throws `ArgumentException`, where it stopped at the shorter queue. A default `FlatList` given as a
+  sequence to `ofSeq` throws `ArgumentNullException`, where it threw `InvalidOperationException`.
+* `Queue.forall` and `Queue.averageBy` apply to the queue; they returned a function of a sequence before.
+* `Queue`: `enqueue`, `head` and `tail` compile to `Enqueue`, `Peek` and `Dequeue`, and the other functions to
+  PascalCase names such as `IsEmpty`, where 1.0.0 compiled all of them under their F# names, such as `isEmpty`.
 
 ### Removed
 
@@ -161,6 +190,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * The `IndexedSeq` module and the `IIndexedSeq<'T>` abbreviation of `IReadOnlyList<'T>`: use `IReadOnlyList<'T>`, whose
   `Count` and indexer replace `IndexedSeq.length` and `IndexedSeq.item`. `IndexedSeq.check` needs no replacement, because
   every function of the list modules throws `ArgumentNullException` for a `null` list.
+* `Queue.clear`: use `Queue.empty`, or `IQueue.clear` to keep the implementation of an interface value.
 
 ## [1.0.0] - 2020-02-23
 
