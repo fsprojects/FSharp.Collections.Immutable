@@ -10,20 +10,40 @@
 module internal FSharp.Collections.Immutable.ParallelArrays
 
 open System
+open System.Collections.Generic
 open System.Linq
 open System.Threading.Tasks
 
-/// <summary>The length of the chunks of a chunked parallel loop over <paramref name="length"/> elements.</summary>
+/// <summary>
+/// The chunks of a chunked parallel loop over <paramref name="length"/> elements on <paramref name="processors"/>
+/// processors, each as its first index and the index after its last one.
+/// </summary>
 /// <remarks>
+/// <para>
 /// The chunks are those of the chunked loops of <see cref="T:Microsoft.FSharp.Collections.ArrayModule.Parallel"/>: one chunk
 /// per processor, and a single chunk for fewer than 256 elements, which are not worth a second thread.
+/// </para>
+/// <para>
+/// The arithmetic stays in the range of <see cref="T:System.Int32"/> for every array length. The count divides the length
+/// minus one, because the length plus the chunk length overflows for arrays of more than half the maximum length. The end
+/// of a chunk adds only the elements that remain to its first index, because the first index plus the full chunk length
+/// can overflow for arrays near the maximum length on machines with more than 56 processors.
+/// </para>
 /// </remarks>
-let chunkLength (length : int) =
-    let processors = Environment.ProcessorCount
+let chunks (processors : int) (length : int) : struct (int * int) array =
+    let chunk =
+        if length < 256 then length
+        elif length % processors = 0 then length / processors
+        else length / processors + 1
 
-    if length < 256 then length
-    elif length % processors = 0 then length / processors
-    else length / processors + 1
+    let count = if chunk = 0 then 0 else (length - 1) / chunk + 1
+
+    Array.init
+        count
+        (fun index ->
+            let first = index * chunk
+            struct (first, first + min chunk (length - first))
+        )
 
 /// <summary>Runs an action on the chunks of the indices from 0 to <paramref name="length"/> in parallel.</summary>
 /// <remarks>
@@ -31,15 +51,14 @@ let chunkLength (length : int) =
 /// element.
 /// </remarks>
 let inline forEachChunk (length : int) ([<InlineIfLambda>] action : int -> int -> unit) =
-    let chunk = chunkLength length
-    let chunks = if chunk = 0 then 0 else (length + chunk - 1) / chunk
+    let bounds = chunks Environment.ProcessorCount length
 
     Parallel.For (
         0,
-        chunks,
+        bounds.Length,
         fun index ->
-            let first = index * chunk
-            action first (min length (first + chunk))
+            let struct (first, last) = bounds[index]
+            action first last
     )
     |> ignore
 
@@ -69,11 +88,35 @@ let choose (chooser : 'T -> 'U voption) (array : 'T array) : 'U array =
 
     result
 
+/// <summary>The comparer of the keys of a parallel grouping.</summary>
+/// <remarks>
+/// <para>
+/// Keys of type <see cref="T:System.Double"/> and <see cref="T:System.Single"/> compare as in
+/// <see cref="M:Microsoft.FSharp.Collections.ArrayModule.Parallel.GroupBy``2(Microsoft.FSharp.Core.FSharpFunc{``0,``1},``0[])"/>:
+/// with <see cref="M:Microsoft.FSharp.Core.LanguagePrimitives.GenericEqualityER``1(``0,``0)"/>, so that all NaN keys are in
+/// one group. Other keys compare in F# structural equality, in which NaN is not equal to itself.
+/// </para>
+/// <para>
+/// A key that contains NaN, such as a tuple, therefore makes a group of its own, as in
+/// <see cref="M:Microsoft.FSharp.Collections.ArrayModule.GroupBy``2(Microsoft.FSharp.Core.FSharpFunc{``0,``1},``0[])"/>.
+/// The function of FSharp.Core throws <see cref="T:System.AggregateException"/> for such a key: its second pass cannot find
+/// the key that its first pass added. That failure is not mirrored.
+/// </para>
+/// </remarks>
+let groupingComparer<'Key when 'Key : equality> () : IEqualityComparer<'Key> =
+    if
+        Type.(=) (typeof<'Key>, typeof<float>)
+        || Type.(=) (typeof<'Key>, typeof<float32>)
+    then
+        HashIdentity.FromFunctions<'Key> LanguagePrimitives.GenericHash LanguagePrimitives.GenericEqualityER
+    else
+        HashIdentity.Structural<'Key>
+
 /// <summary>The keys of the projection, each with its elements; the order of both is not specified.</summary>
 /// <remarks>
 /// The projection, the work of the caller, runs in parallel. The grouping then runs over the computed keys with
-/// <see cref="M:System.Linq.Enumerable.ToLookup``3(System.Collections.Generic.IEnumerable{``0},System.Func{``0,``1},System.Func{``0,``2},System.Collections.Generic.IEqualityComparer{``1})"/>,
-/// as the sequential grouping of the <c>Arrays</c> module does, so that the keys compare in F# structural equality and a
+/// <see cref="M:System.Linq.Enumerable.ToLookup``3(System.Collections.Generic.IEnumerable{``0},System.Func{``0,``1},System.Func{``0,``2},System.Collections.Generic.IEqualityComparer{``1})"/>
+/// and the comparer of <see cref="M:FSharp.Collections.Immutable.ParallelArrays.groupingComparer``1"/>, so that a
 /// <see langword="null"/> key is a key like any other. The result has the order of
 /// <see cref="M:Microsoft.FSharp.Collections.ArrayModule.GroupBy``2(Microsoft.FSharp.Core.FSharpFunc{``0,``1},``0[])"/>,
 /// one of the orders that
@@ -90,7 +133,7 @@ let inline groupBy
     let lookup =
         Enumerable
             .Range(0, array.Length)
-            .ToLookup((fun index -> keys[index]), (fun index -> array[index]), HashIdentity.Structural<'Key>)
+            .ToLookup((fun index -> keys[index]), (fun index -> array[index]), groupingComparer<'Key>())
 
     let result = Array.zeroCreate lookup.Count
     let mutable index = 0

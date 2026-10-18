@@ -201,7 +201,12 @@ module Parallel =
     /// <returns>
     /// The keys with their elements. The order of the keys and the order of the elements of a key are not specified.
     /// </returns>
-    /// <remarks>O(n). The keys compare in F# structural equality.</remarks>
+    /// <remarks>
+    /// O(n). The keys compare in F# structural equality, except that keys of type <see cref="T:System.Double"/> and
+    /// <see cref="T:System.Single"/> compare as in
+    /// <see cref="M:Microsoft.FSharp.Collections.ArrayModule.Parallel.GroupBy``2(Microsoft.FSharp.Core.FSharpFunc{``0,``1},``0[])"/>,
+    /// which puts all NaN keys in one group.
+    /// </remarks>
     [<CompiledName "GroupBy">]
     val groupBy : projection : ('T -> 'Key) -> array : FlatList<'T> -> FlatList<'Key * FlatList<'T>> when 'Key : equality
 
