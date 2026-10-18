@@ -381,41 +381,43 @@ let private isGenerated (path : string) =
     path.Contains ($"%c{separator}obj%c{separator}", StringComparison.Ordinal)
     || path.Contains ($"%c{separator}bin%c{separator}", StringComparison.Ordinal)
 
+/// Checks one signature file and its sibling implementation file; the files are independent, so the pairs run in parallel.
+let private checkPair (signaturePath : string) =
+    let errors = ResizeArray<Violation>()
+    let implementationPath = Path.ChangeExtension (signaturePath, ".fs") |> nonNull
+    let hasImplementation = File.Exists implementationPath
+
+    if not hasImplementation then
+        report errors signaturePath 1 "The signature file has no implementation file next to it"
+
+    for major in targetFrameworks do
+        let defines = definesOf major
+        let signatureModules = parseModules errors signaturePath defines
+
+        for scope in signatureModules do
+            checkSignature errors signaturePath scope
+
+        if hasImplementation then
+            let implementationModules = parseModules errors implementationPath defines
+            checkImplementation errors implementationPath signatureModules implementationModules
+
+    errors.ToArray ()
+
 /// <summary>Checks every signature file under a directory and its sibling implementation file.</summary>
 /// <param name="sourceDirectory">The directory of the sources; generated files under <c>bin</c> and <c>obj</c> are skipped.</param>
 /// <returns>The number of signature files checked and the violations, sorted by path and line.</returns>
 let check (sourceDirectory : string) =
-    let errors = ResizeArray<Violation>()
-
     let signatureFiles =
         Directory.EnumerateFiles (sourceDirectory, "*.fsi", SearchOption.AllDirectories)
         |> Seq.filter (isGenerated >> not)
         |> Seq.sort
         |> Seq.toArray
 
-    for signaturePath in signatureFiles do
-        let implementationPath = Path.ChangeExtension (signaturePath, ".fs") |> nonNull
-        let hasImplementation = File.Exists implementationPath
-
-        if not hasImplementation then
-            report errors signaturePath 1 "The signature file has no implementation file next to it"
-
-        for major in targetFrameworks do
-            let defines = definesOf major
-            let signatureModules = parseModules errors signaturePath defines
-
-            for scope in signatureModules do
-                checkSignature errors signaturePath scope
-
-            if hasImplementation then
-                let implementationModules = parseModules errors implementationPath defines
-                checkImplementation errors implementationPath signatureModules implementationModules
-
     // The views of the target frameworks mostly agree, so the same violation is usually found once per framework
     let violations =
-        errors
-        |> Seq.distinct
-        |> Seq.sortBy (fun violation -> struct (violation.Path, violation.Line))
-        |> Seq.toArray
+        signatureFiles
+        |> Array.Parallel.collect checkPair
+        |> Array.distinct
+        |> Array.sortBy (fun violation -> struct (violation.Path, violation.Line))
 
     struct (signatureFiles.Length, violations)
