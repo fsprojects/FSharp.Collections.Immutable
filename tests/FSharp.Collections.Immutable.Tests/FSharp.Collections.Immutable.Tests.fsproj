@@ -58,6 +58,9 @@
     <Compile Include="FlatList\FlatListComputationExpressionTests.fs" />
     <Compile Include="FlatList\FlatListOptionTests.fs" />
     <Compile Include="FlatList\FlatListTupleTests.fs" />
+    <Compile Include="FlatList\FlatListParallelTests.fs" />
+    <Compile Include="FlatList\FlatListParallelOptionTests.fs" />
+    <Compile Include="FlatList\FlatListParallelTupleTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
