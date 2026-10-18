@@ -1,5 +1,6 @@
 namespace FSharp.Collections.Immutable.Tests
 
+open System
 open FSharp.Collections.Immutable
 open Microsoft.VisualStudio.TestTools.UnitTesting
 
@@ -15,6 +16,20 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
     static let toStructTriples (triples : ('T1 * 'T2 * 'T3) array) =
         triples
         |> Array.map (fun (first, second, third) -> struct (first, second, third))
+
+    /// The functions of the module that take a sequence of collections, by name, applied to a sequence.
+    let sequenceFunctions : Map<string, seq<'C> -> unit> =
+        Map.ofArray [|
+            "concat", (fun collections -> ops.Concat collections |> ignore)
+            "transpose", (fun collections -> ops.Transpose collections |> ignore)
+        |]
+
+    /// The names of the functions that take a sequence of collections, as the rows of the tests of the sequences that they
+    /// reject.
+    static member SequenceFunctions = seq {
+        "concat"
+        "transpose"
+    }
 
     /// Every input with every input, for the functions of two collections of any lengths.
     static member InputPairs = seq {
@@ -109,6 +124,62 @@ type SeqLikeTransformationContract<'C> (ops : SeqOps<'C>) =
         )
 
         Assert.IsEmpty (ops.ToArray (ops.Concat Array.empty), $"%s{ops.Name}.concat of no collections must be empty")
+
+    [<TestMethod>]
+    member _.``collect and concat keep the order of the elements across short and long collections`` () =
+        // The lengths cross 16 in both directions: IndexedList and IIndexedList copy a shorter collection and join a longer
+        // indexed list to the result as it is, and the order must not depend on which of the two happens. The collections
+        // come twice, so that the same long indexed list is joined twice.
+        let lengths = [| 0; 1; 15; 16; 17; 3; 40; 2; 100; 0; 16; 5 |]
+
+        let elements =
+            lengths
+            |> Array.map (fun length -> Array.init length (fun index -> length * 1000 + index))
+
+        let collections = elements |> Array.map (fun items -> ops.OfSeq items)
+        let twice = Array.append elements elements
+
+        CollectionAssert.AreEqual (
+            Array.concat twice,
+            ops.ToArray (ops.Concat (Array.append collections collections)),
+            $"%s{ops.Name}.concat must keep the order of the elements across short and long collections"
+        )
+
+        let indexes = ops.OfSeq (Array.init (2 * lengths.Length) id)
+
+        CollectionAssert.AreEqual (
+            Array.concat twice,
+            ops.ToArray (ops.Collect (fun index -> collections[index % lengths.Length]) indexes),
+            $"%s{ops.Name}.collect must keep the order of the elements across short and long collections"
+        )
+
+    [<TestMethod; DynamicData(nameof SeqLikeTransformationContract<'C>.SequenceFunctions)>]
+    member this.``functions of a sequence of collections reject a null sequence and name the parameter of FSharp.Core``
+        (name : string)
+        =
+        // Array names the sequence "arrays" and List names it "lists". List.concat does not check it and fails with
+        // NullReferenceException, while a null input throws ArgumentNullException (ADR 0001, D6), as Array.concat does
+        let paramName = ops.ParamName (this.Mirrored ((fun () -> "arrays"), (fun () -> "lists")))
+
+        let ex =
+            Assert.ThrowsExactly<ArgumentNullException>(
+                Action (fun () -> sequenceFunctions[name] Unchecked.defaultof<seq<'C>>),
+                $"%s{ops.Name}.%s{name} must reject a null sequence"
+            )
+
+        Assert.AreEqual<string | null>(paramName, ex.ParamName, $"%s{ops.Name}.%s{name} must name the sequence")
+
+    [<TestMethod; DynamicData(nameof SeqLikeTransformationContract<'C>.SequenceFunctions)>]
+    member _.``functions of a sequence of collections reject a default flat list given as the sequence as a null sequence``
+        (name : string)
+        =
+        // The default flat list is a boxed struct, not null: it fails with InvalidOperationException when it is enumerated
+        ExceptionAssert.Same (
+            id,
+            (fun () -> sequenceFunctions[name] Unchecked.defaultof<seq<'C>>),
+            (fun () -> sequenceFunctions[name](Inputs.DefaultFlatListAsSeq<'C>())),
+            $"%s{ops.Name}.%s{name} of a default flat list must throw what it throws for a null sequence"
+        )
 
     [<TestMethod; DynamicData(nameof Inputs.All, typeof<Inputs>)>]
     member this.``filter keeps the elements that satisfy the predicate`` (input : int array) =
