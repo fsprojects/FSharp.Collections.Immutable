@@ -36,8 +36,10 @@ module FlatList =
     [<CompiledName "OfSeq">]
     let ofSeq (source : seq<'T>) =
         match source with
-        // An immutable array needs no copy
-        | :? ImmutableArray<'T> as array when not array.IsDefault -> array
+        // An immutable array needs no copy; a default one is a default FlatList, which no function accepts (ADR 0001, D6)
+        | :? ImmutableArray<'T> as array ->
+            checkNotDefault (nameof source) array
+            array
         | _ -> Array.ofSeq source |> wrapArray
 
     [<CompiledName "OfSpan">]
@@ -351,7 +353,10 @@ module FlatList =
         let builder = ImmutableArray.CreateBuilder<'U>()
 
         for item in source do
-            builder.AddRange (mapping item)
+            let items = mapping item
+            // Array.collect dereferences a null result; a default result is a default FlatList, rejected as in concat
+            checkNotDefault (nameof mapping) items
+            builder.AddRange items
 
         builder.DrainToImmutable ()
 

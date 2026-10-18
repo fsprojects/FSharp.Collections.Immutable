@@ -84,8 +84,8 @@ module FlatList =
     /// <summary>Creates a flat list from a sequence.</summary>
     /// <param name="source">The input sequence.</param>
     /// <returns>The flat list of the elements of the sequence.</returns>
-    /// <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="source"/> is <see langword="null"/>.</exception>
-    /// <remarks>O(n).</remarks>
+    /// <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="source"/> is <see langword="null"/> or a default flat list.</exception>
+    /// <remarks>O(n). A flat list is returned as it is, without a copy.</remarks>
     [<CompiledName "OfSeq">]
     val ofSeq : source : seq<'T> -> FlatList<'T>
 
@@ -502,6 +502,7 @@ module FlatList =
     /// <param name="mapping">The function that returns a flat list for each element.</param>
     /// <param name="array">The input flat list.</param>
     /// <returns>The concatenation of the returned flat lists.</returns>
+    /// <exception cref="T:System.ArgumentNullException">Thrown when the mapping returns a default flat list.</exception>
     /// <remarks>O(n + the total length of the returned flat lists).</remarks>
     [<CompiledName "Collect">]
     val collect : mapping : ('T -> FlatList<'U>) -> array : FlatList<'T> -> FlatList<'U>

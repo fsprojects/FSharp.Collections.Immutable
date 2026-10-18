@@ -192,6 +192,15 @@ type FlatListTests () =
             // Array.concat dereferences a null element array without a check; a default element is a default flat list (D6)
             struct (nameof FlatList.concat, "arrays", (fun () -> FlatList.concat [ defaultArray ] |> ignore))
             struct (nameof FlatList.transpose, "arrays", (fun () -> FlatList.transpose [ defaultArray ] |> ignore))
+            // Array.collect dereferences a null result of the mapping; a default result is rejected as in concat
+            struct (nameof FlatList.collect,
+                    "mapping",
+                    (fun () ->
+                        FlatList.collect (fun _ -> defaultArray) (FlatList.singleton 1)
+                        |> ignore
+                    ))
+            // A default flat list passed as a sequence is still a default flat list
+            struct (nameof FlatList.ofSeq, "source", (fun () -> FlatList.ofSeq (defaultArray :> seq<int>) |> ignore))
             struct (nameof FlatList.indexOf, "array", (fun () -> FlatList.indexOf 1 defaultArray |> ignore))
             struct (nameof FlatList.indexOfWith,
                     "array",
@@ -229,6 +238,18 @@ type FlatListTests () =
                 ex.ParamName,
                 $"FlatList.%s{name} must name the parameter of the default flat list"
             )
+
+    [<TestMethod; TestCategory(nameof FlatList.countBy)>]
+    member _.``countBy counts null keys like any other key`` () =
+        let array = FlatList.ofList Inputs.several
+        let keyOf (item : int) = if item > 0 then Some (item % 2) else None
+
+        Assert.AreEqual<struct (int option * int) list>(
+            List.countBy keyOf Inputs.several
+            |> List.map (fun (key, count) -> struct (key, count)),
+            FlatList.countBy keyOf array |> FlatList.toList,
+            "FlatList.countBy must count the key None, which is null, as List.countBy does"
+        )
 
     [<TestMethod; TestCategory(nameof FlatList.asSpan)>]
     member _.``asSpan views the elements`` () =

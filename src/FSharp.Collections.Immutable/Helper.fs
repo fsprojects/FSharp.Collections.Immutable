@@ -229,20 +229,46 @@ module internal Arrays =
 
         result
 
-    /// The keys of the projection in the order of their first occurrence, each with the number of its elements.
+    /// A key that may be null, for a dictionary, which rejects null keys.
+    [<Struct>]
+    type NullableKey<'Key> = { Key : 'Key }
+
+    /// Compares wrapped keys in F# structural equality, which handles null keys, as FSharp.Core does for its keys.
+    let nullableKeyComparer<'Key when 'Key : equality> () =
+        let structural = HashIdentity.Structural<'Key>
+
+        {
+            new IEqualityComparer<NullableKey<'Key>> with
+                member _.Equals (left, right) = structural.Equals (left.Key, right.Key)
+                member _.GetHashCode key = structural.GetHashCode key.Key
+        }
+
+    /// <summary>The keys of the projection in the order of their first occurrence, each with the number of its elements.</summary>
+    /// <remarks>The counting keeps one counter per key, not the elements, so it needs memory for the keys only.</remarks>
     let inline countBy
         ([<InlineIfLambda>] tuple : 'Key -> int -> 'R)
         (projection : 'T -> 'Key)
         (array : 'T array)
         : 'R array when 'Key : equality =
-        // ToLookup keeps the order of the first occurrence of each key and accepts null keys, as FSharp.Core does
-        let lookup = array.ToLookup ((fun item -> projection item), HashIdentity.Structural<'Key>)
-        let result = Array.zeroCreate lookup.Count
-        let mutable index = 0
+        let indices = Dictionary<NullableKey<'Key>, int>(nullableKeyComparer<'Key>())
+        let keys = ResizeArray<'Key>()
+        let counts = ResizeArray<int>()
 
-        for grouping in lookup do
-            result[index] <- tuple grouping.Key (grouping.Count ())
-            index <- index + 1
+        for item in array do
+            let key = projection item
+            let mutable index = 0
+
+            if indices.TryGetValue ({ Key = key }, &index) then
+                counts[index] <- counts[index] + 1
+            else
+                indices.Add ({ Key = key }, keys.Count)
+                keys.Add key
+                counts.Add 1
+
+        let result = Array.zeroCreate keys.Count
+
+        for index = 0 to result.Length - 1 do
+            result[index] <- tuple keys[index] counts[index]
 
         result
 
