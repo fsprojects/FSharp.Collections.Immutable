@@ -7,10 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+* `FlatList` has every function of the FSharp.Core `Array` module that applies to an immutable array, with its semantics
+  and exceptions, plus `add`, `asMemory`, `asSpan`, `binarySearch`, `indexOf`, `indexOfWith`, `lastIndexOf`,
+  `lastIndexOfWith`, `ofReadOnlySpan`, `ofSpan`, `skipLast`, `sortWithComparer`, `takeLast` and `tryTail`.
+* The `FSharp.Collections.Immutable.Option.FlatList` and `FSharp.Collections.Immutable.Tuple.FlatList` modules repeat the
+  functions that use value options or struct tuples with options and reference tuples.
+* The `FlatListBuilder` module works on the builder of a flat list, and `flatList { }` builds a flat list.
+
 ### Changed
 
 * The package targets `net8.0` and `net10.0`.
 * The package requires FSharp.Core 10.1.301 or later, the first release with `partitionWith`.
+* `FlatList`: the `try*` functions return `voption`; `choose`, `pick`, `tryPick` and `unfold` take functions that return
+  `voption`; the functions that return tuples return struct tuples.
+* `FlatList`: every function throws what the FSharp.Core `Array` function of the same name throws. `take` and `splitAt`
+  throw for a count beyond the length, and a default `ImmutableArray` throws `ArgumentNullException`.
+
+### Removed
+
+* `FlatList.index`, `indexWith`, `indexFrom`, `indexFromWith`, `indexRange`, `indexRangeWith` and their `lastIndex`
+  counterparts: use `indexOf`, `indexOfWith`, `lastIndexOf` and `lastIndexOfWith`.
+* `FlatList.removeAll`, `removeAllWith`, `removeRange`, `sortRange`, `sortRangeWith`, `sortRangeWithComparer` and `sub`,
+  and the `ImmutableArray` module alias of `FlatList`.
+* The `Seq` module of conversions between the collections.
 
 ## [1.0.0] - 2020-02-23
 

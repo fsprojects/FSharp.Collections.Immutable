@@ -8,7 +8,7 @@ F# bindings for [System.Collections.Immutable](https://learn.microsoft.com/en-us
 
 | Module | .NET type | Computation expression |
 |---|---|---|
-| `FlatList` | `ImmutableArray<'T>` | – |
+| `FlatList` | `ImmutableArray<'T>` | `flatList { }` |
 | `ImmutableList` | `ImmutableList<'T>` | – |
 | `Stack` | `ImmutableStack<'T>` | – |
 | `Queue` | `ImmutableQueue<'T>` | – |
