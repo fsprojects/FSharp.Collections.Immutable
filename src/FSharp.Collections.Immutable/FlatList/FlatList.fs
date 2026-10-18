@@ -1054,12 +1054,13 @@ module Parallel =
     [<CompiledName "Collect">]
     let collect (mapping : 'T -> FlatList<'U>) (array : FlatList<'T>) =
         // As in Array.Parallel.collect, the mapping runs in parallel, and the results are copied in their order into one
-        // array of their total length. A default flat list from the mapping throws NullReferenceException there, as a
-        // null array does in Array.Parallel.collect.
+        // array of their total length. Array.Parallel.collect dereferences a null result; a default flat list from the
+        // mapping throws ArgumentNullException instead, as in the sequential collect (ADR 0001, D6).
         let results = Array.Parallel.map mapping (unwrapArray (nameof array) array)
         let mutable length = 0
 
         for result in results do
+            checkNotDefault (nameof mapping) result
             length <- length + result.Length
 
         let builder = ImmutableArray.CreateBuilder<'U> length

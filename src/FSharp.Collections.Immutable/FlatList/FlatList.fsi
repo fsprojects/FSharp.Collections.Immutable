@@ -2177,6 +2177,7 @@ module Parallel =
     /// <param name="mapping">The function that returns a flat list for each element, called in parallel.</param>
     /// <param name="array">The input flat list.</param>
     /// <returns>The concatenation of the returned flat lists, in the order of the elements.</returns>
+    /// <exception cref="T:System.ArgumentNullException">Thrown when the mapping returns a default flat list.</exception>
     /// <remarks>O(n + the total length of the returned flat lists).</remarks>
     [<CompiledName "Collect">]
     val collect : mapping : ('T -> FlatList<'U>) -> array : FlatList<'T> -> FlatList<'U>
