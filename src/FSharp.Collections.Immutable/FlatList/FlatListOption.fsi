@@ -189,38 +189,54 @@ module Parallel =
 
     // ---- Search ----
 
-    /// <summary>Returns the first element that satisfies the predicate, or <c>None</c>.</summary>
+    /// <summary>
+    /// Returns the first element that satisfies the predicate, or <c>None</c>.
+    /// </summary>
     /// <param name="predicate">The function to test the elements, called in parallel.</param>
     /// <param name="array">The input flat list.</param>
     /// <returns>The first element that satisfies the predicate, or <c>None</c>.</returns>
-    /// <remarks>O(n). The predicate can also run for elements after the first one that satisfies it.</remarks>
+    /// <remarks>
+    /// O(n). The predicate can also run for elements after the first one that satisfies it.
+    /// </remarks>
     [<CompiledName "TryFind">]
     val tryFind : predicate : ('T -> bool) -> array : FlatList<'T> -> 'T option
 
-    /// <summary>Returns the index of the first element that satisfies the predicate, or <c>None</c>.</summary>
+    /// <summary>
+    /// Returns the index of the first element that satisfies the predicate, or <c>None</c>.
+    /// </summary>
     /// <param name="predicate">The function to test the elements, called in parallel.</param>
     /// <param name="array">The input flat list.</param>
     /// <returns>The index of the first element that satisfies the predicate, or <c>None</c>.</returns>
-    /// <remarks>O(n). The predicate can also run for elements after the first one that satisfies it.</remarks>
+    /// <remarks>
+    /// O(n). The predicate can also run for elements after the first one that satisfies it.
+    /// </remarks>
     [<CompiledName "TryFindIndex">]
     val tryFindIndex : predicate : ('T -> bool) -> array : FlatList<'T> -> int option
 
-    /// <summary>Returns the first value that the chooser returns for the elements, or <c>None</c>.</summary>
+    /// <summary>
+    /// Returns the first value that the chooser returns for the elements, or <c>None</c>.
+    /// </summary>
     /// <param name="chooser">The function that returns a value, or <c>None</c> to go on, called in parallel.</param>
     /// <param name="array">The input flat list.</param>
     /// <returns>The value for the first element that the chooser returns a value for, or <c>None</c>.</returns>
-    /// <remarks>O(n). The chooser can also run for elements after the first one that it returns a value for.</remarks>
+    /// <remarks>
+    /// O(n). The chooser can also run for elements after the first one that it returns a value for.
+    /// </remarks>
     [<CompiledName "TryPick">]
     val tryPick : chooser : ('T -> 'U option) -> array : FlatList<'T> -> 'U option
 
     // ---- Transformation ----
 
-    /// <summary>Returns the values that the chooser returns for the elements.</summary>
+    /// <summary>
+    /// Returns the values that the chooser returns for the elements.
+    /// </summary>
     /// <param name="chooser">
     /// The function that returns a value, or <c>None</c> to skip the element, called in parallel.
     /// </param>
     /// <param name="array">The input flat list.</param>
     /// <returns>The chosen values, in the order of their elements.</returns>
-    /// <remarks>O(n).</remarks>
+    /// <remarks>
+    /// O(n).
+    /// </remarks>
     [<CompiledName "Choose">]
     val choose : chooser : ('T -> 'U option) -> array : FlatList<'T> -> FlatList<'U>

@@ -184,18 +184,24 @@ module Parallel =
 
     // ---- Transformation ----
 
-    /// <summary>Combines two flat lists into a flat list of pairs, in parallel.</summary>
+    /// <summary>
+    /// Combines two flat lists into a flat list of pairs, in parallel.
+    /// </summary>
     /// <param name="array1">The first flat list.</param>
     /// <param name="array2">The second flat list.</param>
     /// <returns>The pairs of elements at the same index.</returns>
     /// <exception cref="T:System.ArgumentException">Thrown when the flat lists have different lengths.</exception>
-    /// <remarks>O(n).</remarks>
+    /// <remarks>
+    /// O(n).
+    /// </remarks>
     [<CompiledName "Zip">]
     val zip : array1 : FlatList<'T1> -> array2 : FlatList<'T2> -> FlatList<'T1 * 'T2>
 
     // ---- Partitioning and grouping ----
 
-    /// <summary>Groups the elements by the key of a projection.</summary>
+    /// <summary>
+    /// Groups the elements by the key of a projection.
+    /// </summary>
     /// <param name="projection">The function that returns the key of an element, called in parallel.</param>
     /// <param name="array">The input flat list.</param>
     /// <returns>
@@ -218,12 +224,16 @@ module Parallel =
     [<CompiledName "Partition">]
     val partition : predicate : ('T -> bool) -> array : FlatList<'T> -> FlatList<'T> * FlatList<'T>
 
-    /// <summary>Splits the elements by the choice that a function returns for them.</summary>
+    /// <summary>
+    /// Splits the elements by the choice that a function returns for them.
+    /// </summary>
     /// <param name="partitioner">
     /// The function that returns <c>Choice1Of2</c> or <c>Choice2Of2</c> for an element, called in parallel.
     /// </param>
     /// <param name="array">The input flat list.</param>
     /// <returns>The values of the first choices and of the second choices, both in the order of the elements.</returns>
-    /// <remarks>O(n).</remarks>
+    /// <remarks>
+    /// O(n).
+    /// </remarks>
     [<CompiledName "PartitionWith">]
     val partitionWith : partitioner : ('T -> Choice<'T1, 'T2>) -> array : FlatList<'T> -> FlatList<'T1> * FlatList<'T2>

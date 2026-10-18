@@ -45,7 +45,9 @@ let chunks (processors : int) (length : int) : struct (int * int) array =
             struct (first, first + min chunk (length - first))
         )
 
-/// <summary>Runs an action on the chunks of the indices from 0 to <paramref name="length"/> in parallel.</summary>
+/// <summary>
+/// Runs an action on the chunks of the indices from 0 to <paramref name="length"/> in parallel.
+/// </summary>
 /// <remarks>
 /// The action takes the first index of its chunk and the index after its last one. A loop per chunk calls no delegate per
 /// element.
@@ -62,7 +64,9 @@ let inline forEachChunk (length : int) ([<InlineIfLambda>] action : int -> int -
     )
     |> ignore
 
-/// <summary>The values that the chooser returns for the elements, in the order of the elements.</summary>
+/// <summary>
+/// The values that the chooser returns for the elements, in the order of the elements.
+/// </summary>
 /// <remarks>
 /// The chooser runs in parallel into an array of value options, which a sequential pass compacts. Calling
 /// <see cref="M:Microsoft.FSharp.Collections.ArrayModule.Parallel.Choose``2(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpOption{``1}},``0[])"/>
@@ -88,7 +92,9 @@ let choose (chooser : 'T -> 'U voption) (array : 'T array) : 'U array =
 
     result
 
-/// <summary>The comparer of the keys of a parallel grouping.</summary>
+/// <summary>
+/// The comparer of the keys of a parallel grouping.
+/// </summary>
 /// <remarks>
 /// <para>
 /// Keys of type <see cref="T:System.Double"/> and <see cref="T:System.Single"/> compare as in
@@ -112,7 +118,9 @@ let groupingComparer<'Key when 'Key : equality> () : IEqualityComparer<'Key> =
     else
         HashIdentity.Structural<'Key>
 
-/// <summary>The keys of the projection, each with its elements; the order of both is not specified.</summary>
+/// <summary>
+/// The keys of the projection, each with its elements; the order of both is not specified.
+/// </summary>
 /// <remarks>
 /// The projection, the work of the caller, runs in parallel. The grouping then runs over the computed keys with
 /// <see cref="M:System.Linq.Enumerable.ToLookup``3(System.Collections.Generic.IEnumerable{``0},System.Func{``0,``1},System.Func{``0,``2},System.Collections.Generic.IEqualityComparer{``1})"/>
@@ -144,7 +152,9 @@ let inline groupBy
 
     result
 
-/// <summary>The index of the first element that satisfies the predicate, or <c>ValueNone</c>.</summary>
+/// <summary>
+/// The index of the first element that satisfies the predicate, or <c>ValueNone</c>.
+/// </summary>
 /// <remarks>
 /// The predicate runs in parallel. A match breaks the loop, which then starts only the elements before it, and the lowest
 /// index that broke the loop wins, as in
@@ -167,7 +177,9 @@ let tryFindIndex (predicate : 'T -> bool) (array : 'T array) : int voption =
     else
         ValueNone
 
-/// <summary>The value that the chooser returns for the first element with a value, or <c>ValueNone</c>.</summary>
+/// <summary>
+/// The value that the chooser returns for the first element with a value, or <c>ValueNone</c>.
+/// </summary>
 /// <remarks>
 /// The chooser runs in parallel. A value breaks the loop, which then starts only the elements before it, and the value of
 /// the lowest index wins. The function of FSharp.Core,
@@ -201,7 +213,9 @@ let tryPick (chooser : 'T -> 'U voption) (array : 'T array) : 'U voption =
 
     chosen.Value
 
-/// <summary>Pairs the elements of two arrays of the same length in parallel.</summary>
+/// <summary>
+/// Pairs the elements of two arrays of the same length in parallel.
+/// </summary>
 /// <remarks>
 /// The chunks are those of <see cref="M:Microsoft.FSharp.Collections.ArrayModule.Parallel.Zip``2(``0[],``1[])"/>.
 /// </remarks>
