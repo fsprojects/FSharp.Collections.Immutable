@@ -1037,8 +1037,7 @@ module Parallel =
         | ValueNone -> ValueNone
 
     [<CompiledName "TryFindIndex">]
-    let tryFindIndex predicate (array : FlatList<'T>) =
-        ParallelArrays.tryFindIndex predicate (unwrapArray (nameof array) array)
+    let tryFindIndex predicate (array : FlatList<'T>) = ParallelArrays.tryFindIndex predicate (unwrapArray (nameof array) array)
 
     [<CompiledName "TryPick">]
     let tryPick (chooser : 'T -> 'U voption) (array : FlatList<'T>) =
@@ -1125,15 +1124,13 @@ module Parallel =
     let max (array : FlatList<'T>) = Array.Parallel.max (unwrapArray (nameof array) array)
 
     [<CompiledName "MaxBy">]
-    let maxBy (projection : 'T -> 'U) (array : FlatList<'T>) =
-        Array.Parallel.maxBy projection (unwrapArray (nameof array) array)
+    let maxBy (projection : 'T -> 'U) (array : FlatList<'T>) = Array.Parallel.maxBy projection (unwrapArray (nameof array) array)
 
     [<CompiledName "Min">]
     let min (array : FlatList<'T>) = Array.Parallel.min (unwrapArray (nameof array) array)
 
     [<CompiledName "MinBy">]
-    let minBy (projection : 'T -> 'U) (array : FlatList<'T>) =
-        Array.Parallel.minBy projection (unwrapArray (nameof array) array)
+    let minBy (projection : 'T -> 'U) (array : FlatList<'T>) = Array.Parallel.minBy projection (unwrapArray (nameof array) array)
 
     [<CompiledName "Reduce">]
     let reduce reduction (array : FlatList<'T>) = Array.Parallel.reduce reduction (unwrapArray (nameof array) array)

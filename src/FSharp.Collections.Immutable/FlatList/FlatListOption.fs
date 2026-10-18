@@ -67,8 +67,7 @@ module Parallel =
     let tryFind predicate (array : FlatList<'T>) = Array.Parallel.tryFind predicate (unwrapArray (nameof array) array)
 
     [<CompiledName "TryFindIndex">]
-    let tryFindIndex predicate (array : FlatList<'T>) =
-        Array.Parallel.tryFindIndex predicate (unwrapArray (nameof array) array)
+    let tryFindIndex predicate (array : FlatList<'T>) = Array.Parallel.tryFindIndex predicate (unwrapArray (nameof array) array)
 
     [<CompiledName "TryPick">]
     let tryPick (chooser : 'T -> 'U option) (array : FlatList<'T>) =

@@ -2325,8 +2325,7 @@ module Parallel =
     /// one.
     /// </remarks>
     [<CompiledName "Sum">]
-    val inline sum :
-        array : FlatList< ^T > -> ^T when ^T : (static member (+) : ^T * ^T -> ^T) and ^T : (static member Zero : ^T)
+    val inline sum : array : FlatList< ^T > -> ^T when ^T : (static member (+) : ^T * ^T -> ^T) and ^T : (static member Zero : ^T)
 
     /// <summary>Returns the sum of the results of a function applied to each element.</summary>
     /// <param name="projection">The function to transform the elements, called in parallel.</param>
@@ -2356,8 +2355,7 @@ module Parallel =
     /// which puts all NaN keys in one group.
     /// </remarks>
     [<CompiledName "GroupBy">]
-    val groupBy :
-        projection : ('T -> 'Key) -> array : FlatList<'T> -> FlatList<struct ('Key * FlatList<'T>)> when 'Key : equality
+    val groupBy : projection : ('T -> 'Key) -> array : FlatList<'T> -> FlatList<struct ('Key * FlatList<'T>)> when 'Key : equality
 
     /// <summary>Splits the elements by a predicate.</summary>
     /// <param name="predicate">The function to test the elements, called in parallel.</param>
@@ -2375,8 +2373,7 @@ module Parallel =
     /// <returns>The values of the first choices and of the second choices, both in the order of the elements.</returns>
     /// <remarks>O(n).</remarks>
     [<CompiledName "PartitionWith">]
-    val partitionWith :
-        partitioner : ('T -> Choice<'T1, 'T2>) -> array : FlatList<'T> -> struct (FlatList<'T1> * FlatList<'T2>)
+    val partitionWith : partitioner : ('T -> Choice<'T1, 'T2>) -> array : FlatList<'T> -> struct (FlatList<'T1> * FlatList<'T2>)
 
     // ---- Sorting ----
 
