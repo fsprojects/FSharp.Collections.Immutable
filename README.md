@@ -15,7 +15,8 @@ Please also join the [F# Open Source Group](http://fsharp.github.com)
 | `FlatList` | `ImmutableArray<'T>` | `flatList { }` |
 | `IndexedList` | `ImmutableList<'T>` | `indexedList { }` |
 | `IIndexedList` | `IImmutableList<'T>` | – |
-| `Stack` | `ImmutableStack<'T>` | – |
+| `Stack` | `ImmutableStack<'T>` | `stack { }` |
+| `IStack` | `IImmutableStack<'T>` | – |
 | `Queue` | `ImmutableQueue<'T>` | – |
 | `HashMap` | `ImmutableDictionary<'Key, 'Value>` | – |
 | `SortedMap` | `ImmutableSortedDictionary<'Key, 'Value>` | – |
