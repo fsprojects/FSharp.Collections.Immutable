@@ -41,3 +41,26 @@ val flatList : FlatListCE
 /// </example>
 [<GeneralizableValue>]
 val hashMap<'Key when 'Key : not null> : HashMapCE<'Key>
+
+/// <summary>
+/// Builds a sorted map whose keys are ordered by F# generic comparison.
+/// </summary>
+/// <remarks>
+/// A later binding of a key replaces an earlier one, unless the default comparer of the values finds the two values
+/// equal: then the earlier binding stays, its key included (ADR 0001, D14). The map enumerates its bindings in the
+/// ascending order of the keys, as an F# map does. The instance is generic in the type of the keys, which each expression
+/// infers; <see cref="T:FSharp.Collections.Immutable.SortedMapCE`1"/> takes a key comparer.
+/// </remarks>
+/// <example id="sortedMap-1">
+/// <code lang="fsharp">
+/// let squares = sortedMap {
+///     for i in 3..-1..1 do
+///         yield struct (i, i * i)
+///     yield KeyValuePair (10, 100)
+///     yield struct (1, -1)
+/// }
+/// </code>
+/// Evaluates to a sorted map of 1 to -1, 2 to 4, 3 to 9 and 10 to 100, in this order.
+/// </example>
+[<GeneralizableValue>]
+val sortedMap<'Key when 'Key : not null and 'Key : comparison> : SortedMapCE<'Key>
