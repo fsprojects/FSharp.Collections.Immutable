@@ -65,7 +65,7 @@ type FlatListParallelTests () =
 
     // ---- Creation ----
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.init)>]
+    [<TestMethod>]
     member _.``init creates the elements as the sequential init does`` () =
         for count in [ 0; 1; Inputs.several.Length; large.Length ] do
             Assert.AreEqual<int list>(
@@ -74,7 +74,7 @@ type FlatListParallelTests () =
                 $"FlatList.Parallel.init %d{count}"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.init)>]
+    [<TestMethod>]
     member _.``init throws for a negative count as Array.Parallel does`` () =
         ExceptionAssert.same
             id
@@ -84,7 +84,7 @@ type FlatListParallelTests () =
 
     // ---- Search ----
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.exists)>]
+    [<TestMethod>]
     member _.``exists answers as the sequential exists does`` () =
         forEach
             allInputs
@@ -97,7 +97,7 @@ type FlatListParallelTests () =
                     )
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.forall)>]
+    [<TestMethod>]
     member _.``forall answers as the sequential forall does`` () =
         forEach
             allInputs
@@ -113,7 +113,7 @@ type FlatListParallelTests () =
                         )
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.tryFind)>]
+    [<TestMethod>]
     member _.``tryFind returns the first element that satisfies the predicate`` () =
         forEach
             allInputs
@@ -126,7 +126,7 @@ type FlatListParallelTests () =
                     )
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.tryFindIndex)>]
+    [<TestMethod>]
     member _.``tryFindIndex returns the index of the first element that satisfies the predicate`` () =
         forEach
             allInputs
@@ -139,7 +139,7 @@ type FlatListParallelTests () =
                     )
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.tryPick)>]
+    [<TestMethod>]
     member _.``tryPick returns the value for the first element that the chooser returns a value for`` () =
         forEach
             allInputs
@@ -154,7 +154,7 @@ type FlatListParallelTests () =
 
     // ---- Transformation ----
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.choose)>]
+    [<TestMethod>]
     member _.``choose keeps the chosen values in the order of their elements`` () =
         forEach
             allInputs
@@ -167,7 +167,7 @@ type FlatListParallelTests () =
                     )
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.collect)>]
+    [<TestMethod>]
     member _.``collect concatenates the flat lists in the order of the elements`` () =
         // The flat lists of the mapping have zero, one or two elements
         let mapping (item : int) = FlatList.replicate (abs item % 3) item
@@ -182,7 +182,7 @@ type FlatListParallelTests () =
                 )
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.collect)>]
+    [<TestMethod>]
     member _.``collect throws ArgumentNullException for a default flat list of the mapping`` () =
         // Array.Parallel.collect dereferences a null result; a default flat list is rejected as in the sequential collect
         let ex =
@@ -200,7 +200,7 @@ type FlatListParallelTests () =
             "FlatList.Parallel.collect must name the mapping as the source of the default flat list"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.filter)>]
+    [<TestMethod>]
     member _.``filter keeps the elements that satisfy the predicate in their order`` () =
         forEach
             allInputs
@@ -213,7 +213,7 @@ type FlatListParallelTests () =
                     )
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.map)>]
+    [<TestMethod>]
     member _.``map transforms every element in its order`` () =
         forEach
             allInputs
@@ -225,7 +225,7 @@ type FlatListParallelTests () =
                 )
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.mapi)>]
+    [<TestMethod>]
     member _.``mapi transforms every element with its index`` () =
         let mapping (index : int) (item : int) = struct (index, item * 3)
 
@@ -239,7 +239,7 @@ type FlatListParallelTests () =
                 )
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.zip)>]
+    [<TestMethod>]
     member _.``zip pairs the elements at the same index`` () =
         forEach
             allInputs
@@ -253,7 +253,7 @@ type FlatListParallelTests () =
                 )
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.zip)>]
+    [<TestMethod>]
     member _.``zip throws for different lengths as Array.Parallel does`` () =
         let short = List.toArray Inputs.singleton
         let long = List.toArray Inputs.several
@@ -268,7 +268,7 @@ type FlatListParallelTests () =
                 )
                 $"FlatList.Parallel.zip of %d{first.Length} and %d{second.Length} elements must throw as Array.Parallel.zip does"
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.zip)>]
+    [<TestMethod>]
     member _.``zip divides every array length into chunks without overflow`` () =
         // The chunks of the parallel loop of zip are checked directly: arrays of these lengths do not fit into the memory of
         // a test run. The length plus the chunk length overflowed for 1.5 billion elements, so the loop did nothing.
@@ -308,7 +308,7 @@ type FlatListParallelTests () =
 
     // ---- Folding ----
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.average)>]
+    [<TestMethod>]
     member _.``average returns the average of the elements`` () =
         // Whole numbers add up exactly in any order, so the parallel sum is the sequential one
         forEach
@@ -323,7 +323,7 @@ type FlatListParallelTests () =
                 )
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.average)>]
+    [<TestMethod>]
     member _.``average throws for an empty flat list as Array.Parallel does`` () =
         ExceptionAssert.same
             id
@@ -331,7 +331,7 @@ type FlatListParallelTests () =
             (fun () -> FlatList.Parallel.average FlatList.empty<float> |> ignore)
             "FlatList.Parallel.average of an empty flat list must throw as Array.Parallel.average does"
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.averageBy)>]
+    [<TestMethod>]
     member _.``averageBy returns the average of the projections`` () =
         forEach
             nonEmptyInputs
@@ -343,7 +343,7 @@ type FlatListParallelTests () =
                 )
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.averageBy)>]
+    [<TestMethod>]
     member _.``averageBy throws for an empty flat list as Array.Parallel does`` () =
         ExceptionAssert.same
             id
@@ -354,7 +354,7 @@ type FlatListParallelTests () =
             )
             "FlatList.Parallel.averageBy of an empty flat list must throw as Array.Parallel.averageBy does"
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.iter)>]
+    [<TestMethod>]
     member _.``iter visits every element once`` () =
         forEach
             allInputs
@@ -369,7 +369,7 @@ type FlatListParallelTests () =
                 )
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.iteri)>]
+    [<TestMethod>]
     member _.``iteri visits every element once with its index`` () =
         forEach
             allInputs
@@ -386,7 +386,7 @@ type FlatListParallelTests () =
                 )
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.max)>]
+    [<TestMethod>]
     member _.``max returns the greatest element`` () =
         forEach
             nonEmptyInputs
@@ -398,7 +398,7 @@ type FlatListParallelTests () =
                 )
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.max)>]
+    [<TestMethod>]
     member _.``max throws for an empty flat list as Array.Parallel does`` () =
         ExceptionAssert.same
             id
@@ -406,7 +406,7 @@ type FlatListParallelTests () =
             (fun () -> FlatList.Parallel.max FlatList.empty<int> |> ignore)
             "FlatList.Parallel.max of an empty flat list must throw as Array.Parallel.max does"
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.maxBy)>]
+    [<TestMethod>]
     member _.``maxBy returns the element with the greatest projection`` () =
         // In every input, only equal elements share the greatest absolute value, so any of them is the expected one
         forEach
@@ -419,7 +419,7 @@ type FlatListParallelTests () =
                 )
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.maxBy)>]
+    [<TestMethod>]
     member _.``maxBy chooses among equal projections as Array.Parallel does`` () =
         let key (struct (key : int, _ : char)) = key
 
@@ -429,7 +429,7 @@ type FlatListParallelTests () =
             "FlatList.Parallel.maxBy must choose among equal keys as Array.Parallel.maxBy does"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.maxBy)>]
+    [<TestMethod>]
     member _.``maxBy throws for an empty flat list as Array.Parallel does`` () =
         ExceptionAssert.same
             id
@@ -437,7 +437,7 @@ type FlatListParallelTests () =
             (fun () -> FlatList.Parallel.maxBy abs FlatList.empty<int> |> ignore)
             "FlatList.Parallel.maxBy of an empty flat list must throw as Array.Parallel.maxBy does"
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.min)>]
+    [<TestMethod>]
     member _.``min returns the smallest element`` () =
         forEach
             nonEmptyInputs
@@ -449,7 +449,7 @@ type FlatListParallelTests () =
                 )
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.min)>]
+    [<TestMethod>]
     member _.``min throws for an empty flat list as Array.Parallel does`` () =
         ExceptionAssert.same
             id
@@ -457,7 +457,7 @@ type FlatListParallelTests () =
             (fun () -> FlatList.Parallel.min FlatList.empty<int> |> ignore)
             "FlatList.Parallel.min of an empty flat list must throw as Array.Parallel.min does"
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.minBy)>]
+    [<TestMethod>]
     member _.``minBy returns the element with the smallest projection`` () =
         // In every input, only equal elements share the smallest absolute value, so any of them is the expected one
         forEach
@@ -470,7 +470,7 @@ type FlatListParallelTests () =
                 )
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.minBy)>]
+    [<TestMethod>]
     member _.``minBy chooses among equal projections as Array.Parallel does`` () =
         let key (struct (key : int, _ : char)) = key
 
@@ -480,7 +480,7 @@ type FlatListParallelTests () =
             "FlatList.Parallel.minBy must choose among equal keys as Array.Parallel.minBy does"
         )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.minBy)>]
+    [<TestMethod>]
     member _.``minBy throws for an empty flat list as Array.Parallel does`` () =
         ExceptionAssert.same
             id
@@ -488,7 +488,7 @@ type FlatListParallelTests () =
             (fun () -> FlatList.Parallel.minBy abs FlatList.empty<int> |> ignore)
             "FlatList.Parallel.minBy of an empty flat list must throw as Array.Parallel.minBy does"
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.reduce)>]
+    [<TestMethod>]
     member _.``reduce combines the elements as the sequential reduce does for an associative and commutative function`` () =
         forEach
             nonEmptyInputs
@@ -500,7 +500,7 @@ type FlatListParallelTests () =
                 )
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.reduce)>]
+    [<TestMethod>]
     member _.``reduce throws for an empty flat list as Array.Parallel does`` () =
         ExceptionAssert.same
             id
@@ -508,7 +508,7 @@ type FlatListParallelTests () =
             (fun () -> FlatList.Parallel.reduce (+) FlatList.empty<int> |> ignore)
             "FlatList.Parallel.reduce of an empty flat list must throw as Array.Parallel.reduce does"
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.reduceBy)>]
+    [<TestMethod>]
     member _.``reduceBy combines the projections as Array.Parallel does`` () =
         // The sequential module has no reduceBy; it is reduce after map there
         forEach
@@ -529,7 +529,7 @@ type FlatListParallelTests () =
                 )
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.reduceBy)>]
+    [<TestMethod>]
     member _.``reduceBy throws for an empty flat list as Array.Parallel does`` () =
         ExceptionAssert.same
             id
@@ -540,7 +540,7 @@ type FlatListParallelTests () =
             )
             "FlatList.Parallel.reduceBy of an empty flat list must throw as Array.Parallel.reduceBy does"
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.sum)>]
+    [<TestMethod>]
     member _.``sum adds the elements`` () =
         forEach
             allInputs
@@ -552,7 +552,7 @@ type FlatListParallelTests () =
                 )
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.sumBy)>]
+    [<TestMethod>]
     member _.``sumBy adds the projections`` () =
         forEach
             allInputs
@@ -566,7 +566,7 @@ type FlatListParallelTests () =
 
     // ---- Partitioning and grouping ----
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.groupBy)>]
+    [<TestMethod>]
     member _.``groupBy groups the elements as the sequential groupBy does`` () =
         forEach
             allInputs
@@ -578,7 +578,7 @@ type FlatListParallelTests () =
                 )
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.groupBy)>]
+    [<TestMethod>]
     member _.``groupBy groups the elements of a null key`` () =
         let projection (item : int) : string | null = if item < 0 then null else string (item % 3)
 
@@ -592,7 +592,7 @@ type FlatListParallelTests () =
                 )
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.groupBy)>]
+    [<TestMethod>]
     member _.``groupBy puts the NaN keys of type float and float32 in one group as Array.Parallel does`` () =
         // Array.Parallel.groupBy compares these keys with ER semantics, while the sequential Array.groupBy makes a group of
         // each NaN. The keys are compared as text, because NaN is not equal to itself.
@@ -612,7 +612,7 @@ type FlatListParallelTests () =
         check [| nan; 1.0; nan; 2.0; nan |]
         check [| nanf; 1.0f; nanf; 2.0f; nanf |]
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.partition)>]
+    [<TestMethod>]
     member _.``partition splits the elements in their order`` () =
         forEach
             allInputs
@@ -634,7 +634,7 @@ type FlatListParallelTests () =
                     )
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.partitionWith)>]
+    [<TestMethod>]
     member _.``partitionWith splits the elements by the choice in their order`` () =
         let partitioner (item : int) =
             if item > 0 then
@@ -663,7 +663,7 @@ type FlatListParallelTests () =
 
     // ---- Sorting ----
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.sort)>]
+    [<TestMethod>]
     member _.``sort orders the elements ascending`` () =
         forEach
             allInputs
@@ -675,7 +675,7 @@ type FlatListParallelTests () =
                 )
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.sortBy)>]
+    [<TestMethod>]
     member _.``sortBy orders the elements by the projection`` () =
         forEach
             allInputs
@@ -687,7 +687,7 @@ type FlatListParallelTests () =
                 )
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.sortByDescending)>]
+    [<TestMethod>]
     member _.``sortByDescending orders the elements by the projection descending`` () =
         forEach
             allInputs
@@ -699,7 +699,7 @@ type FlatListParallelTests () =
                 )
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.sortDescending)>]
+    [<TestMethod>]
     member _.``sortDescending orders the elements descending`` () =
         forEach
             allInputs
@@ -711,7 +711,7 @@ type FlatListParallelTests () =
                 )
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.sortWith)>]
+    [<TestMethod>]
     member _.``sortWith orders the elements with the comparison function`` () =
         let descending (left : int) (right : int) = compare right left
 
@@ -725,7 +725,7 @@ type FlatListParallelTests () =
                 )
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.sort)>]
+    [<TestMethod>]
     member _.``the sorting functions leave the shared array of the input unchanged`` () =
         let array = FlatList.ofList large
 
@@ -739,7 +739,7 @@ type FlatListParallelTests () =
 
     // ---- Default flat lists ----
 
-    [<TestMethod; TestCategory(nameof FlatList.isDefault)>]
+    [<TestMethod>]
     member _.``functions reject a default flat list as Array.Parallel rejects a null array`` () =
         let firstChoice (item : int) : Choice<int, string> = Choice1Of2 item
 
@@ -866,7 +866,7 @@ type FlatListParallelTests () =
         for struct (name, oracle, actual) in cases do
             ExceptionAssert.same id oracle actual $"FlatList.Parallel.%s{name} must reject a default flat list"
 
-    [<TestMethod; TestCategory(nameof FlatList.isDefault)>]
+    [<TestMethod>]
     member _.``sum and sumBy reject a default flat list where Array.Parallel dereferences a null array`` () =
         // Array.Parallel.sum and sumBy throw NullReferenceException for a null array; their documentation promises
         // ArgumentNullException, which a default flat list throws

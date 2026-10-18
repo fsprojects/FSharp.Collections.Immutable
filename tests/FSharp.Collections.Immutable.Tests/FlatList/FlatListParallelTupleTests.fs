@@ -20,7 +20,7 @@ type FlatListParallelTupleTests () =
 
     static let isPositive (item : int) = item > 0
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.zip)>]
+    [<TestMethod>]
     member _.``zip returns reference tuples`` () =
         for struct (first, second) in [ struct (array, other); struct (large, FlatList.rev large) ] do
             let pairs : FlatList<int * int> = FlatList.Parallel.zip first second
@@ -31,7 +31,7 @@ type FlatListParallelTupleTests () =
                 $"Tuple.FlatList.Parallel.zip of %d{first.Length} elements must zip as List.zip does"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.zip)>]
+    [<TestMethod>]
     member _.``zip throws for different lengths as the default does`` () =
         ExceptionAssert.same
             id
@@ -42,7 +42,7 @@ type FlatListParallelTupleTests () =
             (fun () -> FlatList.Parallel.zip array (FlatList.singleton 1) |> ignore)
             "Tuple.FlatList.Parallel.zip must throw as the default zip does"
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.groupBy)>]
+    [<TestMethod>]
     member _.``groupBy returns reference tuples`` () =
         for source in [ array; large ] do
             let groups : FlatList<int * FlatList<int>> = FlatList.Parallel.groupBy (fun item -> item % 3) source
@@ -60,7 +60,7 @@ type FlatListParallelTupleTests () =
                 $"Tuple.FlatList.Parallel.groupBy of %d{source.Length} elements must group as List.groupBy does"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.groupBy)>]
+    [<TestMethod>]
     member _.``groupBy puts the NaN keys of type float and float32 in one group as Array.Parallel does`` () =
         // The keys are compared as text, because NaN is not equal to itself
         let check (source : 'Key array) =
@@ -81,7 +81,7 @@ type FlatListParallelTupleTests () =
         check [| nan; 1.0; nan; 2.0; nan |]
         check [| nanf; 1.0f; nanf; 2.0f; nanf |]
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.partition)>]
+    [<TestMethod>]
     member _.``partition returns a reference tuple`` () =
         for source in [ array; large ] do
             let (accepted : FlatList<int>), (rejected : FlatList<int>) =
@@ -100,7 +100,7 @@ type FlatListParallelTupleTests () =
                 $"Tuple.FlatList.Parallel.partition of %d{source.Length} elements must return the rejected elements"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.partitionWith)>]
+    [<TestMethod>]
     member _.``partitionWith returns a reference tuple`` () =
         let partitioner (item : int) =
             if item > 0 then
@@ -125,7 +125,7 @@ type FlatListParallelTupleTests () =
                 $"Tuple.FlatList.Parallel.partitionWith of %d{source.Length} elements must return the second choices"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.tryFind)>]
+    [<TestMethod>]
     member _.``the functions without a tuple keep resolving to the default module`` () =
         let found : int voption = FlatList.Parallel.tryFind (fun item -> item > 6) array
         Assert.AreEqual<int voption>(ValueSome 8, found, "FlatList.Parallel.tryFind must resolve to the default module")

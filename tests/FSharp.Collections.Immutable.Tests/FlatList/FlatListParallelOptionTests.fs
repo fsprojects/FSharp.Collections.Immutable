@@ -26,7 +26,7 @@ type FlatListParallelOptionTests () =
 
     static let negatedIfNegative (item : int) = if item < 0 then Some (-item) else None
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.tryFind)>]
+    [<TestMethod>]
     member _.``tryFind returns an option`` () =
         for source in [ array; large ] do
             let found : int option = FlatList.Parallel.tryFind (isAbove 6) source
@@ -36,7 +36,7 @@ type FlatListParallelOptionTests () =
                 found
                 $"Option.FlatList.Parallel.tryFind over %d{source.Length} elements must match the default"
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.tryFindIndex)>]
+    [<TestMethod>]
     member _.``tryFindIndex returns an option`` () =
         for source in [ array; large ] do
             let found : int option = FlatList.Parallel.tryFindIndex (isAbove 6) source
@@ -46,7 +46,7 @@ type FlatListParallelOptionTests () =
                 found
                 $"Option.FlatList.Parallel.tryFindIndex over %d{source.Length} elements must match the default"
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.tryPick)>]
+    [<TestMethod>]
     member _.``tryPick takes a chooser of options and returns an option`` () =
         for source in [ array; large ] do
             let found : int option = FlatList.Parallel.tryPick negatedIfNegative source
@@ -57,7 +57,7 @@ type FlatListParallelOptionTests () =
                 $"Option.FlatList.Parallel.tryPick over %d{source.Length} elements must pick as Array.tryPick does"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.choose)>]
+    [<TestMethod>]
     member _.``choose takes a chooser of options`` () =
         for source in [ array; large ] do
             let chosen : FlatList<int> = FlatList.Parallel.choose negatedIfNegative source
@@ -68,7 +68,7 @@ type FlatListParallelOptionTests () =
                 $"Option.FlatList.Parallel.choose over %d{source.Length} elements must choose as List.choose does"
             )
 
-    [<TestMethod; TestCategory(nameof FlatList.isDefault)>]
+    [<TestMethod>]
     member _.``the functions reject a default flat list as Array.Parallel rejects a null array`` () =
         let cases : struct (string * (unit -> unit) * (unit -> unit)) list = [
             struct (nameof FlatList.Parallel.choose,
@@ -97,7 +97,7 @@ type FlatListParallelOptionTests () =
         for struct (name, oracle, actual) in cases do
             ExceptionAssert.same id oracle actual $"Option.FlatList.Parallel.%s{name} must reject a default flat list"
 
-    [<TestMethod; TestCategory(nameof FlatList.Parallel.map)>]
+    [<TestMethod>]
     member _.``the functions without an option keep resolving to the default module`` () =
         let mapped : FlatList<int> = FlatList.Parallel.map (fun item -> item * 2) array
         let zipped : FlatList<int * int> = FlatList.Parallel.zip array array
