@@ -422,7 +422,7 @@ modules answer as the documentation says.
 | A repeated key in `ofSeqBy` | `HashMap` and `SortedMap` accept a repeated key with an equal value and reject another value; `FrozenMap` rejects every repeated key | `ToImmutableDictionary`, `ToImmutableSortedDictionary`, `ToFrozenDictionary` |
 | A new value that the value comparer finds equal to the stored one (`add`, `change`, `setItem`, creation) | the stored value stays; a sorted map also keeps the stored key | `ImmutableDictionary.SetItem`, the indexers of the builders |
 | An existing collection given to `ofSeq` of a struct of D12 | a frozen collection comes back when its comparer `Equals` the struct's; an immutable one only for the same comparer instance | `ToFrozenDictionary`, `ToFrozenSet`; `WithComparers`, `WithComparer` |
-| `isProperSuperset` of a sequence with repeated elements, or with elements that the set's comparer finds equal | set semantics: `{1, 2}` is a proper superset of `[1; 1]` | the documentation of `IsProperSupersetOf`, as the mutable `HashSet` and `FrozenSet` answer; `ImmutableHashSet` and `ImmutableSortedSet` count the repetitions |
+| `isProperSuperset` when the second set holds elements that the first set's comparer finds equal | set semantics under the comparer of the first set | the documentation of `IsProperSupersetOf`, as the mutable `HashSet` and `FrozenSet` answer; `ImmutableHashSet` and `ImmutableSortedSet` count such elements once each, so `{1, 2}.IsProperSupersetOf [1; 1]` is `false` |
 | The default value of a struct of D12 | the comparer that the BCL takes for `null`: `EqualityComparer<'T>.Default`, `Comparer<'T>.Default` | the BCL constructors |
 
 ## Consequences
