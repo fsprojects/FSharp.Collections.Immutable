@@ -38,6 +38,9 @@ module's `.fsi` and the `.fs` on its `.fs`, so that Visual Studio shows them as 
 │   │   ├── FlatListTuple.fs / FlatListTuple.fsi        – Tuple namespace overrides
 │   │   ├── FlatListBuilder.fs / FlatListBuilder.fsi
 │   │   └── FlatListCE.fs / FlatListCE.fsi
+│   ├── EquatableArray/                                 – ImmutableArray with value semantics, JSON converter, patterns
+│   │   ├── EquatableArray.fs / EquatableArray.fsi
+│   │   └── EquatableArrayPatterns.fs / EquatableArrayPatterns.fsi
 │   ├── IndexedList/                                    – ImmutableList API surface and builders
 │   │   ├── IndexedListTypes.fs
 │   │   ├── IndexedList.fs / IndexedList.fsi
@@ -117,6 +120,7 @@ module's `.fsi` and the `.fs` on its `.fs`, so that Visual Studio shows them as 
 │   │   ├── FrozenSetTuple.fs / FrozenSetTuple.fsi
 │   │   └── FrozenSetCE.fs / FrozenSetCE.fsi
 │   └── ComputationExpressions.fs / .fsi                – the computation expression instances
+├── tests/FSharp.Collections.Immutable.CSharp.Tests/     – MSTest project in C#: collection expressions, ranges, operators
 └── tests/FSharp.Collections.Immutable.Tests/            – MSTest test project
     ├── TestCategories.fs                               – centralized custom test category attributes
     ├── TestCategoriesTests.fs                          – enforces the test category rules
@@ -150,8 +154,10 @@ The modules follow ADR 0001 – Per-collection modules (`docsSrc/Explanations/AD
 
 * [`System.Collections.Immutable`](https://www.nuget.org/packages/System.Collections.Immutable/) – immutable collections foundation
 * [`FSharp.Core`](https://www.nuget.org/packages/FSharp.Core/) – F# language core library
+* [`System.Text.Json`](https://learn.microsoft.com/dotnet/standard/serialization/system-text-json/overview) – the JSON converter of `EquatableArray` (shared framework, no package)
 * [`MSTest`](https://github.com/microsoft/testfx) – test framework
 * [`Unquote`](https://github.com/SwensenSoftware/unquote) – expressive assertions for complex checks
+* [`FSharp.SystemTextJson`](https://github.com/Tarmil/FSharp.SystemTextJson) – JSON tests with F# records and unions
 * [`FAKE`](https://fake.build/) – build and release scripting
 * [`Argu`](https://github.com/fsprojects/Argu) – command-line parsing for build tooling
 
