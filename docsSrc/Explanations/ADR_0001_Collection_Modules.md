@@ -92,9 +92,10 @@ namespace with one nested module: `[<RequireQualifiedAccess>] module FSharp.Coll
 `module FSharp.Collections.Immutable.Option.FlatList`, `module FSharp.Collections.Immutable.FlatListBuilder`,
 `[<AutoOpen>] module FSharp.Collections.Immutable.HashMapExtensions`. The rule applies to the library and the tests (the ops
 modules, `ExceptionAssert`, `Inputs`). A nested module such as `FlatList.Parallel` (D11) or the `Tuple`/`ValueTuple`
-submodules of the maps (D13) stays inside its root module. A file with several modules (`Helper.fs`) or with types only
-(the type abbreviations, the structs of D12, the computation expression classes, the test classes) declares the
-namespace. Modules compile under their F# names
+submodules of the maps (D13) stays inside its root module. A file with types only (the type abbreviations, the structs of
+D12, the computation expression classes, the test classes) declares the namespace. The internal helper modules of the
+library are root modules too, one per file in the `Helper/` folder (`Helper/Arrays.fs` holds `module internal
+FSharp.Collections.Immutable.Arrays`), so no file holds several modules. Modules compile under their F# names
 (`FSharp.Collections.Immutable.FlatList`, `FSharp.Collections.Immutable.Option.FlatList`): F# ignores `[<CompiledName>]` on
 a module, so no module carries it.
 
@@ -111,7 +112,7 @@ included; only the `XTypes.fs` files have none. The struct comes before the modu
 `forKeyComparer` and `forComparer` return it, and the extension module after both, because its members are those of the
 struct with the default comparers. The struct and extension files carry `DependentUpon` on the files of the module
 (`X.CustomComparers.fsi` on `X.fsi`, `X.CustomComparers.fs` on `X.fs`), so that Visual Studio shows them under the
-module; their names start with the name of the module for the same reason. `Helper.fs` comes first and
+module; their names start with the name of the module for the same reason. The `Helper/` files come first and
 `ComputationExpressions.fsi`/`.fs` last. Interface modules compile after the concrete type they return.
 
 Names: `IMap` module and `IMap<'Key, 'Value>` abbreviation for `IImmutableDictionary`; `ISet` module **without** an
