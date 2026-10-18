@@ -20,7 +20,12 @@
 
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Helper.fs" />
+    <Compile Include="Helper\ImmutableCollectionUtil.fs" />
+    <Compile Include="Helper\Comparers.fs" />
+    <Compile Include="Helper\ErrorStrings.fs" />
+    <Compile Include="Helper\Raise.fs" />
+    <Compile Include="Helper\ArrayChecks.fs" />
+    <Compile Include="Helper\Arrays.fs" />
     <Compile Include="FlatList\FlatListTypes.fs" />
     <Compile Include="FlatList\FlatList.fsi" />
     <Compile Include="FlatList\FlatList.fs" />

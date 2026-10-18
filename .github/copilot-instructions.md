@@ -23,7 +23,13 @@ module's `.fsi` and the `.fs` on its `.fs`, so that Visual Studio shows them as 
 │   └── CheckOrder.fs                                   – checks the category order of the signature files with the Fantomas parser
 ├── docsSrc/                                            – FSharp.Formatting documentation source
 ├── src/FSharp.Collections.Immutable/                    – main library
-│   ├── Helper.fs                                       – argument checks and exceptions shared by the modules
+│   ├── Helper/                                         – internal helpers shared by the modules, one root module per file
+│   │   ├── ImmutableCollectionUtil.fs                  – argument checks and the wrapping of arrays
+│   │   ├── Comparers.fs                                – the default comparer of F# generic comparison
+│   │   ├── ErrorStrings.fs                             – the exception messages of FSharp.Core and the .NET libraries
+│   │   ├── Raise.fs                                    – the exceptions of the FSharp.Core DetailedExceptions module
+│   │   ├── ArrayChecks.fs                              – the checks that the functions of several arrays share
+│   │   └── Arrays.fs                                   – the algorithms over arrays that the default and Tuple modules share
 │   ├── FlatList/                                       – ImmutableArray API surface and builders
 │   │   ├── FlatListTypes.fs                            – the FlatList abbreviation
 │   │   ├── FlatList.fs / FlatList.fsi                  – includes the nested Parallel module
