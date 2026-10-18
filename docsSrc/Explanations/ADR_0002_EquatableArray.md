@@ -9,7 +9,7 @@ index: 3
 
 | | |
 |---|---|
-| Status | Proposed |
+| Status | Accepted (2026-10-18) |
 | Date | 2026-10-11 |
 | Deciders | maintainers |
 
@@ -18,10 +18,12 @@ Facts marked *(verified)* were run for this document with F# 10 on .NET SDK 10.0
 repository – compiled in Release for `net8.0` and run on `net10.0`. Allocated bytes are exact; times are stopwatch
 readings and show the order of magnitude only.
 
-This is a design document: nothing of it is in the library yet. The questions of §11 wait for the maintainers.
-ADR 0001 – Per-collection modules (`ADR_0001_Collection_Modules.md`) proposes to rewrite the collection modules and is
-itself only proposed, in [pull request #23](https://github.com/fsprojects/FSharp.Collections.Immutable/pull/23); §5 to §7
-say where the two meet.
+The maintainers accepted this design and the recommendations of §11 on 2026-10-18. Step 1 of §6 is
+[pull request #28](https://github.com/fsprojects/FSharp.Collections.Immutable/pull/28), and its tests (§7) pin the
+verified facts. ADR 0001 – Per-collection modules (`ADR_0001_Collection_Modules.md`) proposes to rewrite the
+collection modules and is still proposed, in
+[pull request #23](https://github.com/fsprojects/FSharp.Collections.Immutable/pull/23); §5 to §7 say where the two
+meet.
 
 ## Context
 
@@ -98,8 +100,8 @@ create a no-cost wrapper around ImmutableArray that has sequence-equality semant
 
 ## 1. The type
 
-The prototype compiles against the signature below for `net8.0`, with nullness checking on and without warnings
-*(verified)*.
+The library compiles against the signature below for `net8.0`, with nullness checking on and without warnings (step 1,
+pull request #28). The prototype did too, except for `Slice`, which a separate probe verified.
 
 ```fsharp
 namespace FSharp.Collections.Immutable
@@ -338,7 +340,8 @@ body is written twice. What differs:
 * `ofImmutableArray` and `toImmutableArray` are added.
 * `unsafeOfArray` is added, as in the first consumer: it wraps an array without copying it, through
   `ImmutableCollectionsMarshal.AsImmutableArray`, for a caller that gives the array away and never writes to it again.
-  `ofArray` copies.
+  `ofArray` copies. Both throw `ArgumentNullException` for `null`, as FSharp.Core does; the first consumer's functions
+  return an empty array.
 * Results that nest arrays (`groupBy`, `chunkBySize`, `windowed`, `splitInto`, `transpose`) hold `EquatableArray`s
   inside, otherwise the inner arrays would compare by reference (§2).
 * Functions that compare elements (`contains`, `distinct`, `indexOf`, …) keep the F# equality they have in `FlatList`.
@@ -410,9 +413,9 @@ tests/FSharp.Collections.Immutable.Tests/
 the full function set, the builder module and the computation expressions exist only on unmerged local branches, and
 ADR 0001 proposes to rewrite them in a chain of pull requests with no release before its end.
 
-1. *On `main` now*: the type, the factory class, the converter, the patterns and a module with `empty`, `singleton`,
-   `ofSeq`, `ofArray`, `ofList`, `ofImmutableArray`, `toImmutableArray`, `length`, `isEmpty` and `map`, with the tests
-   of §7. This is what the first consumer uses, and a release can follow.
+1. *On `main` now* (pull request #28): the type, the factory class, the converter, the patterns and a module with
+   `empty`, `singleton`, `ofSeq`, `ofArray`, `ofList`, `ofImmutableArray`, `unsafeOfArray`, `toImmutableArray`,
+   `length`, `isEmpty` and `map`, with the tests of §7. This is what the first consumer uses, and a release can follow.
 2. *With the `FlatList` rewrite*: the mirror of the module, the builder functions and the computation expression, as one
    more pull request of that chain and under its rules for layout, function order and tests.
 
@@ -422,10 +425,10 @@ Under the repository's rules: MSTest 4, a failure message on every assert, categ
 attributes sorted by type name.
 
 * **Categories.** `EquatableArrayTestCategory` on every test class. `TestCategory (nameof EquatableArray.ofSeq)` and the
-  like on tests of module functions. For the behaviour of the type itself, new attributes `ComparisonTestCategory`,
-  `EqualityTestCategory`, `InteropTestCategory` and `JsonTestCategory`, next to `BuilderTestCategory`,
-  `ComputationExpressionTestCategory` and `PatternMatchingTestCategory`. Those three and `TestCategories.fs` itself are
-  not on `main` yet.
+  like on tests of module functions. For the behaviour of the type itself: `AllocationTestCategory`,
+  `ComparisonTestCategory`, `DefaultValueTestCategory`, `EqualityTestCategory`, `FormattingTestCategory`,
+  `InteropTestCategory`, `JsonTestCategory` and `PatternMatchingTestCategory`, in the `TestCategories.fs` that step 1
+  adds. `BuilderTestCategory` and `ComputationExpressionTestCategory` come with step 2.
 * **Equality under every caller**: `=`, `.Equals`, `EqualityComparer<_>.Default`, `HashIdentity.Structural`, a default
   `Dictionary` and `HashSet`, `ValueTuple.Equals`, a record field, a recursive union.
 * **The defects of `ImmutableArray` as regression tests**: arrays of different length compare, sort and build a `Set`;
@@ -443,7 +446,9 @@ attributes sorted by type name.
 * **Constraints**: the type parameter carries `EqualityConditionalOn` and `ComparisonConditionalOn`, read by reflection,
   since a test cannot assert a compile error.
 * **Allocation**: 0 B, by `GC.GetAllocatedBytesForCurrentThread`, for `=` on arrays of `int`, `string`, a union and
-  struct tuples, on the value and as a record field; for `for`; for a pattern match. These tests run in Release only.
+  struct tuples, on the value and as a record field; for `for`; for a pattern match. These tests run in Release only,
+  with tiered compilation off so that every method is fully optimized from its first call. A control test shows that
+  the counter sees an allocation.
 * **Interop**: both conversions keep the underlying array; `CollectionBuilderAttribute` names the factory class and
   `Create`, and the class has exactly one `Create`; `GetSlice` follows F# arrays; `Slice` follows `ImmutableArray.Slice`,
   including `ArgumentOutOfRangeException`; `op_Equality` and `op_Inequality` agree with `Equals`; the mutating members of
@@ -456,8 +461,9 @@ attributes sorted by type name.
   the failure readable; sizes with `Assert.HasCount` and `Assert.IsEmpty`. `CollectionAssert` does not apply: it needs
   the non-generic `ICollection`.
 
-C# collection expressions were checked in the design probe. A C# test project is added only if the maintainer wants C#
-covered in CI.
+The maintainers chose to cover C# in CI. The C# MSTest project `tests/FSharp.Collections.Immutable.CSharp.Tests` checks
+what only the C# compiler binds: collection expressions, indices and ranges, `==` and `!=`, the default collections,
+record structs, the implicit conversions and the compiled names of the module.
 
 ## 8. Benchmarks before release
 
@@ -475,11 +481,15 @@ type; JSON within 10 % of `ImmutableArray<'T>`.
 
 ## 9. Consumers and migration
 
-* **The first consumer** removes its own `EquatableArray` after the release that contains the type and opens
-  `FSharp.Collections.Immutable` instead. The constructor, `Items`, `Length`, `IsEmpty`, the indexer, `for` and the
-  module functions it uses keep their names. It will notice three things: the patterns take `EquatableArray<'T>` where
-  its own take `ImmutableArray<'T>` (question 4); the type has comparison where its own is `NoComparison`; `ToString ()`
-  prints `[|1; 2|]` where its own prints `[| 1; 2 |]`.
+* **The first consumer** removes its own `EquatableArray` after the release that contains the type and adds
+  `open FSharp.Collections.Immutable` to the files that use it. The constructor, `Items`, `Length`, `IsEmpty`, the
+  indexer, `for` and the module functions it uses keep their names. It will notice four things:
+  * `ofArray null` and `unsafeOfArray null` throw `ArgumentNullException` where its own return an empty array.
+  * The type has comparison where its own is `NoComparison`, so its records and unions gain comparison.
+  * The patterns take `EquatableArray<'T>` where its own take `ImmutableArray<'T>` (question 4). Its own patterns are
+    not used in its production code.
+  * `ToString ()` of an array wider than one line, or longer than 100 elements, wraps and ends in `...`, as `%A` of an
+    F# array does. Short arrays print the same `[|1; 2|]`.
 * **`FlatList` users** change nothing. They switch a field to `EquatableArray<'T>` where the value is a key, is compared
   or is persisted; stored JSON stays valid (§4).
 * **Query translators** that map collection functions by compiled declaring type add
@@ -513,36 +523,38 @@ Deliberately different from the FS-1094 draft:
 | `%A` | the notation of an F# array | `immarray [1; 2; 3]` |
 | Library additions | `Items`, the constructor, `AsMemory`, `Slice`, read-only `IList<'T>`, `==` and `!=`, the JSON converter, the patterns, `equatableArray { }` | no `==`, no converter on the type, patterns left to users |
 
-## 11. Open questions
+## 11. Questions and decisions
+
+The maintainers accepted every recommendation on 2026-10-18. The questions stay here with the reasons for each answer.
 
 1. **Element equality.** `EqualityComparer<'T>.Default`, or the rules of F# lists through `IStructuralEquatable`?
-   *Recommendation: `EqualityComparer<'T>.Default`.* It is the only strategy that does not allocate for struct elements,
+   *Decided: `EqualityComparer<'T>.Default`.* It is the only strategy that does not allocate for struct elements,
    and allocation-free equality is the first use case. The price is the two differences of §2 and, for elements that
    are arrays, the keys of question 8.
-2. **Comparison.** Length first as for F# arrays, or lexicographic as for F# lists? *Recommendation: length first.* It
+2. **Comparison.** Length first as for F# arrays, or lexicographic as for F# lists? *Decided: length first.* It
    is the rule of F# arrays and of the FS-1094 draft, and arrays of different length are compared without reading an
    element. Independently of that, elements are compared in the order of F# generic comparison and not with
-   `Comparer<'T>.Default` as in the first draft of this design (§3); this needs confirming.
-3. **`op_Implicit` in both directions**, or only the named conversions? *Recommendation: both.* The conversions are O(1)
+   `Comparer<'T>.Default` as in the first draft of this design (§3); the maintainers confirmed this too.
+3. **`op_Implicit` in both directions**, or only the named conversions? *Decided: both.* The conversions are O(1)
    and lose nothing, a default array becomes empty, and F# warns wherever the conversion is not at a method argument.
 4. **The input of the patterns.** `EquatableArray<'T>`, or `ImmutableArray<'T>` as in the first consumer?
-   *Recommendation: `EquatableArray<'T>`*: nested in a union case a pattern cannot convert, at the head of a `match` the
+   *Decided: `EquatableArray<'T>`*: nested in a union case a pattern cannot convert, at the head of a `match` the
    wrap is one word. Inline patterns constrained on `Length` and the indexer accept both types and F# arrays without
    allocation *(verified)*, but they throw `NullReferenceException` on a default `ImmutableArray` and need the input
    type known at the pattern.
-5. **Read-only `IList<'T>` and `ICollection<'T>`.** *Recommendation: yes.* FSharp.Core and LINQ take their fast paths
+5. **Read-only `IList<'T>` and `ICollection<'T>`.** *Decided: yes.* FSharp.Core and LINQ take their fast paths
    for these two interfaces, not for `IReadOnlyList<'T>`. On 1000 `int` *(verified)*: `Seq.length` 4630 ns → 30 ns,
    `Seq.toArray` 5490 ns and 12.5 kB → 1020 ns and 4 kB, `Enumerable.Count` 940 ns → 40 ns, `Enumerable.ToList` 4600 ns
    → 750 ns, `ResizeArray (xs)` 3080 ns → 580 ns. The members are explicit, report `IsReadOnly`, and the mutating ones
    throw `NotSupportedException`, as on `ImmutableArray`.
-6. **A JSON `null`.** The empty array, or an error? *Recommendation: the empty array*, the JSON counterpart of the
+6. **A JSON `null`.** The empty array, or an error? *Decided: the empty array*, the JSON counterpart of the
    default value. It takes effect under plain System.Text.Json only (§4).
 7. **Two steps** (§6): release the type, the patterns and the converter from `main` before the chain of ADR 0001 starts,
-   or make the type one link of that chain? *Recommendation: release first.* The first consumer is waiting for a
+   or make the type one link of that chain? *Decided: release first.* The first consumer is waiting for a
    release, and the chain cuts none before its end.
 8. **Keys with array elements** (decision 5). Accept that equality and comparison disagree on F# arrays, `FlatList`s
    and tuples that hold them, or compare such elements by contents, as `.Equals` on an F# list does?
-   *Recommendation: accept.* The element keeps the equality that .NET and C# give it. The type needs no list of element
+   *Decided: accept.* The element keeps the equality that .NET and C# give it. The type needs no list of element
    types that it treats differently. The other choice is cheap *(verified)*. It compares through
    `LanguagePrimitives.GenericEqualityERComparer`. On 32 elements that are arrays of `int` or `string`, it allocates
    nothing. On 32 `FlatList`s of four `int`, it allocates 7680 B per `Equals` and 3840 B per hash. That is not more than
