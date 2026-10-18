@@ -83,6 +83,15 @@
     <Compile Include="HashMap\IMapTests.fs" />
     <Compile Include="HashMap\IMapOptionTests.fs" />
     <Compile Include="HashMap\IMapTupleTests.fs" />
+    <Compile Include="SortedMap\SortedMapOps.fs" />
+    <Compile Include="SortedMap\SortedMapContractTests.fs" />
+    <Compile Include="SortedMap\SortedMapTests.fs" />
+    <Compile Include="SortedMap\SortedMapExtensionsTests.fs" />
+    <Compile Include="SortedMap\CustomComparersSortedMapTests.fs" />
+    <Compile Include="SortedMap\SortedMapBuilderTests.fs" />
+    <Compile Include="SortedMap\SortedMapComputationExpressionTests.fs" />
+    <Compile Include="SortedMap\SortedMapOptionTests.fs" />
+    <Compile Include="SortedMap\SortedMapTupleTests.fs" />
   </ItemGroup>
 
   <ItemGroup>

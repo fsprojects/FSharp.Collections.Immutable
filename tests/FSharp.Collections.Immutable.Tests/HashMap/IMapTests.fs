@@ -540,3 +540,40 @@ type IMapTests () =
             "IMap.containsBinding must throw for a null key of a sorted map, as ImmutableSortedDictionary.Contains does"
         )
         |> ignore
+
+    [<TestMethod>]
+    member _.``filter keeps the implementation, the comparers and the order of a SortedMap`` () =
+        let valueComparer =
+            HashIdentity.FromFunctions (fun (value : int) -> abs value) (fun left right -> abs left = abs right)
+
+        // The keys are ordered by F# generic comparison, which puts the upper case letters before the lower case ones
+        let table =
+            (SortedMap.forComparers LanguagePrimitives.FastGenericComparer<string> valueComparer).ofArray [|
+                struct ("b", 1)
+                struct ("a", 2)
+                struct ("B", 3)
+                struct ("A", 4)
+            |]
+            :> IMap<string, int>
+
+        match IMap.filter (fun _ value -> value > 1) table with
+        | :? SortedMap<string, int> as filtered ->
+            Assert.AreSame<IComparer<string>>(
+                LanguagePrimitives.FastGenericComparer<string>,
+                SortedMap.keyComparer filtered,
+                "IMap.filter must keep the key comparer of a sorted map"
+            )
+
+            Assert.AreSame (
+                valueComparer,
+                SortedMap.valueComparer filtered,
+                "IMap.filter must keep the value comparer of a sorted map"
+            )
+
+            CollectionAssert.AreEqual (
+                [| "A"; "B"; "a" |],
+                Seq.toArray (SortedMap.keys filtered),
+                "IMap.filter must keep the order of the key comparer of a sorted map"
+            )
+        | filtered ->
+            Assert.Fail $"IMap.filter must keep the implementation of a sorted map, not return %s{filtered.GetType().Name}"
