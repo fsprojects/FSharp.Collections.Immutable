@@ -35,6 +35,7 @@
     <Compile Include="Helper\ParallelArrays.fs" />
     <Compile Include="Helper\Sets.fs" />
     <Compile Include="Helper\HashSets.fs" />
+    <Compile Include="Helper\SortedSets.fs" />
     <Compile Include="FlatList\FlatListTypes.fs" />
     <Compile Include="FlatList\FlatList.fsi" />
     <Compile Include="FlatList\FlatList.fs" />
@@ -67,12 +68,26 @@
     <Compile Include="HashSet\ISetTuple.fs" />
     <Compile Include="HashSet\HashSetCE.fsi" />
     <Compile Include="HashSet\HashSetCE.fs" />
+    <Compile Include="SortedSet\SortedSetTypes.fs" />
+    <Compile Include="SortedSet\SortedSet.CustomComparer.fsi">
+      <DependentUpon>SortedSet.fsi</DependentUpon>
+    </Compile>
+    <Compile Include="SortedSet\SortedSet.CustomComparer.fs">
+      <DependentUpon>SortedSet.fs</DependentUpon>
+    </Compile>
+    <Compile Include="SortedSet\SortedSet.fsi" />
+    <Compile Include="SortedSet\SortedSet.fs" />
+    <Compile Include="SortedSet\SortedSetOption.fsi" />
+    <Compile Include="SortedSet\SortedSetOption.fs" />
+    <Compile Include="SortedSet\SortedSetTuple.fsi" />
+    <Compile Include="SortedSet\SortedSetTuple.fs" />
+    <Compile Include="SortedSet\SortedSetCE.fsi" />
+    <Compile Include="SortedSet\SortedSetCE.fs" />
     <Compile Include="Stack.fs" />
     <Compile Include="ImmutableList.fs" />
     <Compile Include="Queue.fs" />
     <Compile Include="IndexedSeq.fs" />
     <Compile Include="Maps.fs" />
-    <Compile Include="Sets.fs" />
     <Compile Include="ComputationExpressions.fsi" />
     <Compile Include="ComputationExpressions.fs" />
   </ItemGroup>
