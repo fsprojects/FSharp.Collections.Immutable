@@ -1,5 +1,7 @@
 <Project>
     <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+    <!-- The build script (FAKE) writes the assembly information of the release into this file, and the SDK generates the assembly attributes from it -->
+    <Import Project="AssemblyInfo.Build.props" Condition="Exists('$(MSBuildThisFileDirectory)AssemblyInfo.Build.props')" />
     <PropertyGroup>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <IsPackable>true</IsPackable>

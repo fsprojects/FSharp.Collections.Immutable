@@ -79,7 +79,7 @@ or
 - `GenerateCoverageReport` - Code coverage is run during `DotnetTest` and this generates a report via [ReportGenerator](https://github.com/danielpalme/ReportGenerator).
 - `ShowCoverageReport` - Shows the report generated in `GenerateCoverageReport`.
 - `WatchTests` - Runs [dotnet watch](https://docs.microsoft.com/en-us/aspnet/core/tutorials/dotnet-watch?view=aspnetcore-3.0) with the test projects. Useful for rapid feedback loops.
-- `GenerateAssemblyInfo` - Generates [AssemblyInfo](https://docs.microsoft.com/en-us/dotnet/api/microsoft.visualbasic.applicationservices.assemblyinfo?view=netframework-4.8) for libraries.
+- `GenerateAssemblyInfo` - Writes the version, the release date, the release channel and the git hash of the latest changelog entry into `src/AssemblyInfo.Build.props`, which `src/Directory.Build.props` imports, so that the SDK generates the assembly attributes of the libraries from it.
 - `DotnetPack` - Runs [dotnet pack](https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-pack). This includes running [Source Link](https://github.com/dotnet/sourcelink).
 - `SourceLinkTest` - Runs a Source Link test tool to verify Source Links were properly generated.
 - `PublishToNuGet` - Publishes the NuGet packages generated in `DotnetPack` to NuGet via [dotnet nuget push](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-nuget-push). Runs only from `Github Actions`.
