@@ -10,6 +10,19 @@
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <!--
+      The F# compiler fails now and then with "FS0073: internal error: Undefined or unsolved type variable: 'C" while it
+      compiles this project in Release (the generic contract classes, such as SeqLikeAccessContract<'C>). The error is
+      intermittent, it comes more often on runners with few cores, and it disappears when the compiler works sequentially:
+      0 failures in 72 builds, where 6 of 66 builds failed without the switch. The switch costs about one second per build.
+      The compiler marks the switch as meant for tests only (warning FS0075), so the warning is silenced.
+      Reported to the compiler: https://github.com/dotnet/fsharp/issues/20812. Remove the switch when that issue is fixed.
+    -->
+    <ParallelCompilation>false</ParallelCompilation>
+    <NoWarn>$(NoWarn);FS0075</NoWarn>
+  </PropertyGroup>
+
   <ItemGroup>
     <Content Include="testconfig.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
