@@ -5,20 +5,6 @@
     <AssemblyName>$(AssemblyBaseName)</AssemblyName>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Deterministic>true</Deterministic>
-    <!-- AssemblyInfo.fs comes from the build script, so Directory.Build.props switches the generation of assembly
-         attributes off, and with it the attribute of the InternalsVisibleTo item below. This project switches it on and
-         switches off every attribute that AssemblyInfo.fs or the package properties already provide, so that the SDK
-         generates the InternalsVisibleTo attribute alone -->
-    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
-    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
-    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
-    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
-    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
-    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
-    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
-    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
-    <GenerateRepositoryUrlAttribute>false</GenerateRepositoryUrlAttribute>
   </PropertyGroup>
 
   <PropertyGroup Label="NuGet">
