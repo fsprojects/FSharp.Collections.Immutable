@@ -1,11 +1,29 @@
 /// <summary>
-/// Parallel algorithms over arrays for the functions of <see cref="T:Microsoft.FSharp.Collections.ArrayModule.Parallel"/>
-/// that take or return options or reference tuples (ADR 0001, D3 and D11).
+/// Parallel algorithms over arrays for the functions of
+/// <see cref="T:Microsoft.FSharp.Collections.ArrayModule.Parallel"/> that take or return options or reference tuples
+/// (ADR 0001, D3 and D11).
 /// </summary>
 /// <remarks>
-/// The algorithms take value options and tuple constructors instead, so that the default modules and the <c>Tuple</c> modules
-/// share them and nothing is allocated per element. The callers check their arguments first, with the exceptions of
-/// <see cref="T:Microsoft.FSharp.Collections.ArrayModule.Parallel"/>.
+/// <para>
+/// The default functions of <see cref="T:FSharp.Collections.Immutable.FlatList"/> take and return value options and struct
+/// tuples, and the functions of the <see cref="T:FSharp.Collections.Immutable.Tuple.FlatList"/> module return reference
+/// tuples, where the FSharp.Core functions take and return options and return reference tuples. Calling the FSharp.Core
+/// function and converting would allocate for every element. The algorithms here take value options and tuple constructors
+/// instead, so that the default modules and the modules of the <see cref="N:FSharp.Collections.Immutable.Tuple"/> namespace
+/// share them and nothing is allocated per element.
+/// </para>
+/// <para>
+/// The callers check their arguments first, with the exceptions of
+/// <see cref="T:Microsoft.FSharp.Collections.ArrayModule.Parallel"/>, so the algorithms check nothing and document no
+/// exceptions.
+/// </para>
+/// <para>
+/// The summary of each function that mirrors a function of the FSharp.Core
+/// <see cref="T:Microsoft.FSharp.Collections.ArrayModule.Parallel"/> module is the summary of that function word for word
+/// (FSharp.Core 10.1), with <c>ValueSome</c> and <c>ValueNone</c> where it says <c>Some</c> and <c>None</c>, and so are the
+/// descriptions of the parameters and of the result where the signatures agree. The remarks say what differs and why the
+/// function exists.
+/// </para>
 /// </remarks>
 module internal FSharp.Collections.Immutable.ParallelArrays
 
@@ -18,6 +36,9 @@ open System.Threading.Tasks
 /// The chunks of a chunked parallel loop over <paramref name="length"/> elements on <paramref name="processors"/>
 /// processors, each as its first index and the index after its last one.
 /// </summary>
+/// <param name="processors">The number of processors.</param>
+/// <param name="length">The number of elements.</param>
+/// <returns>The chunks, each as a struct tuple of its first index and the index after its last one.</returns>
 /// <remarks>
 /// <para>
 /// The chunks are those of the chunked loops of <see cref="T:Microsoft.FSharp.Collections.ArrayModule.Parallel"/>: one chunk
@@ -28,6 +49,11 @@ open System.Threading.Tasks
 /// minus one, because the length plus the chunk length overflows for arrays of more than half the maximum length. The end
 /// of a chunk adds only the elements that remain to its first index, because the first index plus the full chunk length
 /// can overflow for arrays near the maximum length on machines with more than 56 processors.
+/// </para>
+/// <para>
+/// FSharp.Core has no such function in its public API. It is a function of its own, so that
+/// <see cref="M:FSharp.Collections.Immutable.ParallelArrays.forEachChunk(System.Int32,Microsoft.FSharp.Core.FSharpFunc{System.Int32,Microsoft.FSharp.Core.FSharpFunc{System.Int32,Microsoft.FSharp.Core.Unit}})"/>
+/// and the tests share it, and the tests can check the arithmetic for lengths that no array can have.
 /// </para>
 /// </remarks>
 let chunks (processors : int) (length : int) : struct (int * int) array =
@@ -48,9 +74,17 @@ let chunks (processors : int) (length : int) : struct (int * int) array =
 /// <summary>
 /// Runs an action on the chunks of the indices from 0 to <paramref name="length"/> in parallel.
 /// </summary>
+/// <param name="length">The number of elements.</param>
+/// <param name="action">The action, which takes the first index of its chunk and the index after its last one.</param>
 /// <remarks>
-/// The action takes the first index of its chunk and the index after its last one. A loop per chunk calls no delegate per
-/// element.
+/// <para>
+/// A loop per chunk calls no delegate per element.
+/// </para>
+/// <para>
+/// FSharp.Core has no such function in its public API. It exists because a
+/// <see cref="M:System.Threading.Tasks.Parallel.For(System.Int32,System.Int32,System.Action{System.Int32})"/> over the
+/// indices calls a delegate for every element, where the action of a chunk is inlined and loops over its indices.
+/// </para>
 /// </remarks>
 let inline forEachChunk (length : int) ([<InlineIfLambda>] action : int -> int -> unit) =
     let bounds = chunks Environment.ProcessorCount length
@@ -65,13 +99,26 @@ let inline forEachChunk (length : int) ([<InlineIfLambda>] action : int -> int -
     |> ignore
 
 /// <summary>
-/// The values that the chooser returns for the elements, in the order of the elements.
+/// Apply the given function to each element of the array. Return the array comprised of the results <c>x</c> for each
+/// element where the function returns <c>ValueSome x</c>.
 /// </summary>
+/// <param name="chooser">The function to generate value options from the elements.</param>
+/// <param name="array">The input array.</param>
+/// <returns>The array of results.</returns>
 /// <remarks>
-/// The chooser runs in parallel into an array of value options, which a sequential pass compacts. Calling
+/// <para>
+/// Performs the operation in parallel using <see cref="M:System.Threading.Tasks.Parallel.For"/>. The order in which the
+/// given function is applied to elements of the input array is not specified. This is an O(n) operation, where n is the
+/// length of the array.
+/// </para>
+/// <para>
+/// It exists because
 /// <see cref="M:Microsoft.FSharp.Collections.ArrayModule.Parallel.Choose``2(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpOption{``1}},``0[])"/>
-/// instead would convert every value option to an option.
+/// takes a chooser that returns options, and would convert every value option to an option. The chooser runs in parallel
+/// into an array of value options, which a sequential pass compacts.
+/// </para>
 /// </remarks>
+/// <seealso cref="M:FSharp.Collections.Immutable.FlatList.Parallel.Choose``2(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpValueOption{``1}},System.Collections.Immutable.ImmutableArray{``0})"/>
 let choose (chooser : 'T -> 'U voption) (array : 'T array) : 'U array =
     let chosen = Array.Parallel.map chooser array
     let mutable count = 0
@@ -95,6 +142,10 @@ let choose (chooser : 'T -> 'U voption) (array : 'T array) : 'U array =
 /// <summary>
 /// The comparer of the keys of a parallel grouping.
 /// </summary>
+/// <returns>
+/// The comparer of F# structural equality, except that the keys of the types <see cref="T:System.Double"/> and
+/// <see cref="T:System.Single"/> compare with <see cref="M:Microsoft.FSharp.Core.LanguagePrimitives.GenericEqualityER``1(``0,``0)"/>.
+/// </returns>
 /// <remarks>
 /// <para>
 /// Keys of type <see cref="T:System.Double"/> and <see cref="T:System.Single"/> compare as in
@@ -108,6 +159,11 @@ let choose (chooser : 'T -> 'U voption) (array : 'T array) : 'U array =
 /// The function of FSharp.Core throws <see cref="T:System.AggregateException"/> for such a key: its second pass cannot find
 /// the key that its first pass added. That failure is not mirrored.
 /// </para>
+/// <para>
+/// FSharp.Core has no such function in its public API. It exists because the grouping here runs over the keys with
+/// <see cref="M:System.Linq.Enumerable.ToLookup``3(System.Collections.Generic.IEnumerable{``0},System.Func{``0,``1},System.Func{``0,``2},System.Collections.Generic.IEqualityComparer{``1})"/>,
+/// which takes the comparer of the keys, and the comparer has to be that of FSharp.Core.
+/// </para>
 /// </remarks>
 let groupingComparer<'Key when 'Key : equality> () : IEqualityComparer<'Key> =
     if
@@ -119,10 +175,24 @@ let groupingComparer<'Key when 'Key : equality> () : IEqualityComparer<'Key> =
         HashIdentity.Structural<'Key>
 
 /// <summary>
-/// The keys of the projection, each with its elements; the order of both is not specified.
+/// Applies a key-generating function to each element of an array in parallel and yields an array of unique keys. Each
+/// unique key contains an array of all elements that match to this key.
 /// </summary>
+/// <param name="tuple">The function that builds an element of the result from a key and the array of its elements.</param>
+/// <param name="projection">A function that transforms an element of the array into a comparable key.</param>
+/// <param name="array">The input array.</param>
+/// <returns>The result array.</returns>
 /// <remarks>
-/// The projection, the work of the caller, runs in parallel. The grouping then runs over the computed keys with
+/// <para>
+/// Performs the operation in parallel using <see cref="M:System.Threading.Tasks.Parallel.For"/>. The order in which the
+/// given function is applied to elements of the input array is not specified. The order of the keys and values in the
+/// result is also not specified. This is an O(n) operation, where n is the length of the array.
+/// </para>
+/// <para>
+/// It exists because
+/// <see cref="M:Microsoft.FSharp.Collections.ArrayModule.Parallel.GroupBy``2(Microsoft.FSharp.Core.FSharpFunc{``0,``1},``0[])"/>
+/// returns reference tuples. The projection, the work of the caller, runs in parallel. The grouping then runs over the
+/// computed keys with
 /// <see cref="M:System.Linq.Enumerable.ToLookup``3(System.Collections.Generic.IEnumerable{``0},System.Func{``0,``1},System.Func{``0,``2},System.Collections.Generic.IEqualityComparer{``1})"/>
 /// and the comparer of <see cref="M:FSharp.Collections.Immutable.ParallelArrays.groupingComparer``1"/>, so that a
 /// <see langword="null"/> key is a key like any other. The result has the order of
@@ -130,7 +200,10 @@ let groupingComparer<'Key when 'Key : equality> () : IEqualityComparer<'Key> =
 /// one of the orders that
 /// <see cref="M:Microsoft.FSharp.Collections.ArrayModule.Parallel.GroupBy``2(Microsoft.FSharp.Core.FSharpFunc{``0,``1},``0[])"/>
 /// allows.
+/// </para>
 /// </remarks>
+/// <seealso cref="M:FSharp.Collections.Immutable.FlatList.Parallel.GroupBy``2(Microsoft.FSharp.Core.FSharpFunc{``0,``1},System.Collections.Immutable.ImmutableArray{``0})"/>
+/// <seealso cref="M:FSharp.Collections.Immutable.Tuple.FlatList.Parallel.GroupBy``2(Microsoft.FSharp.Core.FSharpFunc{``0,``1},System.Collections.Immutable.ImmutableArray{``0})"/>
 let inline groupBy
     ([<InlineIfLambda>] tuple : 'Key -> 'T array -> 'R)
     (projection : 'T -> 'Key)
@@ -153,13 +226,26 @@ let inline groupBy
     result
 
 /// <summary>
-/// The index of the first element that satisfies the predicate, or <c>ValueNone</c>.
+/// Returns the index of the first element in the array that satisfies the given predicate. Returns <c>ValueNone</c> if no
+/// such element exists.
 /// </summary>
+/// <param name="predicate">The function to test the input elements.</param>
+/// <param name="array">The input array.</param>
+/// <returns>The index of the first element that satisfies the predicate, or <c>ValueNone</c>.</returns>
 /// <remarks>
-/// The predicate runs in parallel. A match breaks the loop, which then starts only the elements before it, and the lowest
-/// index that broke the loop wins, as in
-/// <see cref="M:Microsoft.FSharp.Collections.ArrayModule.Parallel.TryFindIndex``1(Microsoft.FSharp.Core.FSharpFunc{``0,System.Boolean},``0[])"/>.
+/// <para>
+/// This is an O(n) operation in the worst case, where n is the length of the array.
+/// </para>
+/// <para>
+/// It exists because
+/// <see cref="M:Microsoft.FSharp.Collections.ArrayModule.Parallel.TryFindIndex``1(Microsoft.FSharp.Core.FSharpFunc{``0,System.Boolean},``0[])"/>
+/// returns an option, where the default functions return a value option. The predicate runs in parallel. A match breaks the
+/// loop, which then starts only the elements before it, and the lowest index that broke the loop wins, as in the function
+/// of FSharp.Core.
+/// </para>
 /// </remarks>
+/// <seealso cref="M:FSharp.Collections.Immutable.FlatList.Parallel.TryFindIndex``1(Microsoft.FSharp.Core.FSharpFunc{``0,System.Boolean},System.Collections.Immutable.ImmutableArray{``0})"/>
+/// <seealso cref="M:FSharp.Collections.Immutable.FlatList.Parallel.TryFind``1(Microsoft.FSharp.Core.FSharpFunc{``0,System.Boolean},System.Collections.Immutable.ImmutableArray{``0})"/>
 let tryFindIndex (predicate : 'T -> bool) (array : 'T array) : int voption =
     let result =
         Parallel.For (
@@ -178,15 +264,27 @@ let tryFindIndex (predicate : 'T -> bool) (array : 'T array) : int voption =
         ValueNone
 
 /// <summary>
-/// The value that the chooser returns for the first element with a value, or <c>ValueNone</c>.
+/// Applies the given function to successive elements, returning the first result where the function returns
+/// <c>ValueSome x</c> for some <c>x</c>. If the function never returns <c>ValueSome x</c> then <c>ValueNone</c> is
+/// returned.
 /// </summary>
+/// <param name="chooser">The function to transform the array elements into value options.</param>
+/// <param name="array">The input array.</param>
+/// <returns>The first transformed element that is <c>ValueSome x</c>.</returns>
 /// <remarks>
-/// The chooser runs in parallel. A value breaks the loop, which then starts only the elements before it, and the value of
-/// the lowest index wins. The function of FSharp.Core,
-/// <see cref="M:Microsoft.FSharp.Collections.ArrayModule.Parallel.TryPick``2(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpOption{``1}},``0[])"/>,
-/// keeps every value in a concurrent dictionary by index; here a lock guards the value of the lowest index so far, and
-/// only the elements that have a value take it.
+/// <para>
+/// This is an O(n) operation in the worst case, where n is the length of the array.
+/// </para>
+/// <para>
+/// It exists because
+/// <see cref="M:Microsoft.FSharp.Collections.ArrayModule.Parallel.TryPick``2(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpOption{``1}},``0[])"/>
+/// takes a chooser that returns options, where the default functions use value options. The chooser runs in parallel. A
+/// value breaks the loop, which then starts only the elements before it, and the value of the lowest index wins. The
+/// function of FSharp.Core keeps every value in a concurrent dictionary by index; here a lock guards the value of the
+/// lowest index so far, and only the elements that have a value take it.
+/// </para>
 /// </remarks>
+/// <seealso cref="M:FSharp.Collections.Immutable.FlatList.Parallel.TryPick``2(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpValueOption{``1}},System.Collections.Immutable.ImmutableArray{``0})"/>
 let tryPick (chooser : 'T -> 'U voption) (array : 'T array) : 'U voption =
     let gate = obj ()
     let lowest = ref Int32.MaxValue
@@ -214,11 +312,26 @@ let tryPick (chooser : 'T -> 'U voption) (array : 'T array) : 'U voption =
     chosen.Value
 
 /// <summary>
-/// Pairs the elements of two arrays of the same length in parallel.
+/// Combines the two arrays into an array of pairs. The two arrays must have equal lengths, otherwise an
+/// <see cref="T:System.ArgumentException"/> is raised.
 /// </summary>
+/// <param name="tuple">The function that builds an element of the result from the elements at the same index.</param>
+/// <param name="array1">The first input array.</param>
+/// <param name="array2">The second input array.</param>
+/// <returns>The array of tupled elements.</returns>
 /// <remarks>
-/// The chunks are those of <see cref="M:Microsoft.FSharp.Collections.ArrayModule.Parallel.Zip``2(``0[],``1[])"/>.
+/// <para>
+/// This is an O(n) operation, where n is the length of the arrays. The chunks are those of
+/// <see cref="M:Microsoft.FSharp.Collections.ArrayModule.Parallel.Zip``2(``0[],``1[])"/>. The callers check the lengths first
+/// and raise its exception.
+/// </para>
+/// <para>
+/// It exists because that function returns reference tuples, which allocate for every element, where the default function
+/// returns struct tuples.
+/// </para>
 /// </remarks>
+/// <seealso cref="M:FSharp.Collections.Immutable.FlatList.Parallel.Zip``2(System.Collections.Immutable.ImmutableArray{``0},System.Collections.Immutable.ImmutableArray{``1})"/>
+/// <seealso cref="M:FSharp.Collections.Immutable.Tuple.FlatList.Parallel.Zip``2(System.Collections.Immutable.ImmutableArray{``0},System.Collections.Immutable.ImmutableArray{``1})"/>
 let inline zip ([<InlineIfLambda>] tuple : 'T1 -> 'T2 -> 'R) (array1 : 'T1 array) (array2 : 'T2 array) : 'R array =
     let result = Array.zeroCreate array1.Length
 
