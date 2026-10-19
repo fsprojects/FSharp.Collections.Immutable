@@ -110,3 +110,40 @@ let partitionWith (partitioner : 'T -> Choice<'T1, 'T2>) (array : FlatList<'T>) 
 let splitAt index (array : FlatList<'T>) =
     let struct (before, after) = FSharp.Collections.Immutable.FlatList.splitAt index array
     before, after
+
+// As in the module above: the functions that build a tuple per element share their algorithm with the default module,
+// and the others delegate to it and repack the tuples
+[<RequireQualifiedAccess>]
+module Parallel =
+
+    // ---- Transformation ----
+
+    [<CompiledName "Zip">]
+    let zip (array1 : FlatList<'T1>) (array2 : FlatList<'T2>) =
+        let source1 = unwrapArray (nameof array1) array1
+        let source2 = unwrapArray (nameof array2) array2
+        ArrayChecks.sameLengths (nameof array1) source1 (nameof array2) source2
+
+        ParallelArrays.zip referencePair source1 source2
+        |> wrapArray
+
+    // ---- Partitioning and grouping ----
+
+    [<CompiledName "GroupBy">]
+    let groupBy (projection : 'T -> 'Key) (array : FlatList<'T>) =
+        ParallelArrays.groupBy (fun key items -> key, wrapArray items) projection (unwrapArray (nameof array) array)
+        |> wrapArray
+
+    [<CompiledName "Partition">]
+    let partition predicate (array : FlatList<'T>) =
+        let struct (accepted, rejected) =
+            FSharp.Collections.Immutable.FlatList.Parallel.partition predicate array
+
+        accepted, rejected
+
+    [<CompiledName "PartitionWith">]
+    let partitionWith (partitioner : 'T -> Choice<'T1, 'T2>) (array : FlatList<'T>) =
+        let struct (first, second) =
+            FSharp.Collections.Immutable.FlatList.Parallel.partitionWith partitioner array
+
+        first, second
