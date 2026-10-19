@@ -5,6 +5,20 @@
     <AssemblyName>$(AssemblyBaseName)</AssemblyName>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Deterministic>true</Deterministic>
+    <!-- AssemblyInfo.fs comes from the build script, so Directory.Build.props switches the generation of assembly
+         attributes off, and with it the attribute of the InternalsVisibleTo item below. This project switches it on and
+         switches off every attribute that AssemblyInfo.fs or the package properties already provide, so that the SDK
+         generates the InternalsVisibleTo attribute alone -->
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
+    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
+    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
+    <GenerateRepositoryUrlAttribute>false</GenerateRepositoryUrlAttribute>
   </PropertyGroup>
 
   <PropertyGroup Label="NuGet">
@@ -17,6 +31,12 @@
     <Optimize>true</Optimize>
     <Tailcalls>true</Tailcalls>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The tests call internal algorithms directly, where reaching a case through a public function would need arrays
+         too large for memory (the bounds of the chunks of a parallel loop, for example) -->
+    <InternalsVisibleTo Include="$(AssemblyBaseName).Tests" />
+  </ItemGroup>
 
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
@@ -46,23 +66,6 @@
     <Compile Include="ComputationExpressions.fsi" />
     <Compile Include="ComputationExpressions.fs" />
   </ItemGroup>
-
-  <ItemGroup>
-    <!-- The tests call internal algorithms directly, where reaching a case through a public function would need arrays
-         too large for memory (the bounds of the chunks of a parallel loop, for example) -->
-    <InternalsVisibleTo Include="$(AssemblyBaseName).Tests" />
-  </ItemGroup>
-
-  <!--
-    AssemblyInfo.fs comes from the build script, so Directory.Build.props switches off the assembly attributes that the
-    SDK generates, and with them the attribute of the InternalsVisibleTo items above. The property and the target ask
-    the SDK for the attributes of those items alone.
-  -->
-  <PropertyGroup>
-    <GenerateInternalsVisibleToAttributes>true</GenerateInternalsVisibleToAttributes>
-  </PropertyGroup>
-
-  <Target Name="GenerateInternalsVisibleTo" BeforeTargets="BeforeCompile;CoreCompile" DependsOnTargets="PrepareForBuild;CoreGenerateAssemblyInfo" Condition="'@(InternalsVisibleTo)' != ''" />
 
   <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" />
