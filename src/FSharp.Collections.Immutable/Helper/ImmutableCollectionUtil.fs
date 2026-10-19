@@ -24,6 +24,13 @@ let inline checkNotDefault name (array : ImmutableArray<'T>) =
     if array.IsDefault then
         nullArg name
 
+/// Reads the property IsDefault of a boxed immutable array through reflection, from the type of the array.
+let inline readIsDefault (arrayType : Type) (array : obj) : bool =
+    arrayType.GetProperty "IsDefault"
+    |> nonNull
+    |> _.GetValue(array)
+    |> unbox<bool>
+
 /// <summary>
 /// Tells whether an object is a default <see cref="T:System.Collections.Immutable.ImmutableArray`1"/>, of any element type.
 /// </summary>
@@ -44,7 +51,7 @@ let inline isDefaultImmutableArray (source : obj) : bool =
 
     sourceType.IsGenericType
     && Type.(=) (sourceType.GetGenericTypeDefinition (), typedefof<ImmutableArray<_>>)
-    && unbox<bool>((nonNull (sourceType.GetProperty "IsDefault")).GetValue source)
+    && readIsDefault sourceType source
 
 /// <summary>
 /// Throws <see cref="T:System.ArgumentNullException"/> for a <see langword="null"/> sequence and for a default
