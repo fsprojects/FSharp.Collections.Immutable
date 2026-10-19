@@ -42,14 +42,17 @@ let inline readIsDefault (arrayType : Type) (array : obj) : bool =
 /// </para>
 /// <para>
 /// The function finds the instantiation from the type of the object and reads the property <c>IsDefault</c> through
-/// reflection. It allocates nothing for an object of another type. It is inline, because the public inline members of
-/// the computation expression call the check, and an inline member cannot call an internal function.
+/// reflection. A boxed immutable array is a value type, so every class is rejected first by one flag of its type, before
+/// the generic definition is read. The function allocates nothing for an object of another type. It is inline, because
+/// the public inline members of the computation expression call the check, and an inline member cannot call an internal
+/// function.
 /// </para>
 /// </remarks>
 let inline isDefaultImmutableArray (source : obj) : bool =
     let sourceType = source.GetType ()
 
-    sourceType.IsGenericType
+    sourceType.IsValueType
+    && sourceType.IsGenericType
     && Type.(=) (sourceType.GetGenericTypeDefinition (), typedefof<ImmutableArray<_>>)
     && readIsDefault sourceType source
 
