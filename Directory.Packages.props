@@ -19,7 +19,6 @@
     <PackageVersion Include="Fake.Core.Process" Version="6.2.0" />
     <PackageVersion Include="Fake.Core.ReleaseNotes" Version="6.2.0" />
     <PackageVersion Include="Fake.Core.Target" Version="6.2.0" />
-    <PackageVersion Include="Fake.DotNet.AssemblyInfoFile" Version="6.2.0" />
     <PackageVersion Include="Fake.DotNet.Cli" Version="6.2.0" />
     <PackageVersion Include="Fake.DotNet.Paket" Version="6.2.0" />
     <PackageVersion Include="Fake.IO.FileSystem" Version="6.2.0" />
