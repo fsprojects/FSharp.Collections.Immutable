@@ -26,6 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   change the builder return it. `replace` and `replaceWith` leave the builder as it is when no element equals the old
   value, as `ImmutableArray<'T>.Builder.Replace` does, where `FlatList.replace` throws `ArgumentException`.
 * `flatList { }` builds a flat list.
+* `FlatList.Parallel` has every function of the FSharp.Core `Array.Parallel` module except the in-place sorts, with its
+  semantics and exceptions. Its `tryFind`, `tryFindIndex` and `tryPick` return `voption`, `choose` and `tryPick` take
+  functions that return `voption`, and `groupBy`, `partition`, `partitionWith` and `zip` return struct tuples; the
+  `Parallel` modules of the `Option` and `Tuple` namespaces repeat them with options and reference tuples.
 
 ### Changed
 
