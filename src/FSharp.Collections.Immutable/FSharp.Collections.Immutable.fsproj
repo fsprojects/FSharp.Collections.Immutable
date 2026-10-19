@@ -32,6 +32,7 @@
     <Compile Include="Helper\Raise.fs" />
     <Compile Include="Helper\ArrayChecks.fs" />
     <Compile Include="Helper\Arrays.fs" />
+    <Compile Include="Helper\ParallelArrays.fs" />
     <Compile Include="FlatList\FlatListTypes.fs" />
     <Compile Include="FlatList\FlatList.fsi" />
     <Compile Include="FlatList\FlatList.fs" />

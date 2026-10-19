@@ -1006,3 +1006,201 @@ let isDefault (array : FlatList<'T>) = array.IsDefault
 
 [<CompiledName "IsDefaultOrEmpty">]
 let isDefaultOrEmpty (array : FlatList<'T>) = array.IsDefaultOrEmpty
+
+// Most functions unwrap the underlying array without a copy, call the Array.Parallel function, and wrap its fresh result
+// without a copy (ADR 0001, D11), so that they have the semantics and the exceptions of Array.Parallel. Where the
+// Array.Parallel function takes or returns options or builds a tuple per element or per group (choose, tryFind,
+// tryFindIndex, tryPick, zip, groupBy), an algorithm of ParallelArrays with value options and struct tuples runs instead.
+// Array.Parallel sorts a copy of its input, so the shared array is never changed.
+[<RequireQualifiedAccess>]
+module Parallel =
+
+    // ---- Creation ----
+
+    [<CompiledName "Initialize">]
+    let init count (initializer : int -> 'T) = Array.Parallel.init count initializer |> wrapArray
+
+    // ---- Search ----
+
+    [<CompiledName "Exists">]
+    let exists predicate (array : FlatList<'T>) = Array.Parallel.exists predicate (unwrapArray (nameof array) array)
+
+    [<CompiledName "ForAll">]
+    let forall predicate (array : FlatList<'T>) = Array.Parallel.forall predicate (unwrapArray (nameof array) array)
+
+    [<CompiledName "TryFind">]
+    let tryFind predicate (array : FlatList<'T>) =
+        let source = unwrapArray (nameof array) array
+
+        match ParallelArrays.tryFindIndex predicate source with
+        | ValueSome index -> ValueSome source[index]
+        | ValueNone -> ValueNone
+
+    [<CompiledName "TryFindIndex">]
+    let tryFindIndex predicate (array : FlatList<'T>) = ParallelArrays.tryFindIndex predicate (unwrapArray (nameof array) array)
+
+    [<CompiledName "TryPick">]
+    let tryPick (chooser : 'T -> 'U voption) (array : FlatList<'T>) =
+        ParallelArrays.tryPick chooser (unwrapArray (nameof array) array)
+
+    // ---- Transformation ----
+
+    [<CompiledName "Choose">]
+    let choose (chooser : 'T -> 'U voption) (array : FlatList<'T>) =
+        ParallelArrays.choose chooser (unwrapArray (nameof array) array)
+        |> wrapArray
+
+    [<CompiledName "Collect">]
+    let collect (mapping : 'T -> FlatList<'U>) (array : FlatList<'T>) =
+        // As in Array.Parallel.collect, the mapping runs in parallel, and the results are copied in their order into one
+        // array of their total length. Array.Parallel.collect dereferences a null result; a default flat list from the
+        // mapping throws ArgumentNullException instead, as in the sequential collect (ADR 0001, D6).
+        let results = Array.Parallel.map mapping (unwrapArray (nameof array) array)
+        let mutable length = 0
+
+        for result in results do
+            checkNotDefault (nameof mapping) result
+            length <- length + result.Length
+
+        let builder = ImmutableArray.CreateBuilder<'U> length
+
+        for result in results do
+            builder.AddRange result
+
+        builder.MoveToImmutable ()
+
+    [<CompiledName "Filter">]
+    let filter predicate (array : FlatList<'T>) =
+        Array.Parallel.filter predicate (unwrapArray (nameof array) array)
+        |> wrapArray
+
+    [<CompiledName "Map">]
+    let map (mapping : 'T -> 'U) (array : FlatList<'T>) =
+        Array.Parallel.map mapping (unwrapArray (nameof array) array)
+        |> wrapArray
+
+    [<CompiledName "MapIndexed">]
+    let mapi (mapping : int -> 'T -> 'U) (array : FlatList<'T>) =
+        Array.Parallel.mapi mapping (unwrapArray (nameof array) array)
+        |> wrapArray
+
+    [<CompiledName "Zip">]
+    let zip (array1 : FlatList<'T1>) (array2 : FlatList<'T2>) =
+        let source1 = unwrapArray (nameof array1) array1
+        let source2 = unwrapArray (nameof array2) array2
+        ArrayChecks.sameLengths (nameof array1) source1 (nameof array2) source2
+        ParallelArrays.zip structPair source1 source2 |> wrapArray
+
+    // ---- Folding ----
+
+    // The inline functions can use public members only, so they check and unwrap the array themselves
+    [<CompiledName "Average">]
+    let inline average (array : FlatList< ^T >) : ^T =
+        if array.IsDefault then
+            nullArg (nameof array)
+
+        Array.Parallel.average (
+            ImmutableCollectionsMarshal.AsArray array
+            |> Unchecked.nonNull
+        )
+
+    [<CompiledName "AverageBy">]
+    let inline averageBy ([<InlineIfLambda>] projection : 'T -> ^U) (array : FlatList<'T>) : ^U =
+        if array.IsDefault then
+            nullArg (nameof array)
+
+        Array.Parallel.averageBy
+            projection
+            (ImmutableCollectionsMarshal.AsArray array
+             |> Unchecked.nonNull)
+
+    [<CompiledName "Iterate">]
+    let iter action (array : FlatList<'T>) = Array.Parallel.iter action (unwrapArray (nameof array) array)
+
+    [<CompiledName "IterateIndexed">]
+    let iteri action (array : FlatList<'T>) = Array.Parallel.iteri action (unwrapArray (nameof array) array)
+
+    [<CompiledName "Max">]
+    let max (array : FlatList<'T>) = Array.Parallel.max (unwrapArray (nameof array) array)
+
+    [<CompiledName "MaxBy">]
+    let maxBy (projection : 'T -> 'U) (array : FlatList<'T>) = Array.Parallel.maxBy projection (unwrapArray (nameof array) array)
+
+    [<CompiledName "Min">]
+    let min (array : FlatList<'T>) = Array.Parallel.min (unwrapArray (nameof array) array)
+
+    [<CompiledName "MinBy">]
+    let minBy (projection : 'T -> 'U) (array : FlatList<'T>) = Array.Parallel.minBy projection (unwrapArray (nameof array) array)
+
+    [<CompiledName "Reduce">]
+    let reduce reduction (array : FlatList<'T>) = Array.Parallel.reduce reduction (unwrapArray (nameof array) array)
+
+    [<CompiledName "ReduceBy">]
+    let reduceBy (projection : 'T -> 'U) reduction (array : FlatList<'T>) =
+        Array.Parallel.reduceBy projection reduction (unwrapArray (nameof array) array)
+
+    // Array.Parallel.sum dereferences a null array without a check; a default flat list throws ArgumentNullException,
+    // which its documentation promises
+    [<CompiledName "Sum">]
+    let inline sum (array : FlatList< ^T >) : ^T =
+        if array.IsDefault then
+            nullArg (nameof array)
+
+        Array.Parallel.sum (
+            ImmutableCollectionsMarshal.AsArray array
+            |> Unchecked.nonNull
+        )
+
+    [<CompiledName "SumBy">]
+    let inline sumBy ([<InlineIfLambda>] projection : 'T -> ^U) (array : FlatList<'T>) : ^U =
+        if array.IsDefault then
+            nullArg (nameof array)
+
+        Array.Parallel.sumBy
+            projection
+            (ImmutableCollectionsMarshal.AsArray array
+             |> Unchecked.nonNull)
+
+    // ---- Partitioning and grouping ----
+
+    [<CompiledName "GroupBy">]
+    let groupBy (projection : 'T -> 'Key) (array : FlatList<'T>) =
+        ParallelArrays.groupBy (fun key items -> struct (key, wrapArray items)) projection (unwrapArray (nameof array) array)
+        |> wrapArray
+
+    [<CompiledName "Partition">]
+    let partition predicate (array : FlatList<'T>) =
+        let accepted, rejected = Array.Parallel.partition predicate (unwrapArray (nameof array) array)
+        struct (wrapArray accepted, wrapArray rejected)
+
+    [<CompiledName "PartitionWith">]
+    let partitionWith (partitioner : 'T -> Choice<'T1, 'T2>) (array : FlatList<'T>) =
+        let first, second = Array.Parallel.partitionWith partitioner (unwrapArray (nameof array) array)
+        struct (wrapArray first, wrapArray second)
+
+    // ---- Sorting ----
+
+    [<CompiledName "Sort">]
+    let sort (array : FlatList<'T>) =
+        Array.Parallel.sort (unwrapArray (nameof array) array)
+        |> wrapArray
+
+    [<CompiledName "SortBy">]
+    let sortBy (projection : 'T -> 'Key) (array : FlatList<'T>) =
+        Array.Parallel.sortBy projection (unwrapArray (nameof array) array)
+        |> wrapArray
+
+    [<CompiledName "SortByDescending">]
+    let sortByDescending (projection : 'T -> 'Key) (array : FlatList<'T>) =
+        Array.Parallel.sortByDescending projection (unwrapArray (nameof array) array)
+        |> wrapArray
+
+    [<CompiledName "SortDescending">]
+    let sortDescending (array : FlatList<'T>) =
+        Array.Parallel.sortDescending (unwrapArray (nameof array) array)
+        |> wrapArray
+
+    [<CompiledName "SortWith">]
+    let sortWith comparer (array : FlatList<'T>) =
+        Array.Parallel.sortWith comparer (unwrapArray (nameof array) array)
+        |> wrapArray
