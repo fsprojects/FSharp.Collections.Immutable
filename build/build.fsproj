@@ -25,7 +25,6 @@
     <PackageReference Include="Fake.Core.Process" />
     <PackageReference Include="Fake.Core.ReleaseNotes" />
     <PackageReference Include="Fake.Core.Target" />
-    <PackageReference Include="Fake.DotNet.AssemblyInfoFile" />
     <PackageReference Include="Fake.DotNet.Cli" />
     <PackageReference Include="Fake.DotNet.Paket" />
     <PackageReference Include="Fake.IO.FileSystem" />
