@@ -370,17 +370,15 @@ let append (list1 : IIndexedList<'T>) (list2 : IIndexedList<'T>) =
 [<CompiledName "Choose">]
 let choose (chooser : 'T -> 'U voption) (list : IIndexedList<'T>) =
     checkNotNull (nameof list) list
-    // The number of chosen elements is not known in advance, so they wait in a ResizeArray and CreateRange builds the
-    // balanced tree once. A builder rebalances its tree after every Add and took 2.3 times as long for 100 000
-    // elements; there is no tree of an input to join to its tree here, as collect and concat have (see Collectors).
-    let chosen = ResizeArray<'U>()
+    // As IndexedList.choose: the chosen elements wait in an array as long as the list (see Buffers)
+    let chosen = Buffers.ChosenBuffer<'U> list.Count
 
     for item in list do
         match chooser item with
         | ValueSome value -> chosen.Add value
         | ValueNone -> ()
 
-    ImmutableList.CreateRange chosen
+    chosen.ToImmutable ()
 
 [<CompiledName "ChunkBySize">]
 let chunkBySize chunkSize (list : IIndexedList<'T>) =
