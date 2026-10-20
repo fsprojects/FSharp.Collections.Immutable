@@ -150,18 +150,15 @@ type SeqLikeAccessContract<'C> (ops : SeqOps<'C>) =
         let struct (collection, elements) = this.Create input
         let tail = ops.TryTail collection
 
-        Assert.AreEqual<bool>(
-            not (Array.isEmpty elements),
-            tail.IsSome,
-            $"%s{ops.Name}.tryTail must return a tail exactly for a collection with elements"
-        )
+        if Array.isEmpty elements then
+            Assert.IsValueNone (tail, $"%s{ops.Name}.tryTail must return nothing for an empty collection")
+        else
+            let tail =
+                Assert.WantValueSome (tail, $"%s{ops.Name}.tryTail must return a tail for a collection with elements")
 
-        // CollectionAssert compares the elements of the tail and reports the first one that differs
-        match tail with
-        | ValueSome tail ->
+            // CollectionAssert compares the elements of the tail and reports the first one that differs
             CollectionAssert.AreEqual (
                 Array.tail elements,
                 ops.ToArray tail,
                 $"%s{ops.Name}.tryTail must return the elements after the first one"
             )
-        | ValueNone -> ()

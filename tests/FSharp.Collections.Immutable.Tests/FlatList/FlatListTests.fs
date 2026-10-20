@@ -1089,8 +1089,10 @@ type FlatListTests () =
     [<TestMethod; DynamicData(nameof FlatListTests.ReplacedValues)>]
     member _.``replace replaces the first equal element`` (input : int array, oldValue : int) =
         CollectionAssert.AreEqual (
-            FlatListOracles.replaceFirst (=) oldValue 99 input
-            |> ValueOption.get,
+            Assert.WantValueSome (
+                FlatListOracles.replaceFirst (=) oldValue 99 input,
+                "The test data must contain the value to replace"
+            ),
             FlatList.toArray (FlatList.replace oldValue 99 (FlatList.ofArray input)),
             "FlatList.replace must replace the first equal element"
         )
@@ -1130,8 +1132,10 @@ type FlatListTests () =
         let names = FlatListOracles.names ()
 
         CollectionAssert.AreEqual (
-            FlatListOracles.replaceFirst FlatListOracles.equalIgnoringCase oldValue "X" names
-            |> ValueOption.get,
+            Assert.WantValueSome (
+                FlatListOracles.replaceFirst FlatListOracles.equalIgnoringCase oldValue "X" names,
+                "The test data must contain a string that the comparer finds equal"
+            ),
             FlatList.toArray (FlatList.replaceWith StringComparer.OrdinalIgnoreCase oldValue "X" (FlatList.ofArray names)),
             "FlatList.replaceWith must replace the first element that the comparer finds equal"
         )

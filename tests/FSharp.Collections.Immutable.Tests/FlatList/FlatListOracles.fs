@@ -4,6 +4,7 @@ module FSharp.Collections.Immutable.Tests.FlatListOracles
 
 open System
 open System.Collections.Generic
+open Microsoft.VisualStudio.TestTools.UnitTesting
 open FSharp.Collections.Immutable
 
 /// A flat list of strings as a sequence of objects. A flat list of strings is also a sequence of objects, by the
@@ -59,12 +60,11 @@ let messageDetail (action : unit -> unit) =
         with ex ->
             ValueSome ex
 
-    match thrown with
-    | ValueSome ex ->
-        match ex.Message.IndexOf '\n' with
-        | -1 -> ""
-        | newline -> ex.Message.Substring (newline + 1)
-    | ValueNone -> invalidOp "The action must throw"
+    let ex = Assert.WantValueSome (thrown, "The action must throw")
+
+    match ex.Message.IndexOf '\n' with
+    | -1 -> ""
+    | newline -> ex.Message.Substring (newline + 1)
 
 /// The index of the first element of a range that the equality finds equal to the value, or -1: the oracle of the
 /// searches from the front.

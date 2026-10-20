@@ -599,8 +599,10 @@ type FlatListBuilderTests () =
         FlatListBuilder.replace oldValue 99 builder |> ignore
 
         CollectionAssert.AreEqual (
-            FlatListOracles.replaceFirst (=) oldValue 99 input
-            |> ValueOption.get,
+            Assert.WantValueSome (
+                FlatListOracles.replaceFirst (=) oldValue 99 input,
+                "The test data must contain the value to replace"
+            ),
             Seq.toArray builder,
             "FlatListBuilder.replace must replace the first equal element"
         )
@@ -626,8 +628,10 @@ type FlatListBuilderTests () =
         |> ignore
 
         CollectionAssert.AreEqual (
-            FlatListOracles.replaceFirst FlatListOracles.equalIgnoringCase oldValue "X" names
-            |> ValueOption.get,
+            Assert.WantValueSome (
+                FlatListOracles.replaceFirst FlatListOracles.equalIgnoringCase oldValue "X" names,
+                "The test data must contain a string that the comparer finds equal"
+            ),
             Seq.toArray builder,
             "FlatListBuilder.replaceWith must replace the first element that the comparer finds equal"
         )

@@ -67,19 +67,21 @@ type FlatListOptionTests () =
 
     [<TestMethod>]
     member _.``tryTail returns an option`` () =
-        let expected = FSharp.Collections.Immutable.FlatList.tryTail array
+        let expected =
+            Assert.WantValueSome (
+                FSharp.Collections.Immutable.FlatList.tryTail array,
+                "FlatList.tryTail must return a tail for a flat list with elements"
+            )
+
         let found : FlatList<int> option = FlatList.tryTail array
-        Assert.AreEqual<bool>(expected.IsSome, found.IsSome, "Option.FlatList.tryTail must return a tail when the default does")
+        let tail = Assert.WantSome (found, "Option.FlatList.tryTail must return a tail when the default does")
 
         // The tails are compared element by element
-        match expected, found with
-        | ValueSome expected, Some found ->
-            CollectionAssert.AreEqual (
-                FlatList.toArray expected,
-                FlatList.toArray found,
-                "Option.FlatList.tryTail must return the tail of the default"
-            )
-        | _ -> ()
+        CollectionAssert.AreEqual (
+            FlatList.toArray expected,
+            FlatList.toArray tail,
+            "Option.FlatList.tryTail must return the tail of the default"
+        )
 
     [<TestMethod>]
     member _.``pick takes a chooser of options`` () =
