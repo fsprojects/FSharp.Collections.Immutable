@@ -8,6 +8,12 @@ open Microsoft.VisualStudio.TestTools.UnitTesting
 // The attributes go on the test classes only, for the collection and the area that a class examines; test methods carry
 // no categories (ADR 0001, D8).
 
+/// The assertions that extend `Assert` (`Assert.fs`).
+type AssertExtensionsTestCategoryAttribute () =
+    inherit TestCategoryBaseAttribute ()
+    static let categories : IList<string> = [| "Assert extensions" |]
+    override _.TestCategories = categories
+
 /// The builder functions and the builder modules.
 type BuilderTestCategoryAttribute () =
     inherit TestCategoryBaseAttribute ()
