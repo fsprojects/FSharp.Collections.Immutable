@@ -1006,3 +1006,18 @@ type IndexedListTests () =
             |> IndexedList.toArray,
             "IndexedList.collect must concatenate the results for the strings"
         )
+
+    /// The contracts choose from short lists, which a new array holds; a long list goes through the rented array, and the
+    /// selectivities give the results of all lengths, down to a few elements.
+    [<TestMethod; DataRow 100; DataRow 50; DataRow 1>]
+    member _.``choose of a long list keeps the chosen elements in order`` (percent : int) =
+        let items = Array.init 100_000 id
+
+        CollectionAssert.AreEqual (
+            items
+            |> Array.choose (fun x -> if x % 100 < percent then Some (x * 2) else None),
+            IndexedList.ofArray items
+            |> IndexedList.choose (fun x -> if x % 100 < percent then ValueSome (x * 2) else ValueNone)
+            |> IndexedList.toArray,
+            $"IndexedList.choose must keep the chosen elements of a long list in order (%d{percent} %% chosen)"
+        )

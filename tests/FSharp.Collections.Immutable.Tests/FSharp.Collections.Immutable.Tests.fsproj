@@ -73,6 +73,7 @@
     <Compile Include="IndexedList\IndexedListContractTests.fs" />
     <Compile Include="IndexedList\IndexedListTests.fs" />
     <Compile Include="IndexedList\IndexedListRangeTests.fs" />
+    <Compile Include="IndexedList\ChosenBufferTests.fs" />
     <Compile Include="IndexedList\IIndexedListTests.fs" />
     <Compile Include="IndexedList\IndexedListBuilderTests.fs" />
     <Compile Include="IndexedList\IndexedListComputationExpressionTests.fs" />
