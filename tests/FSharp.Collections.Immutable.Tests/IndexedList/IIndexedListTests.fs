@@ -674,6 +674,21 @@ type IIndexedListTests () =
 
         Assert.AreEqual<int>(-1, IIndexedList.indexOf [| 1; 2 |] arrays, "IIndexedList.indexOf must compare arrays by reference")
 
+    /// The contracts choose from short lists, which a new array holds; a long list goes through the rented array, and the
+    /// selectivities give the results of all lengths, down to a few elements.
+    [<TestMethod; DataRow 100; DataRow 50; DataRow 1>]
+    member _.``choose of a long list keeps the chosen elements in order`` (percent : int) =
+        let items = Array.init 100_000 id
+        let list : IIndexedList<int> = IndexedList.ofArray items
+
+        CollectionAssert.AreEqual (
+            items
+            |> Array.choose (fun x -> if x % 100 < percent then Some (x * 2) else None),
+            IIndexedList.choose (fun x -> if x % 100 < percent then ValueSome (x * 2) else ValueNone) list
+            |> IIndexedList.toArray,
+            $"IIndexedList.choose must keep the chosen elements of a long list in order (%d{percent} %% chosen)"
+        )
+
 /// The sequence-like contract for `IIndexedList` over an implementation that is not an indexed list. The functions that
 /// take a shortcut for indexed lists go the general way here, and must give the same results.
 [<TestClass; IIndexedListTestCategory>]

@@ -497,10 +497,16 @@ let append (list1 : IndexedList<'T>) (list2 : IndexedList<'T>) =
 [<CompiledName "Choose">]
 let choose (chooser : 'T -> 'U voption) (list : IndexedList<'T>) =
     checkNotNull (nameof list) list
-    // The number of chosen elements is not known in advance, so they wait in a ResizeArray and CreateRange builds the
-    // balanced tree once. A builder rebalances its tree after every Add and took 2.3 times as long for 100 000
+    // The chosen elements wait in an array as long as the list, the most that the result can have: a new one below 1024
+    // elements, and one rented from the pool above (see Buffers). The ResizeArray that was here doubles its array as it
+    // fills, and allocated 18 % more than the tree needs for a million integers and 35 % more for a million strings; the
+    // arrays of its growth in the large object heap made the collections of the second generation more frequent. The
+    // array took the same time for integers of 10 to 10 000 elements and up to 10 % less above; a buffer of chunks that
+    // are joined to the result as subtrees left a tree whose indexer was 6 to 10 % slower (the average of two runs, 100 to
+    // 100 000 elements), and it took no less time than the array. A builder rebalances its tree
+    // after every Add and took 3.3 to 3.6 times as long for integers and 2.5 times for strings of 100 000 to a million
     // elements; there is no tree of an input to join to its tree here, as collect and concat have (see Collectors).
-    let chosen = ResizeArray<'U>()
+    let chosen = Buffers.ChosenBuffer<'U> list.Count
 
     Walk.iter
         (fun item ->
@@ -510,7 +516,7 @@ let choose (chooser : 'T -> 'U voption) (list : IndexedList<'T>) =
         )
         list
 
-    ImmutableList.CreateRange chosen
+    chosen.ToImmutable ()
 
 [<CompiledName "ChunkBySize">]
 let chunkBySize chunkSize (list : IndexedList<'T>) =
