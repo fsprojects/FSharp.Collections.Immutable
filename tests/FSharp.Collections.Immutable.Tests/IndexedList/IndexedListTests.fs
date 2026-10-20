@@ -909,3 +909,24 @@ type IndexedListTests () =
             $"IndexedList.%s{name} must throw the type of exception of List"
         )
         Assert.AreEqual<string>(expected.Message, ex.Message, $"IndexedList.%s{name} must throw the message of List")
+
+    /// An F# list is an `IReadOnlyList` whose indexer walks the list from its head, and the BCL builds a tree by indexing,
+    /// so `ImmutableList.CreateRange` of a list takes time that grows with the square of the length: about 6 s for 100 000
+    /// elements and four times as much for 200 000, where the copy that `ofList` makes takes a few milliseconds. The timeout is
+    /// far above the time of the copy and a fraction of the time of the quadratic build.
+    [<TestMethod; Timeout 5000>]
+    member _.``ofList and ofSeq copy a long list before they build the tree`` () =
+        let expected = Array.init 200_000 id
+        let list = List.ofArray expected
+
+        CollectionAssert.AreEqual (
+            expected,
+            IndexedList.toArray (IndexedList.ofList list),
+            "IndexedList.ofList must keep the elements of a long list in order"
+        )
+
+        CollectionAssert.AreEqual (
+            expected,
+            IndexedList.toArray (IndexedList.ofSeq list),
+            "IndexedList.ofSeq must keep the elements of a long list in order"
+        )
