@@ -9,6 +9,7 @@ F# bindings for [System.Collections.Immutable](https://learn.microsoft.com/en-us
 | Module | .NET type | Computation expression |
 |---|---|---|
 | `FlatList` | `ImmutableArray<'T>` | `flatList { }` |
+| `EquatableArray` | `EquatableArray<'T>`, an `ImmutableArray<'T>` with value equality, comparison and an empty default value | – |
 | `ImmutableList` | `ImmutableList<'T>` | – |
 | `Stack` | `ImmutableStack<'T>` | – |
 | `Queue` | `ImmutableQueue<'T>` | – |

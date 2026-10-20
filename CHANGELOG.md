@@ -30,6 +30,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   semantics and exceptions. Its `tryFind`, `tryFindIndex` and `tryPick` return `voption`, `choose` and `tryPick` take
   functions that return `voption`, and `groupBy`, `partition`, `partitionWith` and `zip` return struct tuples; the
   `Parallel` modules of the `Option` and `Tuple` namespaces repeat them with options and reference tuples.
+* `EquatableArray<'T>`: a struct over one `ImmutableArray<'T>` with value semantics, for fields of records and unions,
+  dictionary and set keys and persisted documents (ADR 0002)
+  * Equality and the hash code use all elements; every caller gets them, C# `==` and `!=` included
+  * Comparison puts shorter arrays first, then orders by the first different element, in the order of F# comparison
+  * The default value is the empty array
+  * Conversion to and from `ImmutableArray<'T>` does not copy; C# collection expressions and ranges work
+  * A System.Text.Json converter that needs no registration
+  * The `EquatableArray` module: `empty`, `ofArray`, `ofImmutableArray`, `ofList`, `ofSeq`, `singleton`,
+    `unsafeOfArray`, `isEmpty`, `length`, `map`, `toImmutableArray`
+  * The struct partial active patterns `Arr0`, `Arr1`, `Arr2`, `Arr3` and `ArrN`
 
 ### Changed
 

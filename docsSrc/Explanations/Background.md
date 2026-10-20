@@ -27,6 +27,7 @@ While F# has its own built-in immutable collections, System.Collections.Immutabl
 | Module | .NET type | Computation expression |
 |---|---|---|
 | `FlatList` | `ImmutableArray<'T>` | `flatList { }` |
+| `EquatableArray` | `EquatableArray<'T>`, an `ImmutableArray<'T>` with value equality, comparison and an empty default value | – |
 | `ImmutableList` | `ImmutableList<'T>` | – |
 | `Stack` | `ImmutableStack<'T>` | – |
 | `Queue` | `ImmutableQueue<'T>` | – |

@@ -8,6 +8,13 @@ open Microsoft.VisualStudio.TestTools.UnitTesting
 // The attributes go on the test classes only, for the collection and the area that a class examines; test methods carry
 // no categories (ADR 0001, D8).
 
+/// Categorizes a test that counts the bytes an operation allocates. These tests are compiled in Release builds only,
+/// because a Debug build does not optimize the code that they measure.
+type AllocationTestCategoryAttribute () =
+    inherit TestCategoryBaseAttribute ()
+    static let categories : IList<string> = [| "Allocation" |]
+    override _.TestCategories = categories
+
 /// The assertions that extend `Assert` (`Assert.fs`).
 type AssertExtensionsTestCategoryAttribute () =
     inherit TestCategoryBaseAttribute ()
@@ -18,6 +25,12 @@ type AssertExtensionsTestCategoryAttribute () =
 type BuilderTestCategoryAttribute () =
     inherit TestCategoryBaseAttribute ()
     static let categories : IList<string> = [| "Builder" |]
+    override _.TestCategories = categories
+
+/// Categorizes a test of the order of values.
+type ComparisonTestCategoryAttribute () =
+    inherit TestCategoryBaseAttribute ()
+    static let categories : IList<string> = [| "Comparison" |]
     override _.TestCategories = categories
 
 /// The computation expressions.
@@ -32,10 +45,34 @@ type ConventionTestCategoryAttribute () =
     static let categories : IList<string> = [| "Convention" |]
     override _.TestCategories = categories
 
+/// Categorizes a test of the default value of a struct collection, which must behave as the empty collection.
+type DefaultValueTestCategoryAttribute () =
+    inherit TestCategoryBaseAttribute ()
+    static let categories : IList<string> = [| "Default value" |]
+    override _.TestCategories = categories
+
+/// Categorizes a test of equality and hash codes.
+type EqualityTestCategoryAttribute () =
+    inherit TestCategoryBaseAttribute ()
+    static let categories : IList<string> = [| "Equality" |]
+    override _.TestCategories = categories
+
+/// <summary>Categorizes a test of <see cref="T:FSharp.Collections.Immutable.EquatableArray`1"/>.</summary>
+type EquatableArrayTestCategoryAttribute () =
+    inherit TestCategoryBaseAttribute ()
+    static let categories : IList<string> = [| "EquatableArray" |]
+    override _.TestCategories = categories
+
 /// The `FlatList` module (`ImmutableArray`).
 type FlatListTestCategoryAttribute () =
     inherit TestCategoryBaseAttribute ()
     static let categories : IList<string> = [| "FlatList" |]
+    override _.TestCategories = categories
+
+/// Categorizes a test of the text that %A and ToString give for a value.
+type FormattingTestCategoryAttribute () =
+    inherit TestCategoryBaseAttribute ()
+    static let categories : IList<string> = [| "Formatting" |]
     override _.TestCategories = categories
 
 /// The `FrozenMap` module (`FrozenDictionary`).
@@ -96,6 +133,24 @@ type IStackTestCategoryAttribute () =
 type IndexedListTestCategoryAttribute () =
     inherit TestCategoryBaseAttribute ()
     static let categories : IList<string> = [| "IndexedList" |]
+    override _.TestCategories = categories
+
+/// Categorizes a test of the members that .NET interfaces, conversions, spans and C# use.
+type InteropTestCategoryAttribute () =
+    inherit TestCategoryBaseAttribute ()
+    static let categories : IList<string> = [| "Interop" |]
+    override _.TestCategories = categories
+
+/// Categorizes a test of the conversion to and from JSON.
+type JsonTestCategoryAttribute () =
+    inherit TestCategoryBaseAttribute ()
+    static let categories : IList<string> = [| "JSON" |]
+    override _.TestCategories = categories
+
+/// Categorizes a test of the functions of a collection module.
+type ModuleFunctionsTestCategoryAttribute () =
+    inherit TestCategoryBaseAttribute ()
+    static let categories : IList<string> = [| "Module functions" |]
     override _.TestCategories = categories
 
 /// The modules of the `FSharp.Collections.Immutable.Option` namespace.
