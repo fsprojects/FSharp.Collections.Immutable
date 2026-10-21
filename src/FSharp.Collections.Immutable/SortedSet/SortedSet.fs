@@ -146,40 +146,55 @@ let contains (element : 'T) (set : SortedSet<'T>) =
     checkNotNull (nameof set) set
     set.Contains element
 
-// exists and forall loop over the struct enumerator of the sorted set, which allocates nothing. LINQ Any and All allocated
-// 152 bytes per call, a delegate and the boxed enumerator, and Seq.exists and Seq.forall 64 bytes, the boxed enumerator
-// (measured in Release; a measured faster path replaces a higher priority, D5). Dispose returns the pooled stack of the
-// enumerator.
+// exists and forall loop over the struct enumerator of the sorted set for a value type, which allocates nothing. LINQ Any and
+// All allocated 152 bytes per call, a delegate and the boxed enumerator, and Seq.exists and Seq.forall 64 bytes, the boxed
+// enumerator (measured in Release; a measured faster path replaces a higher priority, D5). A set of a reference type is walked
+// through the interface instead, at the price of that boxed enumerator: the code that all reference types share needs a
+// lookup of the exact type at run time for each call of a member of the generic struct enumerator, and for strings of 100 to
+// 100 000 elements exists and forall took 0.47 to 0.57 times as long, where for integers the interface took 1.3 to 1.7 times
+// as long. Dispose returns the pooled stack of the enumerator.
 
 [<CompiledName "Exists">]
 let exists (predicate : 'T -> bool) (set : SortedSet<'T>) =
     checkNotNull (nameof set) set
-    let mutable enumerator = set.GetEnumerator ()
+    let mutable found = false
 
-    try
-        let mutable found = false
+    if typeof<'T>.IsValueType then
+        let mutable enumerator = set.GetEnumerator ()
+
+        try
+            while not found && enumerator.MoveNext () do
+                found <- predicate enumerator.Current
+        finally
+            enumerator.Dispose ()
+    else
+        use enumerator = (set :> seq<'T>).GetEnumerator()
 
         while not found && enumerator.MoveNext () do
             found <- predicate enumerator.Current
 
-        found
-    finally
-        enumerator.Dispose ()
+    found
 
 [<CompiledName "ForAll">]
 let forall (predicate : 'T -> bool) (set : SortedSet<'T>) =
     checkNotNull (nameof set) set
-    let mutable enumerator = set.GetEnumerator ()
+    let mutable satisfied = true
 
-    try
-        let mutable satisfied = true
+    if typeof<'T>.IsValueType then
+        let mutable enumerator = set.GetEnumerator ()
+
+        try
+            while satisfied && enumerator.MoveNext () do
+                satisfied <- predicate enumerator.Current
+        finally
+            enumerator.Dispose ()
+    else
+        use enumerator = (set :> seq<'T>).GetEnumerator()
 
         while satisfied && enumerator.MoveNext () do
             satisfied <- predicate enumerator.Current
 
-        satisfied
-    finally
-        enumerator.Dispose ()
+    satisfied
 
 [<CompiledName "IsProperSubset">]
 let isProperSubset (set1 : SortedSet<'T>) (set2 : SortedSet<'T>) =
