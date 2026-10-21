@@ -15,33 +15,25 @@ let unfold (generator : 'State -> ('T * 'State) option) (state : 'State) =
         | Some (item, next) -> ValueSome (struct (item, next))
         | None -> ValueNone
 
-    FSharp.Collections.Immutable.Stack.unfold generateStruct state
+    Stack.unfold generateStruct state
 
 // ---- Access ----
 
 [<CompiledName "TryExactlyOne">]
-let tryExactlyOne (stack : Stack<'T>) =
-    FSharp.Collections.Immutable.Stack.tryExactlyOne stack
-    |> ValueOption.toOption
+let tryExactlyOne (stack : Stack<'T>) = Stack.tryExactlyOne stack |> ValueOption.toOption
 
 [<CompiledName "TryPeek">]
-let tryHead (stack : Stack<'T>) =
-    FSharp.Collections.Immutable.Stack.tryHead stack
-    |> ValueOption.toOption
+let tryHead (stack : Stack<'T>) = Stack.tryHead stack |> ValueOption.toOption
 
 [<CompiledName "TryLast">]
-let tryLast (stack : Stack<'T>) =
-    FSharp.Collections.Immutable.Stack.tryLast stack
-    |> ValueOption.toOption
+let tryLast (stack : Stack<'T>) = Stack.tryLast stack |> ValueOption.toOption
 
 [<CompiledName "TryPop">]
-let tryTail (stack : Stack<'T>) =
-    FSharp.Collections.Immutable.Stack.tryTail stack
-    |> ValueOption.toOption
+let tryTail (stack : Stack<'T>) = Stack.tryTail stack |> ValueOption.toOption
 
 [<CompiledName "TryPeekPop">]
 let tryUncons (stack : Stack<'T>) =
-    match FSharp.Collections.Immutable.Stack.tryUncons stack with
+    match Stack.tryUncons stack with
     | ValueSome (struct (head, tail)) -> Some (head, tail)
     | ValueNone -> None
 
@@ -51,36 +43,28 @@ let (|Cons|_|) (stack : Stack<'T>) = tryUncons stack
 // ---- Search ----
 
 [<CompiledName "Pick">]
-let pick (chooser : 'T -> 'U option) (stack : Stack<'T>) =
-    FSharp.Collections.Immutable.Stack.pick (fun item -> chooser item |> ValueOption.ofOption) stack
+let pick (chooser : 'T -> 'U option) (stack : Stack<'T>) = Stack.pick (fun item -> chooser item |> ValueOption.ofOption) stack
 
 [<CompiledName "TryFind">]
-let tryFind predicate (stack : Stack<'T>) =
-    FSharp.Collections.Immutable.Stack.tryFind predicate stack
-    |> ValueOption.toOption
+let tryFind predicate (stack : Stack<'T>) = Stack.tryFind predicate stack |> ValueOption.toOption
 
 [<CompiledName "TryFindBack">]
-let tryFindBack predicate (stack : Stack<'T>) =
-    FSharp.Collections.Immutable.Stack.tryFindBack predicate stack
-    |> ValueOption.toOption
+let tryFindBack predicate (stack : Stack<'T>) = Stack.tryFindBack predicate stack |> ValueOption.toOption
 
 [<CompiledName "TryFindIndex">]
-let tryFindIndex predicate (stack : Stack<'T>) =
-    FSharp.Collections.Immutable.Stack.tryFindIndex predicate stack
-    |> ValueOption.toOption
+let tryFindIndex predicate (stack : Stack<'T>) = Stack.tryFindIndex predicate stack |> ValueOption.toOption
 
 [<CompiledName "TryFindIndexBack">]
 let tryFindIndexBack predicate (stack : Stack<'T>) =
-    FSharp.Collections.Immutable.Stack.tryFindIndexBack predicate stack
+    Stack.tryFindIndexBack predicate stack
     |> ValueOption.toOption
 
 [<CompiledName "TryPick">]
 let tryPick (chooser : 'T -> 'U option) (stack : Stack<'T>) =
-    FSharp.Collections.Immutable.Stack.tryPick (fun item -> chooser item |> ValueOption.ofOption) stack
+    Stack.tryPick (fun item -> chooser item |> ValueOption.ofOption) stack
     |> ValueOption.toOption
 
 // ---- Transformation ----
 
 [<CompiledName "Choose">]
-let choose (chooser : 'T -> 'U option) (stack : Stack<'T>) =
-    FSharp.Collections.Immutable.Stack.choose (fun item -> chooser item |> ValueOption.ofOption) stack
+let choose (chooser : 'T -> 'U option) (stack : Stack<'T>) = Stack.choose (fun item -> chooser item |> ValueOption.ofOption) stack
