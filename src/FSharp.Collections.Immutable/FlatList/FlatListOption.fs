@@ -26,9 +26,7 @@ let tryItem index (array : FlatList<'T>) = Array.tryItem index (unwrapArray (nam
 let tryLast (array : FlatList<'T>) = Array.tryLast (unwrapArray (nameof array) array)
 
 [<CompiledName "TryTail">]
-let tryTail (array : FlatList<'T>) =
-    FSharp.Collections.Immutable.FlatList.tryTail array
-    |> ValueOption.toOption
+let tryTail (array : FlatList<'T>) = FlatList.tryTail array |> ValueOption.toOption
 
 // ---- Search ----
 
