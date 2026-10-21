@@ -8,12 +8,9 @@ open FSharp.Collections.Immutable
 // ---- Access ----
 
 [<CompiledName "TryGetValue">]
-let tryGetValue (value : 'T) (set : HashSet<'T>) =
-    FSharp.Collections.Immutable.HashSet.tryGetValue value set
-    |> ValueOption.toOption
+let tryGetValue (value : 'T) (set : HashSet<'T>) = HashSet.tryGetValue value set |> ValueOption.toOption
 
 // ---- Transformation ----
 
 [<CompiledName "Choose">]
-let choose (chooser : 'T -> 'U option) (set : HashSet<'T>) =
-    FSharp.Collections.Immutable.HashSet.choose (fun item -> chooser item |> ValueOption.ofOption) set
+let choose (chooser : 'T -> 'U option) (set : HashSet<'T>) = HashSet.choose (fun item -> chooser item |> ValueOption.ofOption) set
