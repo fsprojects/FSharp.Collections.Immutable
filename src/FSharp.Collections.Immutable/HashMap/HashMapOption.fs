@@ -9,40 +9,31 @@ open FSharp.Collections.Immutable
 // ---- Access ----
 
 [<CompiledName "TryFind">]
-let tryFind (key : 'Key) (table : HashMap<'Key, 'Value>) =
-    FSharp.Collections.Immutable.HashMap.tryFind key table
-    |> ValueOption.toOption
+let tryFind (key : 'Key) (table : HashMap<'Key, 'Value>) = HashMap.tryFind key table |> ValueOption.toOption
 
 [<CompiledName "TryGetKey">]
-let tryGetKey (key : 'Key) (table : HashMap<'Key, 'Value>) =
-    FSharp.Collections.Immutable.HashMap.tryGetKey key table
-    |> ValueOption.toOption
+let tryGetKey (key : 'Key) (table : HashMap<'Key, 'Value>) = HashMap.tryGetKey key table |> ValueOption.toOption
 
 // ---- Search ----
 
 [<CompiledName "Pick">]
 let pick (chooser : 'Key -> 'Value -> 'U option) (table : HashMap<'Key, 'Value>) =
-    FSharp.Collections.Immutable.HashMap.pick (fun key value -> chooser key value |> ValueOption.ofOption) table
+    HashMap.pick (fun key value -> chooser key value |> ValueOption.ofOption) table
 
 [<CompiledName "TryFindKey">]
-let tryFindKey predicate (table : HashMap<'Key, 'Value>) =
-    FSharp.Collections.Immutable.HashMap.tryFindKey predicate table
-    |> ValueOption.toOption
+let tryFindKey predicate (table : HashMap<'Key, 'Value>) = HashMap.tryFindKey predicate table |> ValueOption.toOption
 
 [<CompiledName "TryPick">]
 let tryPick (chooser : 'Key -> 'Value -> 'U option) (table : HashMap<'Key, 'Value>) =
-    FSharp.Collections.Immutable.HashMap.tryPick (fun key value -> chooser key value |> ValueOption.ofOption) table
+    HashMap.tryPick (fun key value -> chooser key value |> ValueOption.ofOption) table
     |> ValueOption.toOption
 
 // ---- Transformation ----
 
 [<CompiledName "Change">]
 let change (key : 'Key) (f : 'Value option -> 'Value option) (table : HashMap<'Key, 'Value>) =
-    FSharp.Collections.Immutable.HashMap.change
-        key
-        (fun current -> f (ValueOption.toOption current) |> ValueOption.ofOption)
-        table
+    HashMap.change key (fun current -> f (ValueOption.toOption current) |> ValueOption.ofOption) table
 
 [<CompiledName "Choose">]
 let choose (chooser : 'Key -> 'Value -> 'U option) (table : HashMap<'Key, 'Value>) =
-    FSharp.Collections.Immutable.HashMap.choose (fun key value -> chooser key value |> ValueOption.ofOption) table
+    HashMap.choose (fun key value -> chooser key value |> ValueOption.ofOption) table
