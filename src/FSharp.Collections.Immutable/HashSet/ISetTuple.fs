@@ -10,10 +10,10 @@ open FSharp.Collections.Immutable
 
 [<CompiledName "Partition">]
 let partition (predicate : 'T -> bool) (set : IImmutableSet<'T>) =
-    let struct (accepted, rejected) = FSharp.Collections.Immutable.ISet.partition predicate set
+    let struct (accepted, rejected) = ISet.partition predicate set
     accepted, rejected
 
 [<CompiledName "PartitionWith">]
 let partitionWith (partitioner : 'T -> Choice<'T1, 'T2>) (set : IImmutableSet<'T>) =
-    let struct (first, second) = FSharp.Collections.Immutable.ISet.partitionWith partitioner set
+    let struct (first, second) = ISet.partitionWith partitioner set
     first, second
