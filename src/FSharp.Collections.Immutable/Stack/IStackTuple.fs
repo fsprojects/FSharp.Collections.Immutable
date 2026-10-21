@@ -11,13 +11,13 @@ open FSharp.Collections.Immutable.StackConstruction
 
 [<CompiledName "TryPeekPop">]
 let tryUncons (stack : IStack<'T>) =
-    match FSharp.Collections.Immutable.IStack.tryUncons stack with
+    match IStack.tryUncons stack with
     | ValueSome (struct (head, tail)) -> ValueSome (head, tail)
     | ValueNone -> ValueNone
 
 [<CompiledName "PeekPop">]
 let uncons (stack : IStack<'T>) =
-    let struct (head, tail) = FSharp.Collections.Immutable.IStack.uncons stack
+    let struct (head, tail) = IStack.uncons stack
     head, tail
 
 [<return : Struct>]
@@ -80,7 +80,7 @@ let mapFold (mapping : 'State -> 'T -> 'Result * 'State) (state : 'State) (stack
         let result, next = mapping state item
         struct (result, next)
 
-    let struct (results, final) = FSharp.Collections.Immutable.IStack.mapFold mapStruct state stack
+    let struct (results, final) = IStack.mapFold mapStruct state stack
     results, final
 
 [<CompiledName "MapFoldBack">]
@@ -89,7 +89,7 @@ let mapFoldBack (mapping : 'T -> 'State -> 'Result * 'State) (stack : IStack<'T>
         let result, next = mapping item state
         struct (result, next)
 
-    let struct (results, final) = FSharp.Collections.Immutable.IStack.mapFoldBack mapStruct stack state
+    let struct (results, final) = IStack.mapFoldBack mapStruct stack state
     results, final
 
 // ---- Partitioning and grouping ----
@@ -106,15 +106,15 @@ let groupBy (projection : 'T -> 'Key) (stack : IStack<'T>) =
 
 [<CompiledName "Partition">]
 let partition predicate (stack : IStack<'T>) =
-    let struct (accepted, rejected) = FSharp.Collections.Immutable.IStack.partition predicate stack
+    let struct (accepted, rejected) = IStack.partition predicate stack
     accepted, rejected
 
 [<CompiledName "PartitionWith">]
 let partitionWith (partitioner : 'T -> Choice<'T1, 'T2>) (stack : IStack<'T>) =
-    let struct (first, second) = FSharp.Collections.Immutable.IStack.partitionWith partitioner stack
+    let struct (first, second) = IStack.partitionWith partitioner stack
     first, second
 
 [<CompiledName "SplitAt">]
 let splitAt index (stack : IStack<'T>) =
-    let struct (before, after) = FSharp.Collections.Immutable.IStack.splitAt index stack
+    let struct (before, after) = IStack.splitAt index stack
     before, after
