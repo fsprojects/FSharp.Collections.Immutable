@@ -10,7 +10,7 @@ open FSharp.Collections.Immutable
 
 [<CompiledName "Partition">]
 let partition predicate (table : FrozenMap<'Key, 'Value>) =
-    let struct (accepted, rejected) = FSharp.Collections.Immutable.FrozenMap.partition predicate table
+    let struct (accepted, rejected) = FrozenMap.partition predicate table
     accepted, rejected
 
 // ---- Conversion ----
