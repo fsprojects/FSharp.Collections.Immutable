@@ -15,19 +15,19 @@ let unfold (generator : 'State -> ('T * 'State) voption) (state : 'State) =
         | ValueSome (item, next) -> ValueSome (struct (item, next))
         | ValueNone -> ValueNone
 
-    FSharp.Collections.Immutable.Queue.unfold generateStruct state
+    Queue.unfold generateStruct state
 
 // ---- Access ----
 
 [<CompiledName "TryPeekDequeue">]
 let tryUncons (queue : Queue<'T>) =
-    match FSharp.Collections.Immutable.Queue.tryUncons queue with
+    match Queue.tryUncons queue with
     | ValueSome (struct (head, tail)) -> ValueSome (head, tail)
     | ValueNone -> ValueNone
 
 [<CompiledName "PeekDequeue">]
 let uncons (queue : Queue<'T>) =
-    let struct (head, tail) = FSharp.Collections.Immutable.Queue.uncons queue
+    let struct (head, tail) = Queue.uncons queue
     head, tail
 
 [<return : Struct>]
@@ -90,7 +90,7 @@ let mapFold (mapping : 'State -> 'T -> 'Result * 'State) (state : 'State) (queue
         let result, next = mapping state item
         struct (result, next)
 
-    let struct (results, final) = FSharp.Collections.Immutable.Queue.mapFold mapStruct state queue
+    let struct (results, final) = Queue.mapFold mapStruct state queue
     results, final
 
 [<CompiledName "MapFoldBack">]
@@ -99,7 +99,7 @@ let mapFoldBack (mapping : 'T -> 'State -> 'Result * 'State) (queue : Queue<'T>)
         let result, next = mapping item state
         struct (result, next)
 
-    let struct (results, final) = FSharp.Collections.Immutable.Queue.mapFoldBack mapStruct queue state
+    let struct (results, final) = Queue.mapFoldBack mapStruct queue state
     results, final
 
 // ---- Partitioning and grouping ----
@@ -116,15 +116,15 @@ let groupBy (projection : 'T -> 'Key) (queue : Queue<'T>) =
 
 [<CompiledName "Partition">]
 let partition predicate (queue : Queue<'T>) =
-    let struct (accepted, rejected) = FSharp.Collections.Immutable.Queue.partition predicate queue
+    let struct (accepted, rejected) = Queue.partition predicate queue
     accepted, rejected
 
 [<CompiledName "PartitionWith">]
 let partitionWith (partitioner : 'T -> Choice<'T1, 'T2>) (queue : Queue<'T>) =
-    let struct (first, second) = FSharp.Collections.Immutable.Queue.partitionWith partitioner queue
+    let struct (first, second) = Queue.partitionWith partitioner queue
     first, second
 
 [<CompiledName "SplitAt">]
 let splitAt index (queue : Queue<'T>) =
-    let struct (before, after) = FSharp.Collections.Immutable.Queue.splitAt index queue
+    let struct (before, after) = Queue.splitAt index queue
     before, after
