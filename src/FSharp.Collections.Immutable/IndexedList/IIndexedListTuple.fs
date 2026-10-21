@@ -11,13 +11,13 @@ open FSharp.Collections.Immutable
 
 [<CompiledName "TryUncons">]
 let tryUncons (list : IIndexedList<'T>) =
-    match FSharp.Collections.Immutable.IIndexedList.tryUncons list with
+    match IIndexedList.tryUncons list with
     | ValueSome (struct (head, tail)) -> ValueSome (head, tail)
     | ValueNone -> ValueNone
 
 [<CompiledName "Uncons">]
 let uncons (list : IIndexedList<'T>) =
-    let struct (head, tail) = FSharp.Collections.Immutable.IIndexedList.uncons list
+    let struct (head, tail) = IIndexedList.uncons list
     head, tail
 
 [<return : Struct>]
@@ -86,7 +86,7 @@ let mapFold (mapping : 'State -> 'T -> 'Result * 'State) (state : 'State) (list 
         let result, next = mapping state item
         struct (result, next)
 
-    let struct (results, final) = FSharp.Collections.Immutable.IIndexedList.mapFold mapStruct state list
+    let struct (results, final) = IIndexedList.mapFold mapStruct state list
     results, final
 
 [<CompiledName "MapFoldBack">]
@@ -95,7 +95,7 @@ let mapFoldBack (mapping : 'T -> 'State -> 'Result * 'State) (list : IIndexedLis
         let result, next = mapping item state
         struct (result, next)
 
-    let struct (results, final) = FSharp.Collections.Immutable.IIndexedList.mapFoldBack mapStruct list state
+    let struct (results, final) = IIndexedList.mapFoldBack mapStruct list state
     results, final
 
 // ---- Partitioning and grouping ----
@@ -112,15 +112,15 @@ let groupBy (projection : 'T -> 'Key) (list : IIndexedList<'T>) =
 
 [<CompiledName "Partition">]
 let partition predicate (list : IIndexedList<'T>) =
-    let struct (accepted, rejected) = FSharp.Collections.Immutable.IIndexedList.partition predicate list
+    let struct (accepted, rejected) = IIndexedList.partition predicate list
     accepted, rejected
 
 [<CompiledName "PartitionWith">]
 let partitionWith (partitioner : 'T -> Choice<'T1, 'T2>) (list : IIndexedList<'T>) =
-    let struct (first, second) = FSharp.Collections.Immutable.IIndexedList.partitionWith partitioner list
+    let struct (first, second) = IIndexedList.partitionWith partitioner list
     first, second
 
 [<CompiledName "SplitAt">]
 let splitAt index (list : IIndexedList<'T>) =
-    let struct (before, after) = FSharp.Collections.Immutable.IIndexedList.splitAt index list
+    let struct (before, after) = IIndexedList.splitAt index list
     before, after

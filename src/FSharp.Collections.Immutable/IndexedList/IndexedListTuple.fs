@@ -16,19 +16,19 @@ let unfold (generator : 'State -> ('T * 'State) voption) (state : 'State) =
         | ValueSome (item, next) -> ValueSome (struct (item, next))
         | ValueNone -> ValueNone
 
-    FSharp.Collections.Immutable.IndexedList.unfold generateStruct state
+    IndexedList.unfold generateStruct state
 
 // ---- Access ----
 
 [<CompiledName "TryUncons">]
 let tryUncons (list : IndexedList<'T>) =
-    match FSharp.Collections.Immutable.IndexedList.tryUncons list with
+    match IndexedList.tryUncons list with
     | ValueSome (struct (head, tail)) -> ValueSome (head, tail)
     | ValueNone -> ValueNone
 
 [<CompiledName "Uncons">]
 let uncons (list : IndexedList<'T>) =
-    let struct (head, tail) = FSharp.Collections.Immutable.IndexedList.uncons list
+    let struct (head, tail) = IndexedList.uncons list
     head, tail
 
 [<return : Struct>]
@@ -97,7 +97,7 @@ let mapFold (mapping : 'State -> 'T -> 'Result * 'State) (state : 'State) (list 
         let result, next = mapping state item
         struct (result, next)
 
-    let struct (results, final) = FSharp.Collections.Immutable.IndexedList.mapFold mapStruct state list
+    let struct (results, final) = IndexedList.mapFold mapStruct state list
     results, final
 
 [<CompiledName "MapFoldBack">]
@@ -106,7 +106,7 @@ let mapFoldBack (mapping : 'T -> 'State -> 'Result * 'State) (list : IndexedList
         let result, next = mapping item state
         struct (result, next)
 
-    let struct (results, final) = FSharp.Collections.Immutable.IndexedList.mapFoldBack mapStruct list state
+    let struct (results, final) = IndexedList.mapFoldBack mapStruct list state
     results, final
 
 // ---- Partitioning and grouping ----
@@ -123,15 +123,15 @@ let groupBy (projection : 'T -> 'Key) (list : IndexedList<'T>) =
 
 [<CompiledName "Partition">]
 let partition predicate (list : IndexedList<'T>) =
-    let struct (accepted, rejected) = FSharp.Collections.Immutable.IndexedList.partition predicate list
+    let struct (accepted, rejected) = IndexedList.partition predicate list
     accepted, rejected
 
 [<CompiledName "PartitionWith">]
 let partitionWith (partitioner : 'T -> Choice<'T1, 'T2>) (list : IndexedList<'T>) =
-    let struct (first, second) = FSharp.Collections.Immutable.IndexedList.partitionWith partitioner list
+    let struct (first, second) = IndexedList.partitionWith partitioner list
     first, second
 
 [<CompiledName "SplitAt">]
 let splitAt index (list : IndexedList<'T>) =
-    let struct (before, after) = FSharp.Collections.Immutable.IndexedList.splitAt index list
+    let struct (before, after) = IndexedList.splitAt index list
     before, after

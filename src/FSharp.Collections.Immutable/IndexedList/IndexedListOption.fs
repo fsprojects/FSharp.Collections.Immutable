@@ -15,38 +15,28 @@ let unfold (generator : 'State -> ('T * 'State) option) (state : 'State) =
         | Some (item, next) -> ValueSome (struct (item, next))
         | None -> ValueNone
 
-    FSharp.Collections.Immutable.IndexedList.unfold generateStruct state
+    IndexedList.unfold generateStruct state
 
 // ---- Access ----
 
 [<CompiledName "TryExactlyOne">]
-let tryExactlyOne (list : IndexedList<'T>) =
-    FSharp.Collections.Immutable.IndexedList.tryExactlyOne list
-    |> ValueOption.toOption
+let tryExactlyOne (list : IndexedList<'T>) = IndexedList.tryExactlyOne list |> ValueOption.toOption
 
 [<CompiledName "TryHead">]
-let tryHead (list : IndexedList<'T>) =
-    FSharp.Collections.Immutable.IndexedList.tryHead list
-    |> ValueOption.toOption
+let tryHead (list : IndexedList<'T>) = IndexedList.tryHead list |> ValueOption.toOption
 
 [<CompiledName "TryItem">]
-let tryItem index (list : IndexedList<'T>) =
-    FSharp.Collections.Immutable.IndexedList.tryItem index list
-    |> ValueOption.toOption
+let tryItem index (list : IndexedList<'T>) = IndexedList.tryItem index list |> ValueOption.toOption
 
 [<CompiledName "TryLast">]
-let tryLast (list : IndexedList<'T>) =
-    FSharp.Collections.Immutable.IndexedList.tryLast list
-    |> ValueOption.toOption
+let tryLast (list : IndexedList<'T>) = IndexedList.tryLast list |> ValueOption.toOption
 
 [<CompiledName "TryTail">]
-let tryTail (list : IndexedList<'T>) =
-    FSharp.Collections.Immutable.IndexedList.tryTail list
-    |> ValueOption.toOption
+let tryTail (list : IndexedList<'T>) = IndexedList.tryTail list |> ValueOption.toOption
 
 [<CompiledName "TryUncons">]
 let tryUncons (list : IndexedList<'T>) =
-    match FSharp.Collections.Immutable.IndexedList.tryUncons list with
+    match IndexedList.tryUncons list with
     | ValueSome (struct (head, tail)) -> Some (head, tail)
     | ValueNone -> None
 
@@ -57,45 +47,43 @@ let (|Cons|_|) (list : IndexedList<'T>) = tryUncons list
 
 [<CompiledName "Pick">]
 let pick (chooser : 'T -> 'U option) (list : IndexedList<'T>) =
-    FSharp.Collections.Immutable.IndexedList.pick (fun item -> chooser item |> ValueOption.ofOption) list
+    IndexedList.pick (fun item -> chooser item |> ValueOption.ofOption) list
 
 [<CompiledName "TryFind">]
-let tryFind predicate (list : IndexedList<'T>) =
-    FSharp.Collections.Immutable.IndexedList.tryFind predicate list
-    |> ValueOption.toOption
+let tryFind predicate (list : IndexedList<'T>) = IndexedList.tryFind predicate list |> ValueOption.toOption
 
 [<CompiledName "TryFindBack">]
 let tryFindBack predicate (list : IndexedList<'T>) =
-    FSharp.Collections.Immutable.IndexedList.tryFindBack predicate list
+    IndexedList.tryFindBack predicate list
     |> ValueOption.toOption
 
 [<CompiledName "TryFindIndex">]
 let tryFindIndex predicate (list : IndexedList<'T>) =
-    FSharp.Collections.Immutable.IndexedList.tryFindIndex predicate list
+    IndexedList.tryFindIndex predicate list
     |> ValueOption.toOption
 
 [<CompiledName "TryFindIndexBack">]
 let tryFindIndexBack predicate (list : IndexedList<'T>) =
-    FSharp.Collections.Immutable.IndexedList.tryFindIndexBack predicate list
+    IndexedList.tryFindIndexBack predicate list
     |> ValueOption.toOption
 
 [<CompiledName "TryFindIndexBackRange">]
 let tryFindIndexBackRange startIndex count predicate (list : IndexedList<'T>) =
-    FSharp.Collections.Immutable.IndexedList.tryFindIndexBackRange startIndex count predicate list
+    IndexedList.tryFindIndexBackRange startIndex count predicate list
     |> ValueOption.toOption
 
 [<CompiledName "TryFindIndexRange">]
 let tryFindIndexRange startIndex count predicate (list : IndexedList<'T>) =
-    FSharp.Collections.Immutable.IndexedList.tryFindIndexRange startIndex count predicate list
+    IndexedList.tryFindIndexRange startIndex count predicate list
     |> ValueOption.toOption
 
 [<CompiledName "TryPick">]
 let tryPick (chooser : 'T -> 'U option) (list : IndexedList<'T>) =
-    FSharp.Collections.Immutable.IndexedList.tryPick (fun item -> chooser item |> ValueOption.ofOption) list
+    IndexedList.tryPick (fun item -> chooser item |> ValueOption.ofOption) list
     |> ValueOption.toOption
 
 // ---- Transformation ----
 
 [<CompiledName "Choose">]
 let choose (chooser : 'T -> 'U option) (list : IndexedList<'T>) =
-    FSharp.Collections.Immutable.IndexedList.choose (fun item -> chooser item |> ValueOption.ofOption) list
+    IndexedList.choose (fun item -> chooser item |> ValueOption.ofOption) list
