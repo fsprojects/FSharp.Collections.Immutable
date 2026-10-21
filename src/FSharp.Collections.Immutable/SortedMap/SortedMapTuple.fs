@@ -10,19 +10,19 @@ open FSharp.Collections.Immutable
 
 [<CompiledName "MaxKeyValue">]
 let maxKeyValue (table : SortedMap<'Key, 'Value>) =
-    let struct (key, value) = FSharp.Collections.Immutable.SortedMap.maxKeyValue table
+    let struct (key, value) = SortedMap.maxKeyValue table
     key, value
 
 [<CompiledName "MinKeyValue">]
 let minKeyValue (table : SortedMap<'Key, 'Value>) =
-    let struct (key, value) = FSharp.Collections.Immutable.SortedMap.minKeyValue table
+    let struct (key, value) = SortedMap.minKeyValue table
     key, value
 
 // ---- Partitioning ----
 
 [<CompiledName "Partition">]
 let partition predicate (table : SortedMap<'Key, 'Value>) =
-    let struct (accepted, rejected) = FSharp.Collections.Immutable.SortedMap.partition predicate table
+    let struct (accepted, rejected) = SortedMap.partition predicate table
     accepted, rejected
 
 // ---- Conversion ----
