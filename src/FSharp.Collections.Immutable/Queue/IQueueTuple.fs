@@ -10,13 +10,13 @@ open FSharp.Collections.Immutable
 
 [<CompiledName "TryPeekDequeue">]
 let tryUncons (queue : IQueue<'T>) =
-    match FSharp.Collections.Immutable.IQueue.tryUncons queue with
+    match IQueue.tryUncons queue with
     | ValueSome (struct (head, tail)) -> ValueSome (head, tail)
     | ValueNone -> ValueNone
 
 [<CompiledName "PeekDequeue">]
 let uncons (queue : IQueue<'T>) =
-    let struct (head, tail) = FSharp.Collections.Immutable.IQueue.uncons queue
+    let struct (head, tail) = IQueue.uncons queue
     head, tail
 
 [<return : Struct>]
@@ -28,33 +28,31 @@ let (|Cons|_|) (queue : IQueue<'T>) = tryUncons queue
 [<CompiledName "AllPairs">]
 let allPairs (queue1 : IQueue<'T1>) (queue2 : IQueue<'T2>) =
     Arrays.allPairs referencePair (Snapshot.ofSeq (nameof queue1) queue1) (Snapshot.ofSeq (nameof queue2) queue2)
-    |> FSharp.Collections.Immutable.Queue.ofArray
+    |> Queue.ofArray
 
 [<CompiledName "Indexed">]
 let indexed (queue : IQueue<'T>) =
     Arrays.indexed referencePair (Snapshot.ofSeq (nameof queue) queue)
-    |> FSharp.Collections.Immutable.Queue.ofArray
+    |> Queue.ofArray
 
 [<CompiledName "Pairwise">]
 let pairwise (queue : IQueue<'T>) =
     Arrays.pairwise referencePair (Snapshot.ofSeq (nameof queue) queue)
-    |> FSharp.Collections.Immutable.Queue.ofArray
+    |> Queue.ofArray
 
 [<CompiledName "Unzip">]
 let unzip (queue : IQueue<'T1 * 'T2>) =
     let struct (first, second) =
         Arrays.unzip (fun (item1, item2) -> struct (item1, item2)) (Snapshot.ofSeq (nameof queue) queue)
 
-    FSharp.Collections.Immutable.Queue.ofArray first, FSharp.Collections.Immutable.Queue.ofArray second
+    Queue.ofArray first, Queue.ofArray second
 
 [<CompiledName "Unzip3">]
 let unzip3 (queue : IQueue<'T1 * 'T2 * 'T3>) =
     let struct (first, second, third) =
         Arrays.unzip3 (fun (item1, item2, item3) -> struct (item1, item2, item3)) (Snapshot.ofSeq (nameof queue) queue)
 
-    FSharp.Collections.Immutable.Queue.ofArray first,
-    FSharp.Collections.Immutable.Queue.ofArray second,
-    FSharp.Collections.Immutable.Queue.ofArray third
+    Queue.ofArray first, Queue.ofArray second, Queue.ofArray third
 
 [<CompiledName "Zip">]
 let zip (queue1 : IQueue<'T1>) (queue2 : IQueue<'T2>) =
@@ -62,8 +60,7 @@ let zip (queue1 : IQueue<'T1>) (queue2 : IQueue<'T2>) =
     let array2 = Snapshot.ofSeq (nameof queue2) queue2
     ListChecks.sameLengths (nameof queue1) array1.Length (nameof queue2) array2.Length
 
-    Arrays.zip referencePair array1 array2
-    |> FSharp.Collections.Immutable.Queue.ofArray
+    Arrays.zip referencePair array1 array2 |> Queue.ofArray
 
 [<CompiledName "Zip3">]
 let zip3 (queue1 : IQueue<'T1>) (queue2 : IQueue<'T2>) (queue3 : IQueue<'T3>) =
@@ -73,7 +70,7 @@ let zip3 (queue1 : IQueue<'T1>) (queue2 : IQueue<'T2>) (queue3 : IQueue<'T3>) =
     ListChecks.zip3 (nameof queue1) array1.Length (nameof queue2) array2.Length (nameof queue3) array3.Length
 
     Arrays.zip3 referenceTriple array1 array2 array3
-    |> FSharp.Collections.Immutable.Queue.ofArray
+    |> Queue.ofArray
 
 // ---- Folding ----
 
@@ -83,7 +80,7 @@ let mapFold (mapping : 'State -> 'T -> 'Result * 'State) (state : 'State) (queue
         let result, next = mapping state item
         struct (result, next)
 
-    let struct (results, final) = FSharp.Collections.Immutable.IQueue.mapFold mapStruct state queue
+    let struct (results, final) = IQueue.mapFold mapStruct state queue
     results, final
 
 [<CompiledName "MapFoldBack">]
@@ -92,7 +89,7 @@ let mapFoldBack (mapping : 'T -> 'State -> 'Result * 'State) (queue : IQueue<'T>
         let result, next = mapping item state
         struct (result, next)
 
-    let struct (results, final) = FSharp.Collections.Immutable.IQueue.mapFoldBack mapStruct queue state
+    let struct (results, final) = IQueue.mapFoldBack mapStruct queue state
     results, final
 
 // ---- Partitioning and grouping ----
@@ -100,27 +97,24 @@ let mapFoldBack (mapping : 'T -> 'State -> 'Result * 'State) (queue : IQueue<'T>
 [<CompiledName "CountBy">]
 let countBy (projection : 'T -> 'Key) (queue : IQueue<'T>) =
     Arrays.countBy referencePair projection (Snapshot.ofSeq (nameof queue) queue)
-    |> FSharp.Collections.Immutable.Queue.ofArray
+    |> Queue.ofArray
 
 [<CompiledName "GroupBy">]
 let groupBy (projection : 'T -> 'Key) (queue : IQueue<'T>) =
-    Arrays.groupBy
-        (fun key items -> key, FSharp.Collections.Immutable.Queue.ofArray items)
-        projection
-        (Snapshot.ofSeq (nameof queue) queue)
-    |> FSharp.Collections.Immutable.Queue.ofArray
+    Arrays.groupBy (fun key items -> key, Queue.ofArray items) projection (Snapshot.ofSeq (nameof queue) queue)
+    |> Queue.ofArray
 
 [<CompiledName "Partition">]
 let partition predicate (queue : IQueue<'T>) =
-    let struct (accepted, rejected) = FSharp.Collections.Immutable.IQueue.partition predicate queue
+    let struct (accepted, rejected) = IQueue.partition predicate queue
     accepted, rejected
 
 [<CompiledName "PartitionWith">]
 let partitionWith (partitioner : 'T -> Choice<'T1, 'T2>) (queue : IQueue<'T>) =
-    let struct (first, second) = FSharp.Collections.Immutable.IQueue.partitionWith partitioner queue
+    let struct (first, second) = IQueue.partitionWith partitioner queue
     first, second
 
 [<CompiledName "SplitAt">]
 let splitAt index (queue : IQueue<'T>) =
-    let struct (before, after) = FSharp.Collections.Immutable.IQueue.splitAt index queue
+    let struct (before, after) = IQueue.splitAt index queue
     before, after
