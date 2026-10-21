@@ -1071,6 +1071,87 @@ type SortedSetTests () =
             "SortedSet.maxElement of an empty sorted set must throw"
         )
 
+    // ---- Search ----
+
+    // exists and forall walk a set of a reference type through the interface and a set of a value type through the struct
+    // enumerator, and the contracts run on integers, so strings have tests of their own
+
+    [<TestMethod;
+      DataRow(0, "absent");
+      DataRow(1, "first");
+      DataRow(5, "first");
+      DataRow(5, "middle");
+      DataRow(5, "last");
+      DataRow(5, "absent");
+      DataRow(2000, "middle");
+      DataRow(2000, "absent")>]
+    member _.``exists and forall of strings give the results of Set`` (count : int, position : string) =
+        let items = Array.init count (fun index -> "x" + index.ToString ())
+
+        let target =
+            match position with
+            | "first" -> "x0"
+            | "middle" -> "x" + (count / 2).ToString()
+            | "last" -> "x" + (count - 1).ToString()
+            | _ -> "absent"
+
+        let set = SortedSet.ofArray items
+        let expected = Set.ofArray items
+
+        Assert.AreEqual (
+            Set.exists ((=) target) expected,
+            SortedSet.exists ((=) target) set,
+            "SortedSet.exists must find the element as Set.exists does"
+        )
+
+        Assert.AreEqual (
+            Set.forall ((<>) target) expected,
+            SortedSet.forall ((<>) target) set,
+            "SortedSet.forall must reject the element as Set.forall does"
+        )
+
+        Assert.AreEqual (
+            Set.exists (fun (text : string) -> text.Length > 0) expected,
+            SortedSet.exists (fun (text : string) -> text.Length > 0) set,
+            "SortedSet.exists must answer for a predicate that fits some elements as Set.exists does"
+        )
+
+        Assert.AreEqual (
+            Set.forall (fun (text : string) -> text.Length > 0) expected,
+            SortedSet.forall (fun (text : string) -> text.Length > 0) set,
+            "SortedSet.forall must answer for a predicate that fits all elements as Set.forall does"
+        )
+
+    [<TestMethod>]
+    member _.``exists of strings stops at the first match`` () =
+        let calls = ref 0
+
+        let found =
+            SortedSet.exists
+                (fun word ->
+                    calls.Value <- calls.Value + 1
+                    word = "A"
+                )
+                (SortedSet.ofArray words)
+
+        Assert.IsTrue (found, "SortedSet.exists must find the first string in the order")
+        Assert.AreEqual (1, calls.Value, "SortedSet.exists must not call the predicate after the first match")
+
+    [<TestMethod>]
+    member _.``forall of strings stops at the first element that fails`` () =
+        let calls = ref 0
+
+        let holds =
+            SortedSet.forall
+                (fun word ->
+                    calls.Value <- calls.Value + 1
+                    word <> "A"
+                )
+                (SortedSet.ofArray words)
+
+        Assert.IsFalse (holds, "SortedSet.forall must fail on the first string in the order")
+        Assert.AreEqual (1, calls.Value, "SortedSet.forall must not call the predicate after the first failure")
+
     // ---- Null inputs ----
 
     [<TestMethod; DynamicData(nameof SortedSetTests.NullRejections)>]
