@@ -82,6 +82,13 @@
     <Compile Include="HashSet\ISetTests.fs" />
     <Compile Include="HashSet\ISetOptionTests.fs" />
     <Compile Include="HashSet\ISetTupleTests.fs" />
+    <Compile Include="SortedSet\SortedSetOps.fs" />
+    <Compile Include="SortedSet\SortedSetContractTests.fs" />
+    <Compile Include="SortedSet\SortedSetTests.fs" />
+    <Compile Include="SortedSet\SortedSetBuilderTests.fs" />
+    <Compile Include="SortedSet\SortedSetComputationExpressionTests.fs" />
+    <Compile Include="SortedSet\SortedSetOptionTests.fs" />
+    <Compile Include="SortedSet\SortedSetTupleTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
