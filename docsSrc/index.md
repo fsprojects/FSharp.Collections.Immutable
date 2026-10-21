@@ -11,7 +11,8 @@ F# bindings for [System.Collections.Immutable](https://learn.microsoft.com/en-us
 | `FlatList` | `ImmutableArray<'T>` | `flatList { }` |
 | `IndexedList` | `ImmutableList<'T>` | `indexedList { }` |
 | `IIndexedList` | `IImmutableList<'T>` | – |
-| `Stack` | `ImmutableStack<'T>` | – |
+| `Stack` | `ImmutableStack<'T>` | `stack { }` |
+| `IStack` | `IImmutableStack<'T>` | – |
 | `Queue` | `ImmutableQueue<'T>` | – |
 | `HashMap` | `ImmutableDictionary<'Key, 'Value>` | – |
 | `SortedMap` | `ImmutableSortedDictionary<'Key, 'Value>` | – |

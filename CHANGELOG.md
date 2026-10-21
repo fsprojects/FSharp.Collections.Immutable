@@ -67,6 +67,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `lastIndexOfRange`, `lastIndexOfRangeWith`, `binarySearch`, `binarySearchWithComparer`,
   `binarySearchRangeWithComparer`) and copies elements into an array (`blit`). `replace` throws `ArgumentException` for a
   value that no element equals, as the builder of an indexed list does.
+* `Stack` has every function of the FSharp.Core `List` module that applies to an immutable stack, with its semantics and
+  exceptions and with stable sorts, plus `consMany`, `ofReadOnlySpan`, `ofSpan`, `skipLast`, `sortWithComparer`,
+  `takeLast`, `tryTail`, `tryUncons` and `uncons`. A stack enumerates its elements from the top, and every function
+  treats it as a list in that order; `rev` puts the last element on top. Its functions name their stacks `stack`,
+  `stack1` and `stacks` where `List` names its lists, and the exceptions report these names. `consMany`, `uncons`,
+  `tryHead`, `tryTail` and `tryUncons` compile to `PushMany`, `PeekPop`, `TryPeek`, `TryPop` and `TryPeekPop`, in the
+  `IStack`, `Option` and `Tuple` modules too. A function that takes a sequence throws `ArgumentNullException` that names
+  the parameter for a `null` sequence and for a default `FlatList` given as a sequence, which would fail with
+  `InvalidOperationException` while the function enumerates it; the `IStack` module and the `stack { }` expression do the
+  same.
+* The `IStack` module has the functions of `Stack` for `IImmutableStack<'T>`, without the creation functions, plus
+  `clear`. Its functions keep the implementation of the input stack where the result has the element type of the input,
+  and return a `Stack` otherwise. `append` pushes the first stack onto the second one, which receives the elements, so
+  its result keeps the implementation and the nodes of the second stack, as `List.append` shares its second list.
+* The `FSharp.Collections.Immutable.Option` and `FSharp.Collections.Immutable.Tuple` namespaces have `Stack` and `IStack`
+  modules that repeat the functions that use value options or struct tuples with options and reference tuples.
+* `stack { }` builds a stack whose first element is on top.
 
 ### Changed
 
@@ -124,6 +141,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * `IndexedList.rev` builds the reversed list from a reversed copy of the elements. At 100 000 integers it takes about 3 ms
   where `reverse`, which called `ImmutableList.Reverse`, took about 23 ms, and it allocates 5.2 MB where `reverse`
   allocated 4.8 MB.
+* `Stack`: `ofSeq` and `ofArray` put the first element on top, so that the stack enumerates the elements in the order of
+  the input. They wrapped `ImmutableStack.CreateRange`, which puts the last element on top. A `null` input throws
+  `ArgumentNullException` for `source` in `ofSeq` and for `array` in `ofArray`, where 1.0.0 named both parameters `items`.
+  A default `FlatList` given as a sequence to `ofSeq` throws the same exception as a `null` sequence, where it threw
+  `InvalidOperationException`.
+* `Stack`: `cons`, `head` and `tail` take and return `ImmutableStack<'T>`, where they took and returned
+  `IImmutableStack<'T>`; the `IStack` module has them for the interface. They compile to `Push`, `Peek` and `Pop`, where
+  1.0.0 compiled them under their F# names.
+* `Stack`: `head` and `tail` of an empty stack throw the `ArgumentException` of `List.head` and `List.tail`, where they
+  threw the `InvalidOperationException` of `ImmutableStack`.
+* `Stack`: the complete active pattern `Cons | Nil`, which matched a reference tuple, is replaced by the struct partial
+  active patterns `Cons`, which matches a struct tuple, and `Nil`.
 
 ### Removed
 
@@ -161,6 +190,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * The `IndexedSeq` module and the `IIndexedSeq<'T>` abbreviation of `IReadOnlyList<'T>`: use `IReadOnlyList<'T>`, whose
   `Count` and indexer replace `IndexedSeq.length` and `IndexedSeq.item`. `IndexedSeq.check` needs no replacement, because
   every function of the list modules throws `ArgumentNullException` for a `null` list.
+* `Stack.push`, `peek` and `pop`: use `cons`, `head` and `uncons`. `pop` returned the top and the stack below it as a
+  reference tuple; `uncons` returns a struct tuple.
 
 ## [1.0.0] - 2020-02-23
 
