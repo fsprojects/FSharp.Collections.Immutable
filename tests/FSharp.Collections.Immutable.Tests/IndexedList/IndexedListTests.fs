@@ -1021,3 +1021,34 @@ type IndexedListTests () =
             |> IndexedList.toArray,
             $"IndexedList.choose must keep the chosen elements of a long list in order (%d{percent} %% chosen)"
         )
+
+    /// The tree of a long array is built from a span: every index must find its element, which a tree that is not balanced
+    /// as the indexer expects would not.
+    [<TestMethod>]
+    member _.``ofArray of a long array keeps the order and the indices`` () =
+        let items = Array.init 100_000 (fun index -> index * 7)
+        let list = IndexedList.ofArray items
+
+        Assert.HasCount (items.Length, list, "IndexedList.ofArray must keep all elements of a long array")
+        CollectionAssert.AreEqual (items, IndexedList.toArray list, "IndexedList.ofArray must keep the order of a long array")
+
+        let wrong = [|
+            for index in 0 .. items.Length - 1 do
+                if list[index] <> items[index] then
+                    index
+        |]
+        Assert.IsEmpty (wrong, "Every index of IndexedList.ofArray must give the element at that index")
+
+    [<TestMethod; DataRow 0; DataRow 1; DataRow 5000>]
+    member _.``replicate repeats the value for strings and integers`` (count : int) =
+        CollectionAssert.AreEqual (
+            List.replicate count "x" |> List.toArray,
+            IndexedList.replicate count "x" |> IndexedList.toArray,
+            "IndexedList.replicate must repeat the string"
+        )
+
+        CollectionAssert.AreEqual (
+            List.replicate count 7 |> List.toArray,
+            IndexedList.replicate count 7 |> IndexedList.toArray,
+            "IndexedList.replicate must repeat the integer"
+        )
