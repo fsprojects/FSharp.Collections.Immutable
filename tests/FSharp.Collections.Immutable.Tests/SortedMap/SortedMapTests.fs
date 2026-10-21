@@ -1260,3 +1260,116 @@ type SortedMapTests () =
             Seq.toArray (SortedMap.empty |> SortedMap.addRange pairs),
             "SortedMap.addRange of the mapped pairs must accept a repeated key with an equal element, as ToImmutableSortedDictionary does"
         )
+
+    // exists and forall walk a map with a reference type through the interface and a map of value types through the struct
+    // enumerator, and the contracts run on integers, so strings, and a string next to an integer, have tests of their own
+
+    [<TestMethod;
+      DataRow(0, "absent");
+      DataRow(1, "first");
+      DataRow(5, "first");
+      DataRow(5, "middle");
+      DataRow(5, "last");
+      DataRow(5, "absent");
+      DataRow(2000, "middle");
+      DataRow(2000, "absent")>]
+    member _.``exists and forall of string keys and values give the results of Map`` (count : int, position : string) =
+        let bindings = Array.init count (fun index -> struct ("x" + index.ToString (), "v" + index.ToString ()))
+
+        let target =
+            match position with
+            | "first" -> "x0"
+            | "middle" -> "x" + (count / 2).ToString()
+            | "last" -> "x" + (count - 1).ToString()
+            | _ -> "absent"
+
+        let table = SortedMap.ofArray bindings
+        let expected = toMap bindings
+
+        Assert.AreEqual (
+            Map.exists (fun key _ -> key = target) expected,
+            SortedMap.exists (fun key _ -> key = target) table,
+            "SortedMap.exists must find the key as Map.exists does"
+        )
+
+        Assert.AreEqual (
+            Map.forall (fun key _ -> key <> target) expected,
+            SortedMap.forall (fun key _ -> key <> target) table,
+            "SortedMap.forall must reject the key as Map.forall does"
+        )
+
+        Assert.AreEqual (
+            Map.exists (fun _ (value : string) -> value.Length > 1) expected,
+            SortedMap.exists (fun _ (value : string) -> value.Length > 1) table,
+            "SortedMap.exists must answer for a predicate on the values as Map.exists does"
+        )
+
+        Assert.AreEqual (
+            Map.forall (fun _ (value : string) -> value.Length > 1) expected,
+            SortedMap.forall (fun _ (value : string) -> value.Length > 1) table,
+            "SortedMap.forall must answer for a predicate on the values as Map.forall does"
+        )
+
+    [<TestMethod; DataRow(0); DataRow(1); DataRow(7); DataRow(300)>]
+    member _.``exists and forall of a string key with an integer value give the results of Map`` (count : int) =
+        let bindings = Array.init count (fun index -> struct ("x" + index.ToString (), index))
+        let table = SortedMap.ofArray bindings
+        let expected = toMap bindings
+
+        Assert.AreEqual (
+            Map.exists (fun _ value -> value = count - 1) expected,
+            SortedMap.exists (fun _ value -> value = count - 1) table,
+            "SortedMap.exists must find the value of the last binding as Map.exists does"
+        )
+
+        Assert.AreEqual (
+            Map.forall (fun _ value -> value < count) expected,
+            SortedMap.forall (fun _ value -> value < count) table,
+            "SortedMap.forall must accept the values below the count as Map.forall does"
+        )
+
+    [<TestMethod; DataRow(0); DataRow(1); DataRow(7); DataRow(300)>]
+    member _.``exists and forall of an integer key with a string value give the results of Map`` (count : int) =
+        let bindings = Array.init count (fun index -> struct (index, "v" + index.ToString ()))
+        let table = SortedMap.ofArray bindings
+        let expected = toMap bindings
+
+        Assert.AreEqual (
+            Map.exists (fun key _ -> key = count - 1) expected,
+            SortedMap.exists (fun key _ -> key = count - 1) table,
+            "SortedMap.exists must find the last key as Map.exists does"
+        )
+
+        Assert.AreEqual (
+            Map.forall (fun _ (value : string) -> value.Length > 1) expected,
+            SortedMap.forall (fun _ (value : string) -> value.Length > 1) table,
+            "SortedMap.forall must answer for a predicate on the values as Map.forall does"
+        )
+
+    [<TestMethod>]
+    member _.``exists and forall of strings stop at the first match and the first failure`` () =
+        let table = SortedMap.ofArray [| struct ("a", "1"); struct ("b", "2"); struct ("c", "3") |]
+        let calls = ref 0
+
+        let found =
+            SortedMap.exists
+                (fun key _ ->
+                    calls.Value <- calls.Value + 1
+                    key = "a"
+                )
+                table
+
+        Assert.IsTrue (found, "SortedMap.exists must find the first key in the order")
+        Assert.AreEqual (1, calls.Value, "SortedMap.exists must not call the predicate after the first match")
+        calls.Value <- 0
+
+        let holds =
+            SortedMap.forall
+                (fun key _ ->
+                    calls.Value <- calls.Value + 1
+                    key <> "a"
+                )
+                table
+
+        Assert.IsFalse (holds, "SortedMap.forall must fail on the first key in the order")
+        Assert.AreEqual (1, calls.Value, "SortedMap.forall must not call the predicate after the first failure")
