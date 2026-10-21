@@ -930,3 +930,79 @@ type IndexedListTests () =
             IndexedList.toArray (IndexedList.ofSeq list),
             "IndexedList.ofSeq must keep the elements of a long list in order"
         )
+
+    /// The functions that walk the list use the enumerator of the interface for reference types (see Walk), a path that
+    /// the contracts, over integers, do not reach.
+    [<TestMethod; DataRow 0; DataRow 1; DataRow 5; DataRow 2000>]
+    member _.``the functions that walk a list give the results of List for strings`` (length : int) =
+        let items = Array.init length (fun index -> $"item %d{index}")
+        let list = IndexedList.ofArray items
+        let expected = List.ofArray items
+        let visited = ResizeArray<string>()
+        IndexedList.iter visited.Add list
+        CollectionAssert.AreEqual (items, visited.ToArray (), "IndexedList.iter must visit the strings in order")
+
+        let visitedAt = ResizeArray<string>()
+        IndexedList.iteri (fun index item -> visitedAt.Add $"%d{index}:%s{item}") list
+
+        CollectionAssert.AreEqual (
+            expected
+            |> List.mapi (fun index item -> $"%d{index}:%s{item}")
+            |> List.toArray,
+            visitedAt.ToArray (),
+            "IndexedList.iteri must pass the index and the string in order"
+        )
+
+        let fold (total : int) (item : string) = total * 31 + item.Length
+
+        Assert.AreEqual<int>(
+            List.fold fold 7 expected,
+            IndexedList.fold fold 7 list,
+            "IndexedList.fold must thread the state through the strings in order"
+        )
+
+        CollectionAssert.AreEqual (
+            expected
+            |> List.mapi (fun index item -> $"%d{index}:%s{item}")
+            |> List.toArray,
+            IndexedList.mapi (fun index item -> $"%d{index}:%s{item}") list
+            |> IndexedList.toArray,
+            "IndexedList.mapi must map the strings in order"
+        )
+
+        CollectionAssert.AreEqual (
+            expected |> List.scan fold 7 |> List.toArray,
+            IndexedList.scan fold 7 list |> IndexedList.toArray,
+            "IndexedList.scan must give the states for the strings"
+        )
+
+        let pick (item : string) =
+            if item.EndsWith ('7') then
+                ValueSome item.Length
+            else
+                ValueNone
+
+        Assert.AreEqual<int voption>(
+            expected
+            |> List.tryPick (fun item -> pick item |> ValueOption.toOption)
+            |> ValueOption.ofOption,
+            IndexedList.tryPick pick list,
+            "IndexedList.tryPick must return the first value for the strings"
+        )
+
+        CollectionAssert.AreEqual (
+            expected
+            |> List.choose (fun item -> pick item |> ValueOption.toOption)
+            |> List.toArray,
+            IndexedList.choose pick list |> IndexedList.toArray,
+            "IndexedList.choose must keep the chosen values for the strings"
+        )
+
+        CollectionAssert.AreEqual (
+            expected
+            |> List.collect (fun item -> [ item; item ])
+            |> List.toArray,
+            IndexedList.collect (fun item -> IndexedList.ofArray [| item; item |]) list
+            |> IndexedList.toArray,
+            "IndexedList.collect must concatenate the results for the strings"
+        )
