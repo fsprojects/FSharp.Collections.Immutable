@@ -25,9 +25,7 @@ let private range (list : IndexedList<'T>) (start : int) (count : int) =
     elif count = list.Count then
         list
     else
-        let items = Array.zeroCreate count
-        list.CopyTo (start, items, 0, count)
-        ofFreshArray items
+        Buffers.ofFilled count (fun items -> list.CopyTo (start, items, 0, count))
 
 /// The first value that the chooser returns for the elements, in their order.
 let private firstChoice (chooser : 'T -> 'U voption) (list : IndexedList<'T>) = Walk.tryPick chooser list
@@ -59,7 +57,12 @@ let empty<'T> : IndexedList<'T> = ImmutableList<'T>.Empty
 let init length (initializer : int -> 'T) =
     // List.init reports the length under the name "count"
     ListChecks.nonNegative "count" length
-    Array.init length initializer |> ofFreshArray
+    Buffers.ofFilled
+        length
+        (fun items ->
+            for index in 0 .. length - 1 do
+                items[index] <- initializer index
+        )
 
 [<CompiledName "OfArray">]
 let ofArray (array : 'T array) =
@@ -94,9 +97,7 @@ let replicate count (initial : 'T) =
     ListChecks.replicate (nameof count) count
     // Array.Fill is vectorized, where Array.create stores the elements one by one: 0.8 to 0.9 times as long for 100 to a
     // million strings, and the same time for integers
-    let items : 'T array = Array.zeroCreate count
-    Array.Fill (items, initial)
-    ofFreshArray items
+    Buffers.ofFilled count (fun items -> Array.Fill (items, initial, 0, count))
 
 [<CompiledName "Singleton">]
 let singleton (value : 'T) = ImmutableList.Create<'T> value
@@ -624,9 +625,7 @@ let map3 (mapping : 'T1 -> 'T2 -> 'T3 -> 'U) (list1 : IndexedList<'T1>) (list2 :
 [<CompiledName "MapIndexed">]
 let mapi (mapping : int -> 'T -> 'U) (list : IndexedList<'T>) =
     checkNotNull (nameof list) list
-    let results = Array.zeroCreate list.Count
-    Walk.iteri (fun index item -> results[index] <- mapping index item) list
-    ofFreshArray results
+    Buffers.ofFilled list.Count (fun results -> Walk.iteri (fun index item -> results[index] <- mapping index item) list)
 
 [<CompiledName "MapIndexed2">]
 let mapi2 (mapping : int -> 'T1 -> 'T2 -> 'U) (list1 : IndexedList<'T1>) (list2 : IndexedList<'T2>) =
@@ -704,9 +703,15 @@ let rev (list : IndexedList<'T>) =
     // A copy reversed in place and a new balanced tree are about 8 times faster than ImmutableList.Reverse at 100 000
     // integers (about 3 ms against 23 ms), and the copy is the only extra allocation (ADR 0001, D5); the copy is fresh,
     // so nobody else sees it change
-    let array = Snapshot.ofSeq (nameof list) list
-    Array.Reverse array
-    ofFreshArray array
+    checkNotNull (nameof list) list
+    let count = list.Count
+
+    Buffers.ofFilled
+        count
+        (fun items ->
+            list.CopyTo items
+            Array.Reverse (items, 0, count)
+        )
 
 [<CompiledName "ReverseRange">]
 let revRange index count (list : IndexedList<'T>) =
@@ -908,21 +913,23 @@ let iteri2 (action : int -> 'T1 -> 'T2 -> unit) (list1 : IndexedList<'T1>) (list
 [<CompiledName "MapFold">]
 let mapFold (mapping : 'State -> 'T -> struct ('Result * 'State)) (state : 'State) (list : IndexedList<'T>) =
     checkNotNull (nameof list) list
-    let results = Array.zeroCreate list.Count
-
     // Not a Walk loop: for strings, the loop of Walk took 1.1 to 1.4 times as long as this one once it was compiled into the
     // library, although its machine code differs only in the order of a copy of the struct that the mapping returns, and
     // the same source in a script ran 0.8 times as long. The loops of iter, fold, mapi and scan took 0.6 to 0.9 times as long.
-    let mutable state = state
-    let mutable index = 0
+    Buffers.ofFilledWith
+        list.Count
+        (fun results ->
+            let mutable state = state
+            let mutable index = 0
 
-    for item in list do
-        let struct (result, next) = mapping state item
-        results[index] <- result
-        state <- next
-        index <- index + 1
+            for item in list do
+                let struct (result, next) = mapping state item
+                results[index] <- result
+                state <- next
+                index <- index + 1
 
-    struct (ofFreshArray results, state)
+            state
+        )
 
 [<CompiledName "MapFoldBack">]
 let mapFoldBack (mapping : 'T -> 'State -> struct ('Result * 'State)) (list : IndexedList<'T>) (state : 'State) =
@@ -1049,10 +1056,12 @@ let reduceBack (reduction : 'T -> 'T -> 'T) (list : IndexedList<'T>) =
 [<CompiledName "Scan">]
 let scan (folder : 'State -> 'T -> 'State) (state : 'State) (list : IndexedList<'T>) =
     checkNotNull (nameof list) list
-    let states = Array.zeroCreate (list.Count + 1)
-    states[0] <- state
-    Walk.iteri (fun index item -> states[index + 1] <- folder states[index] item) list
-    ofFreshArray states
+    Buffers.ofFilled
+        (list.Count + 1)
+        (fun states ->
+            states[0] <- state
+            Walk.iteri (fun index item -> states[index + 1] <- folder states[index] item) list
+        )
 
 [<CompiledName "ScanBack">]
 let scanBack (folder : 'T -> 'State -> 'State) (list : IndexedList<'T>) (state : 'State) =

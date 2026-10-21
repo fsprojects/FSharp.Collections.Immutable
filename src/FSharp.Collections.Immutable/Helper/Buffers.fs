@@ -123,3 +123,57 @@ type ChosenBuffer<'T> (bound : int) =
             this.Release ()
             result
         | spilled -> ImmutableList.Create<'T>(Span<'T>.op_Implicit(CollectionsMarshal.AsSpan spilled))
+
+/// <summary>
+/// Builds the indexed list of the elements that a function writes into an array of a known length, and returns what the
+/// function returns as well.
+/// </summary>
+/// <typeparam name="T">The type of the elements.</typeparam>
+/// <typeparam name="R">The type of what the function returns.</typeparam>
+/// <param name="length">The number of elements.</param>
+/// <param name="fill">
+/// Writes the elements at the indexes 0 to <paramref name="length"/> - 1 of the array that it gets, which can be longer.
+/// </param>
+/// <returns>The indexed list, and the value that <paramref name="fill"/> returned.</returns>
+/// <remarks>
+/// <para>
+/// The array is a new one below <see cref="F:FSharp.Collections.Immutable.Buffers.PooledFrom"/> elements, and one rented
+/// from the pool above, which is cleared as far as it was written when it holds references and returned.
+/// </para>
+/// <para>
+/// A function that throws does not return the rented array. The pool allocates another one, and nothing leaks.
+/// </para>
+/// </remarks>
+let ofFilledWith (length : int) (fill : 'T array -> 'R) : struct (ImmutableList<'T> * 'R) =
+    if length < PooledFrom then
+        let items : 'T array =
+            if length = 0 then
+                Array.Empty<'T>()
+            else
+                Array.zeroCreate length
+        let extra = fill items
+        struct (ImmutableList.Create<'T>(ReadOnlySpan<'T>(items)), extra)
+    else
+        let pool = ArrayPool<'T>.Shared
+        let items = pool.Rent length
+        let extra = fill items
+        let result = ImmutableList.Create<'T>(ReadOnlySpan<'T>(items, 0, length))
+
+        if RuntimeHelpers.IsReferenceOrContainsReferences<'T>() then
+            Array.Clear (items, 0, length)
+
+        pool.Return (items, false)
+        struct (result, extra)
+
+/// <summary>
+/// Builds the indexed list of the elements that a function writes into an array of a known length.
+/// </summary>
+/// <typeparam name="T">The type of the elements.</typeparam>
+/// <param name="length">The number of elements.</param>
+/// <param name="fill">
+/// Writes the elements at the indexes 0 to <paramref name="length"/> - 1 of the array that it gets, which can be longer.
+/// </param>
+/// <returns>The indexed list.</returns>
+let ofFilled (length : int) (fill : 'T array -> unit) : ImmutableList<'T> =
+    let struct (result, ()) = ofFilledWith length fill
+    result
