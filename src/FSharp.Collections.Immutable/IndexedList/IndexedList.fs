@@ -28,18 +28,7 @@ let private range (list : IndexedList<'T>) (start : int) (count : int) =
         ofFreshArray items
 
 /// The first value that the chooser returns for the elements, in their order.
-let private firstChoice (chooser : 'T -> 'U voption) (list : IndexedList<'T>) =
-    let mutable enumerator = list.GetEnumerator ()
-
-    try
-        let mutable result = ValueNone
-
-        while result.IsNone && enumerator.MoveNext () do
-            result <- chooser enumerator.Current
-
-        result
-    finally
-        enumerator.Dispose ()
+let private firstChoice (chooser : 'T -> 'U voption) (list : IndexedList<'T>) = Walk.tryPick chooser list
 
 /// A range of an indexed list sorted stably: the range is sorted in a copy, with LINQ, which sorts stably, and put back
 /// in place of the range. ImmutableList.Sort(Int32, Int32, IComparer) is not stable (ADR 0001, D5).
@@ -76,7 +65,12 @@ let ofArray (array : 'T array) =
     ImmutableList.CreateRange array
 
 [<CompiledName "OfList">]
-let ofList (list : 'T list) = ImmutableList.CreateRange list
+let ofList (list : 'T list) =
+    // An F# list is an IReadOnlyList whose indexer walks the list from its head, and the BCL builds a tree by indexing a
+    // list that implements IReadOnlyList: ImmutableList.CreateRange of a list took 0.43 ms for 1000 elements, 41 ms for
+    // 10 000 and 5.9 s for 100 000, a time that grows with the square of the length. The copy in an array takes 8 µs, 90 µs
+    // and 1.4 ms for the same lists, and the tree is built from the array.
+    ofFreshArray (List.toArray list)
 
 [<CompiledName "OfReadOnlySpan">]
 let ofReadOnlySpan (span : ReadOnlySpan<'T>) = ImmutableList.Create<'T> span
@@ -85,7 +79,10 @@ let ofReadOnlySpan (span : ReadOnlySpan<'T>) = ImmutableList.Create<'T> span
 let ofSeq (source : seq<'T>) =
     // A default flat list given as a sequence is a null input; the BCL would fail while it enumerates it (ADR 0001, D6)
     checkNotNullOrDefaultSeq (nameof source) source
-    ImmutableList.CreateRange source
+
+    match source with
+    | :? ('T list) as list -> ofList list
+    | _ -> ImmutableList.CreateRange source
 
 [<CompiledName "OfSpan">]
 let ofSpan (span : Span<'T>) = ImmutableList.Create<'T>(Span<'T>.op_Implicit span)
@@ -500,17 +497,26 @@ let append (list1 : IndexedList<'T>) (list2 : IndexedList<'T>) =
 [<CompiledName "Choose">]
 let choose (chooser : 'T -> 'U voption) (list : IndexedList<'T>) =
     checkNotNull (nameof list) list
-    // The number of chosen elements is not known in advance, so they wait in a ResizeArray and CreateRange builds the
-    // balanced tree once. A builder rebalances its tree after every Add and took 2.3 times as long for 100 000
+    // The chosen elements wait in an array as long as the list, the most that the result can have: a new one below 1024
+    // elements, and one rented from the pool above (see Buffers). The ResizeArray that was here doubles its array as it
+    // fills, and allocated 18 % more than the tree needs for a million integers and 35 % more for a million strings; the
+    // arrays of its growth in the large object heap made the collections of the second generation more frequent. The
+    // array took the same time for integers of 10 to 10 000 elements and up to 10 % less above; a buffer of chunks that
+    // are joined to the result as subtrees left a tree whose indexer was 6 to 10 % slower (the average of two runs, 100 to
+    // 100 000 elements), and it took no less time than the array. A builder rebalances its tree
+    // after every Add and took 3.3 to 3.6 times as long for integers and 2.5 times for strings of 100 000 to a million
     // elements; there is no tree of an input to join to its tree here, as collect and concat have (see Collectors).
-    let chosen = ResizeArray<'U>()
+    let chosen = Buffers.ChosenBuffer<'U> list.Count
 
-    for item in list do
-        match chooser item with
-        | ValueSome value -> chosen.Add value
-        | ValueNone -> ()
+    Walk.iter
+        (fun item ->
+            match chooser item with
+            | ValueSome value -> chosen.Add value
+            | ValueNone -> ()
+        )
+        list
 
-    ImmutableList.CreateRange chosen
+    chosen.ToImmutable ()
 
 [<CompiledName "ChunkBySize">]
 let chunkBySize chunkSize (list : IndexedList<'T>) =
@@ -537,9 +543,7 @@ let collect (mapping : 'T -> IndexedList<'U>) (list : IndexedList<'T>) =
     // The collector copies the short results and joins the long ones to its tree as they are (see Collectors)
     let collector = Collectors.ListCollector<'U>()
 
-    for item in list do
-        collector.Add (mapping item)
-
+    Walk.iter (fun item -> collector.Add (mapping item)) list
     collector.ToImmutable ()
 
 [<CompiledName "Concat">]
@@ -615,12 +619,7 @@ let map3 (mapping : 'T1 -> 'T2 -> 'T3 -> 'U) (list1 : IndexedList<'T1>) (list2 :
 let mapi (mapping : int -> 'T -> 'U) (list : IndexedList<'T>) =
     checkNotNull (nameof list) list
     let results = Array.zeroCreate list.Count
-    let mutable index = 0
-
-    for item in list do
-        results[index] <- mapping index item
-        index <- index + 1
-
+    Walk.iteri (fun index item -> results[index] <- mapping index item) list
     ofFreshArray results
 
 [<CompiledName "MapIndexed2">]
@@ -846,12 +845,7 @@ let compareWith (comparer : 'T -> 'T -> int) (list1 : IndexedList<'T>) (list2 : 
 [<CompiledName "Fold">]
 let fold (folder : 'State -> 'T -> 'State) (state : 'State) (list : IndexedList<'T>) =
     checkNotNull (nameof list) list
-    let mutable state = state
-
-    for item in list do
-        state <- folder state item
-
-    state
+    Walk.fold folder state list
 
 [<CompiledName "Fold2">]
 let fold2 (folder : 'State -> 'T1 -> 'T2 -> 'State) (state : 'State) (list1 : IndexedList<'T1>) (list2 : IndexedList<'T2>) =
@@ -880,8 +874,7 @@ let iter (action : 'T -> unit) (list : IndexedList<'T>) =
     checkNotNull (nameof list) list
 
     // ForEach calls a delegate for every element; the loop calls the function directly
-    for item in list do
-        action item
+    Walk.iter action list
 
 [<CompiledName "Iterate2">]
 let iter2 (action : 'T1 -> 'T2 -> unit) (list1 : IndexedList<'T1>) (list2 : IndexedList<'T2>) =
@@ -895,11 +888,7 @@ let iter2 (action : 'T1 -> 'T2 -> unit) (list1 : IndexedList<'T1>) (list2 : Inde
 [<CompiledName "IterateIndexed">]
 let iteri (action : int -> 'T -> unit) (list : IndexedList<'T>) =
     checkNotNull (nameof list) list
-    let mutable index = 0
-
-    for item in list do
-        action index item
-        index <- index + 1
+    Walk.iteri action list
 
 [<CompiledName "IterateIndexed2">]
 let iteri2 (action : int -> 'T1 -> 'T2 -> unit) (list1 : IndexedList<'T1>) (list2 : IndexedList<'T2>) =
@@ -914,6 +903,10 @@ let iteri2 (action : int -> 'T1 -> 'T2 -> unit) (list1 : IndexedList<'T1>) (list
 let mapFold (mapping : 'State -> 'T -> struct ('Result * 'State)) (state : 'State) (list : IndexedList<'T>) =
     checkNotNull (nameof list) list
     let results = Array.zeroCreate list.Count
+
+    // Not a Walk loop: for strings, the loop of Walk took 1.1 to 1.4 times as long as this one once it was compiled into the
+    // library, although its machine code differs only in the order of a copy of the struct that the mapping returns, and
+    // the same source in a script ran 0.8 times as long. The loops of iter, fold, mapi and scan took 0.6 to 0.9 times as long.
     let mutable state = state
     let mutable index = 0
 
@@ -1052,12 +1045,7 @@ let scan (folder : 'State -> 'T -> 'State) (state : 'State) (list : IndexedList<
     checkNotNull (nameof list) list
     let states = Array.zeroCreate (list.Count + 1)
     states[0] <- state
-    let mutable index = 0
-
-    for item in list do
-        states[index + 1] <- folder states[index] item
-        index <- index + 1
-
+    Walk.iteri (fun index item -> states[index + 1] <- folder states[index] item) list
     ofFreshArray states
 
 [<CompiledName "ScanBack">]

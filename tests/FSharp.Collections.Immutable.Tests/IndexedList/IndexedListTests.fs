@@ -909,3 +909,115 @@ type IndexedListTests () =
             $"IndexedList.%s{name} must throw the type of exception of List"
         )
         Assert.AreEqual<string>(expected.Message, ex.Message, $"IndexedList.%s{name} must throw the message of List")
+
+    /// An F# list is an `IReadOnlyList` whose indexer walks the list from its head, and the BCL builds a tree by indexing,
+    /// so `ImmutableList.CreateRange` of a list takes time that grows with the square of the length: about 6 s for 100 000
+    /// elements and four times as much for 200 000, where the copy that `ofList` makes takes a few milliseconds. The timeout is
+    /// far above the time of the copy and a fraction of the time of the quadratic build.
+    [<TestMethod; Timeout 5000>]
+    member _.``ofList and ofSeq copy a long list before they build the tree`` () =
+        let expected = Array.init 200_000 id
+        let list = List.ofArray expected
+
+        CollectionAssert.AreEqual (
+            expected,
+            IndexedList.toArray (IndexedList.ofList list),
+            "IndexedList.ofList must keep the elements of a long list in order"
+        )
+
+        CollectionAssert.AreEqual (
+            expected,
+            IndexedList.toArray (IndexedList.ofSeq list),
+            "IndexedList.ofSeq must keep the elements of a long list in order"
+        )
+
+    /// The functions that walk the list use the enumerator of the interface for reference types (see Walk), a path that
+    /// the contracts, over integers, do not reach.
+    [<TestMethod; DataRow 0; DataRow 1; DataRow 5; DataRow 2000>]
+    member _.``the functions that walk a list give the results of List for strings`` (length : int) =
+        let items = Array.init length (fun index -> $"item %d{index}")
+        let list = IndexedList.ofArray items
+        let expected = List.ofArray items
+        let visited = ResizeArray<string>()
+        IndexedList.iter visited.Add list
+        CollectionAssert.AreEqual (items, visited.ToArray (), "IndexedList.iter must visit the strings in order")
+
+        let visitedAt = ResizeArray<string>()
+        IndexedList.iteri (fun index item -> visitedAt.Add $"%d{index}:%s{item}") list
+
+        CollectionAssert.AreEqual (
+            expected
+            |> List.mapi (fun index item -> $"%d{index}:%s{item}")
+            |> List.toArray,
+            visitedAt.ToArray (),
+            "IndexedList.iteri must pass the index and the string in order"
+        )
+
+        let fold (total : int) (item : string) = total * 31 + item.Length
+
+        Assert.AreEqual<int>(
+            List.fold fold 7 expected,
+            IndexedList.fold fold 7 list,
+            "IndexedList.fold must thread the state through the strings in order"
+        )
+
+        CollectionAssert.AreEqual (
+            expected
+            |> List.mapi (fun index item -> $"%d{index}:%s{item}")
+            |> List.toArray,
+            IndexedList.mapi (fun index item -> $"%d{index}:%s{item}") list
+            |> IndexedList.toArray,
+            "IndexedList.mapi must map the strings in order"
+        )
+
+        CollectionAssert.AreEqual (
+            expected |> List.scan fold 7 |> List.toArray,
+            IndexedList.scan fold 7 list |> IndexedList.toArray,
+            "IndexedList.scan must give the states for the strings"
+        )
+
+        let pick (item : string) =
+            if item.EndsWith ('7') then
+                ValueSome item.Length
+            else
+                ValueNone
+
+        Assert.AreEqual<int voption>(
+            expected
+            |> List.tryPick (fun item -> pick item |> ValueOption.toOption)
+            |> ValueOption.ofOption,
+            IndexedList.tryPick pick list,
+            "IndexedList.tryPick must return the first value for the strings"
+        )
+
+        CollectionAssert.AreEqual (
+            expected
+            |> List.choose (fun item -> pick item |> ValueOption.toOption)
+            |> List.toArray,
+            IndexedList.choose pick list |> IndexedList.toArray,
+            "IndexedList.choose must keep the chosen values for the strings"
+        )
+
+        CollectionAssert.AreEqual (
+            expected
+            |> List.collect (fun item -> [ item; item ])
+            |> List.toArray,
+            IndexedList.collect (fun item -> IndexedList.ofArray [| item; item |]) list
+            |> IndexedList.toArray,
+            "IndexedList.collect must concatenate the results for the strings"
+        )
+
+    /// The contracts choose from short lists, which a new array holds; a long list goes through the rented array, and the
+    /// selectivities give the results of all lengths, down to a few elements.
+    [<TestMethod; DataRow 100; DataRow 50; DataRow 1>]
+    member _.``choose of a long list keeps the chosen elements in order`` (percent : int) =
+        let items = Array.init 100_000 id
+
+        CollectionAssert.AreEqual (
+            items
+            |> Array.choose (fun x -> if x % 100 < percent then Some (x * 2) else None),
+            IndexedList.ofArray items
+            |> IndexedList.choose (fun x -> if x % 100 < percent then ValueSome (x * 2) else ValueNone)
+            |> IndexedList.toArray,
+            $"IndexedList.choose must keep the chosen elements of a long list in order (%d{percent} %% chosen)"
+        )
