@@ -30,7 +30,8 @@ While F# has its own built-in immutable collections, System.Collections.Immutabl
 | `IndexedList` | `ImmutableList<'T>` | `indexedList { }` |
 | `IIndexedList` | `IImmutableList<'T>` | – |
 | `Stack` | `ImmutableStack<'T>` | – |
-| `Queue` | `ImmutableQueue<'T>` | – |
+| `Queue` | `ImmutableQueue<'T>` | `queue { }` |
+| `IQueue` | `IImmutableQueue<'T>` | – |
 | `HashMap` | `ImmutableDictionary<'Key, 'Value>` | – |
 | `SortedMap` | `ImmutableSortedDictionary<'Key, 'Value>` | – |
 | `HashSet` | `ImmutableHashSet<'T>` | – |
