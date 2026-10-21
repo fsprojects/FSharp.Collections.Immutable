@@ -82,6 +82,12 @@
     <Compile Include="HashSet\ISetTests.fs" />
     <Compile Include="HashSet\ISetOptionTests.fs" />
     <Compile Include="HashSet\ISetTupleTests.fs" />
+    <Compile Include="FrozenSet\FrozenSetOps.fs" />
+    <Compile Include="FrozenSet\FrozenSetContractTests.fs" />
+    <Compile Include="FrozenSet\FrozenSetTests.fs" />
+    <Compile Include="FrozenSet\FrozenSetComputationExpressionTests.fs" />
+    <Compile Include="FrozenSet\FrozenSetOptionTests.fs" />
+    <Compile Include="FrozenSet\FrozenSetTupleTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
