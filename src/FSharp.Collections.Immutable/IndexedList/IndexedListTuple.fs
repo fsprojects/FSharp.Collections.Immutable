@@ -1,7 +1,6 @@
 [<RequireQualifiedAccess>]
 module FSharp.Collections.Immutable.Tuple.IndexedList
 
-open System.Collections.Immutable
 open FSharp.Collections.Immutable
 
 // The functions that build a tuple per element share their algorithm with the default module and only pass another
@@ -40,31 +39,31 @@ let (|Cons|_|) (list : IndexedList<'T>) = tryUncons list
 [<CompiledName "AllPairs">]
 let allPairs (list1 : IndexedList<'T1>) (list2 : IndexedList<'T2>) =
     Arrays.allPairs referencePair (Snapshot.ofSeq (nameof list1) list1) (Snapshot.ofSeq (nameof list2) list2)
-    |> ImmutableList.CreateRange
+    |> IndexedList.ofArray
 
 [<CompiledName "Indexed">]
 let indexed (list : IndexedList<'T>) =
     Arrays.indexed referencePair (Snapshot.ofSeq (nameof list) list)
-    |> ImmutableList.CreateRange
+    |> IndexedList.ofArray
 
 [<CompiledName "Pairwise">]
 let pairwise (list : IndexedList<'T>) =
     Arrays.pairwise referencePair (Snapshot.ofSeq (nameof list) list)
-    |> ImmutableList.CreateRange
+    |> IndexedList.ofArray
 
 [<CompiledName "Unzip">]
 let unzip (list : IndexedList<'T1 * 'T2>) =
     let struct (first, second) =
         Arrays.unzip (fun (item1, item2) -> struct (item1, item2)) (Snapshot.ofSeq (nameof list) list)
 
-    ImmutableList.CreateRange first, ImmutableList.CreateRange second
+    IndexedList.ofArray first, IndexedList.ofArray second
 
 [<CompiledName "Unzip3">]
 let unzip3 (list : IndexedList<'T1 * 'T2 * 'T3>) =
     let struct (first, second, third) =
         Arrays.unzip3 (fun (item1, item2, item3) -> struct (item1, item2, item3)) (Snapshot.ofSeq (nameof list) list)
 
-    ImmutableList.CreateRange first, ImmutableList.CreateRange second, ImmutableList.CreateRange third
+    IndexedList.ofArray first, IndexedList.ofArray second, IndexedList.ofArray third
 
 [<CompiledName "Zip">]
 let zip (list1 : IndexedList<'T1>) (list2 : IndexedList<'T2>) =
@@ -73,7 +72,7 @@ let zip (list1 : IndexedList<'T1>) (list2 : IndexedList<'T2>) =
     ListChecks.sameLengths (nameof list1) list1.Count (nameof list2) list2.Count
 
     Arrays.zip referencePair (Snapshot.ofSeq (nameof list1) list1) (Snapshot.ofSeq (nameof list2) list2)
-    |> ImmutableList.CreateRange
+    |> IndexedList.ofArray
 
 [<CompiledName "Zip3">]
 let zip3 (list1 : IndexedList<'T1>) (list2 : IndexedList<'T2>) (list3 : IndexedList<'T3>) =
@@ -87,7 +86,7 @@ let zip3 (list1 : IndexedList<'T1>) (list2 : IndexedList<'T2>) (list3 : IndexedL
         (Snapshot.ofSeq (nameof list1) list1)
         (Snapshot.ofSeq (nameof list2) list2)
         (Snapshot.ofSeq (nameof list3) list3)
-    |> ImmutableList.CreateRange
+    |> IndexedList.ofArray
 
 // ---- Folding ----
 
@@ -114,12 +113,12 @@ let mapFoldBack (mapping : 'T -> 'State -> 'Result * 'State) (list : IndexedList
 [<CompiledName "CountBy">]
 let countBy (projection : 'T -> 'Key) (list : IndexedList<'T>) =
     Arrays.countBy referencePair projection (Snapshot.ofSeq (nameof list) list)
-    |> ImmutableList.CreateRange
+    |> IndexedList.ofArray
 
 [<CompiledName "GroupBy">]
 let groupBy (projection : 'T -> 'Key) (list : IndexedList<'T>) =
-    Arrays.groupBy (fun key items -> key, ImmutableList.CreateRange items) projection (Snapshot.ofSeq (nameof list) list)
-    |> ImmutableList.CreateRange
+    Arrays.groupBy (fun key items -> key, IndexedList.ofArray items) projection (Snapshot.ofSeq (nameof list) list)
+    |> IndexedList.ofArray
 
 [<CompiledName "Partition">]
 let partition predicate (list : IndexedList<'T>) =
