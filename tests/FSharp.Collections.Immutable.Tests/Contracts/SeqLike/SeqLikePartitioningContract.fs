@@ -100,6 +100,24 @@ type SeqLikePartitioningContract<'C> (ops : SeqOps<'C>) =
         )
 
     [<TestMethod; DynamicData(nameof Inputs.All, typeof<Inputs>)>]
+    member this.``except rejects a default flat list given as the items to exclude as null items`` (input : int array) =
+        let struct (collection, _) = this.Create input
+
+        // FSharp.Core checks the items to exclude before it looks at the input, which an empty input does not even read
+        ExceptionAssert.Same (
+            id,
+            (fun () ->
+                ops.Except Unchecked.defaultof<seq<int>> collection
+                |> ignore
+            ),
+            (fun () ->
+                ops.Except (Inputs.DefaultFlatListAsSeq<int>()) collection
+                |> ignore
+            ),
+            $"%s{ops.Name}.except of a default flat list must throw what it throws for null items"
+        )
+
+    [<TestMethod; DynamicData(nameof Inputs.All, typeof<Inputs>)>]
     member this.``groupBy groups the elements by key in the order of the first occurrence`` (input : int array) =
         let struct (collection, elements) = this.Create input
         let expected = Array.groupBy (fun item -> item % 3) elements

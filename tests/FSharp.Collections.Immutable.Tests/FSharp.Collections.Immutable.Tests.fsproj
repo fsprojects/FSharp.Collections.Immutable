@@ -37,6 +37,7 @@
     <Compile Include="Contracts\ExceptionAssert.fs" />
     <Compile Include="Contracts\Inputs.fs" />
     <Compile Include="Contracts\OverrideAssert.fs" />
+    <Compile Include="Contracts\AllocationAssert.fs" />
     <Compile Include="Contracts\ContractBase.fs" />
     <Compile Include="Contracts\SeqOps.fs" />
     <Compile Include="Contracts\SeqLike\SeqLikeAccessContract.fs" />
@@ -49,6 +50,8 @@
     <Compile Include="Contracts\SeqLike\SeqLikeContract.fs" />
     <Compile Include="Contracts\SeqCreationContract.fs" />
     <Compile Include="Contracts\IndexedContract.fs" />
+    <Compile Include="Contracts\StableSortContract.fs" />
+    <Compile Include="Contracts\CostContract.fs" />
     <Compile Include="TestCategoriesTests.fs" />
     <Compile Include="FlatList\FlatListOps.fs" />
     <Compile Include="FlatList\FlatListAssert.fs" />
@@ -63,6 +66,20 @@
     <Compile Include="FlatList\FlatListParallelTests.fs" />
     <Compile Include="FlatList\FlatListParallelOptionTests.fs" />
     <Compile Include="FlatList\FlatListParallelTupleTests.fs" />
+    <Compile Include="IndexedList\ListMemberCases.fs" />
+    <Compile Include="IndexedList\ListMembersContract.fs" />
+    <Compile Include="IndexedList\IndexedListOps.fs" />
+    <Compile Include="IndexedList\IIndexedListOps.fs" />
+    <Compile Include="IndexedList\IndexedListContractTests.fs" />
+    <Compile Include="IndexedList\IndexedListTests.fs" />
+    <Compile Include="IndexedList\IndexedListRangeTests.fs" />
+    <Compile Include="IndexedList\IIndexedListTests.fs" />
+    <Compile Include="IndexedList\IndexedListBuilderTests.fs" />
+    <Compile Include="IndexedList\IndexedListComputationExpressionTests.fs" />
+    <Compile Include="IndexedList\IndexedListOptionTests.fs" />
+    <Compile Include="IndexedList\IndexedListTupleTests.fs" />
+    <Compile Include="IndexedList\IIndexedListOptionTests.fs" />
+    <Compile Include="IndexedList\IIndexedListTupleTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
