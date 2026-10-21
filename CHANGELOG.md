@@ -88,6 +88,74 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   modules that repeat the functions that use value options or return struct tuples with options and reference tuples.
 * `hashMap { }` builds a hash map from `yield struct (key, value)` and `yield KeyValuePair (key, value)`; `HashMapCE` takes
   a key comparer, and a `null` one throws `ArgumentNullException`.
+* `SortedMap` has every function of the FSharp.Core `Map` module that applies to a sorted map, with its semantics and
+  exceptions, `minKeyValue` and `maxKeyValue` included, except `add`, which is the `Add` of
+  `ImmutableSortedDictionary`; plus `choose` and `singleton`, the builder functions `build`, `builder`, `ofBuilder`,
+  `toBuilder` and `update`, and the wrappers of the `ImmutableSortedDictionary` members `add`, `addRange`, `clear`,
+  `containsBinding`, `containsValue`, `keyComparer`, `ofSeqBy`, `removeRange`, `setItem`, `setItems`, `tryGetKey` and
+  `valueComparer`, which keep the semantics of the BCL. `maxKeyValue` visits every binding, because
+  `ImmutableSortedDictionary` gives no other access to its largest key.
+* `SortedMap.containsBinding` tells whether a key is bound to a value, comparing the value with the value comparer of the
+  map, as `Contains` of a `KeyValuePair` does. `tryFind` followed by `=` compares with F# equality, which can differ from
+  the value comparer. A `null` key throws `ArgumentNullException`.
+* `SortedMap.build` creates a sorted map with a builder that an action fills, `SortedMap.update` changes a sorted map with
+  a builder, and the member `build` of `CustomComparersSortedMap` does the first with its comparers.
+* `SortedMap.ofArray`, `SortedMap.ofList` and `SortedMap.ofSeq` take the bindings as `KeyValuePair`s, reference tuples or
+  struct tuples: they are static members of `ImmutableSortedDictionary<'Key, 'Value>` in the auto-opened
+  `SortedMapExtensions` module, one overload per shape, and every shape keeps the last binding of a repeated key, as
+  `Map.ofSeq` does, unless the value comparer finds the two values equal. They take a dictionary, an F# `Map` or another
+  map too. C# does not see them as members of `ImmutableSortedDictionary`; it calls the public static methods
+  `SortedMapExtensions.OfArray`, `OfList` and `OfSeq`, or the members of the struct below. A reflection over the
+  `SortedMap` module does not list them. To reject another value of a repeated key, as
+  `ImmutableSortedDictionary.CreateRange` does, add the bindings to an empty map:
+  `SortedMap.empty |> SortedMap.addRange pairs`.
+* `SortedMap.forComparers` and `SortedMap.forKeyComparer` return a `CustomComparersSortedMap<'Key, 'Value>` struct whose
+  members `build`, `builder`, `empty`, `ofArray`, `ofList`, `ofSeq`, `ofSeqBy` and `singleton` create sorted maps with its
+  comparers: `(SortedMap.forKeyComparer StringComparer.OrdinalIgnoreCase).ofSeq pairs`. A `null` comparer throws
+  `ArgumentNullException`.
+* `ofSeq` of that struct also gives an existing sorted map other comparers, as `WithComparers` does, with three
+  differences. It takes O(1) only when the key comparer of the map is the instance of the struct, and rebuilds the map
+  otherwise; a sorted map that the module creates orders its keys with F# generic comparison, so pass
+  `SortedMap.keyComparer table` to change only its value comparer in O(1). Keys that the new comparer makes equal merge,
+  the later binding winning, where `WithComparers` throws. And `forKeyComparer` resets the value comparer, where
+  `WithComparers` keeps it; to keep it, pass the value comparer of the map:
+  `SortedMap.forComparers keyComparer (SortedMap.valueComparer table)`.
+* `SortedMap.addRange` and `SortedMap.setItems` take `KeyValuePair`s; the nested modules `SortedMap.Tuple` and
+  `SortedMap.ValueTuple` take reference and struct tuples: `SortedMap.Tuple.addRange pairs table`.
+* The single-key idioms of the BCL are functions of the module: `tryFind` is `TryGetValue`, `tryFind` followed by
+  `ValueOption.defaultValue` is `GetValueOrDefault`, and `change` with a function that keeps an existing value adds a
+  binding only when the key has none. `ImmutableInterlocked` has no member for a sorted dictionary, but its `Update`
+  replaces a field atomically with the result of a function of the sorted map, such as `SortedMap.change`.
+  `ToImmutableSortedDictionary` with an element selector has no function; to reject a repeated key like the BCL does, add
+  the mapped pairs to an empty map,
+  `SortedMap.empty |> SortedMap.addRange (source |> Seq.map (fun x -> KeyValuePair (key x, element x)))`, and
+  `SortedMap.ofSeq` of the mapped pairs lets the last binding win. Maps have no builder module: call `Add`, `AddRange`,
+  `Remove`, `RemoveRange`, the indexer and the other members on the builder.
+* The functions of `SortedMap` that create a sorted map without a key comparer (`singleton`, `ofSeqBy`, `build`, `builder`,
+  `ofArray`, `ofList`, `ofSeq` and `sortedMap { }`) order its keys with F# generic comparison, as `Map` does, so the keys
+  need `comparison`, and a sorted map of strings enumerates them in ordinal order, where `Comparer<'Key>.Default` orders
+  them by the rules of the current culture.
+* The transformations of `SortedMap` keep the key comparer of the map, and the value comparer when the type of the values
+  does not change; `map` and `choose` compare the new values with the default comparer.
+* `tryFind`, `tryFindKey`, `tryGetKey` and `tryPick` of `SortedMap` return a `voption`, `tryFindKey` returns the key,
+  `pick` and `tryPick` take choosers that return a `voption`, and `partition`, `toArray`, `toList`, `toSeq`,
+  `minKeyValue` and `maxKeyValue` return struct tuples. `find`, `findKey` and `pick` throw the `KeyNotFoundException` of
+  `Map`, and every function throws `ArgumentNullException` for a `null` map, sequence or builder, and for a default
+  `FlatList` given as a sequence, which would fail only when it is enumerated.
+* `SortedMap` keeps the convention of `ImmutableSortedDictionary` where it differs from `Map`: a new value of a key that
+  the value comparer finds equal to the current one leaves the binding as it is, its key included, in `add`, `change`,
+  `setItem`, `setItems`, `addRange`, the creation functions and members, and `sortedMap { }`. `add` is the `Add` of
+  `ImmutableSortedDictionary`: it throws `ArgumentException` for a key that is bound to a value that the value comparer
+  finds different, and returns the input itself for the same binding; `setItem` replaces the value.
+* `SortedMap.toSeq` and `SortedMap.ofSeq` replace `Seq.ofSortedMap` and `Seq.toSortedMap` of the former `Seq` module of
+  conversions between the collections. `toSeq` yields struct tuples instead of `KeyValuePair`s, and a sorted map is
+  itself a `seq<KeyValuePair<_, _>>`, so `Seq.toArray table` gives the old shape.
+* The `FSharp.Collections.Immutable.Option` and `FSharp.Collections.Immutable.Tuple` namespaces have `SortedMap` modules
+  that repeat the functions that use value options or return struct tuples with options and reference tuples.
+* `sortedMap { }` builds a sorted map from `yield struct (key, value)` and `yield KeyValuePair (key, value)`;
+  `SortedMapCE` takes a key comparer, and a `null` one throws `ArgumentNullException`, as do `yield!` of a `null`
+  sequence, array or sorted map, `for` over a `null` sequence, and a default `FlatList` given as a sequence to `yield!`
+  or `for`.
 
 ### Changed
 
@@ -109,6 +177,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * `HashMap.ofSeq` throws `ArgumentNullException` for a default flat list given as a sequence, where it threw
   `InvalidOperationException`.
 * `HashMap.filter` returns the bindings that satisfy the predicate, where it returned all the bindings of the hash map.
+* `SortedMap.empty` orders its keys with F# generic comparison, as `Map.empty` does, where it used
+  `Comparer<'Key>.Default`, which orders strings by the rules of the current culture: a sorted map of strings now
+  enumerates them in ordinal order. It requires `'Key : comparison`, where it accepted any key type; for keys without
+  comparison, or for another order, use `(SortedMap.forKeyComparer comparer).empty`. C# callers see the compiled name
+  `Empty`, where it was `empty`.
 
 ### Removed
 
@@ -131,6 +204,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * `HashMap.check`: no replacement is needed, because every function of the module throws `ArgumentNullException` for a
   `null` hash map.
 * The `HashMapBuilder<'Key, 'Value>` type abbreviation: use `HashMap<'Key, 'Value>.Builder`.
+* The `SortedMapBuilder<'Key, 'Value>` abbreviation: use `SortedMap<'Key, 'Value>.Builder`.
 
 ## [1.0.0] - 2020-02-23
 
