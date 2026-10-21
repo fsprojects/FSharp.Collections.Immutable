@@ -8,17 +8,13 @@ open FSharp.Collections.Immutable
 // ---- Access ----
 
 [<CompiledName "TryGetValue">]
-let tryGetValue (value : 'T) (set : SortedSet<'T>) =
-    FSharp.Collections.Immutable.SortedSet.tryGetValue value set
-    |> ValueOption.toOption
+let tryGetValue (value : 'T) (set : SortedSet<'T>) = SortedSet.tryGetValue value set |> ValueOption.toOption
 
 [<CompiledName "TryItem">]
-let tryItem (index : int) (set : SortedSet<'T>) =
-    FSharp.Collections.Immutable.SortedSet.tryItem index set
-    |> ValueOption.toOption
+let tryItem (index : int) (set : SortedSet<'T>) = SortedSet.tryItem index set |> ValueOption.toOption
 
 // ---- Transformation ----
 
 [<CompiledName "Choose">]
 let choose (chooser : 'T -> 'U option) (set : SortedSet<'T>) =
-    FSharp.Collections.Immutable.SortedSet.choose (fun item -> chooser item |> ValueOption.ofOption) set
+    SortedSet.choose (fun item -> chooser item |> ValueOption.ofOption) set
