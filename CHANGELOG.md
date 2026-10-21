@@ -88,6 +88,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   modules that repeat the functions that use value options or return struct tuples with options and reference tuples.
 * `hashMap { }` builds a hash map from `yield struct (key, value)` and `yield KeyValuePair (key, value)`; `HashMapCE` takes
   a key comparer, and a `null` one throws `ArgumentNullException`.
+* `FrozenMap` wraps `FrozenDictionary<'Key, 'Value>`, a map that is built once and read many times. It has the functions of
+  the FSharp.Core `Map` module that read a map or transform the whole map, with their semantics and exceptions, plus
+  `choose`, `containsValue` and `singleton`, and the wrappers `containsBinding`, `copyTo`, `keyComparer`, `ofReadOnlySpan`,
+  `ofSeqBy` and `ofSpan` of the members of `FrozenDictionary`, which keep the semantics of the BCL. It has no function that
+  adds or removes a binding: `choose`, `filter`, `map` and `partition` build a new frozen map with the key comparer of the
+  input. `keys` and `values` return flat lists over the arrays of the map, without a copy, and `FlatList.asSpan` views them
+  as spans.
+* `FrozenMap.containsBinding` tells whether a key is bound to a value, as `Contains` of a `KeyValuePair` does. A frozen map
+  has no value comparer, so it compares the value with `EqualityComparer<'Value>.Default`, as `containsValue` does.
+  `tryFind` followed by `=` compares with F# equality, which differs for some types: `nan = nan` is `false`.
+* `FrozenMap.ofReadOnlySpan` and `FrozenMap.ofSpan` create a frozen map from a `ReadOnlySpan<KeyValuePair<'Key, 'Value>>` or
+  a `Span<KeyValuePair<'Key, 'Value>>` with `FrozenDictionary.Create`, and the members `ofReadOnlySpan` and `ofSpan` of
+  `CustomComparersFrozenMap` do so with its key comparer. A repeated key never throws: the last binding wins and the first
+  key stays. A `Span` or an array converts to the parameter of `ofReadOnlySpan` only when the types of the call are known;
+  `ofSpan` takes a `Span` where they are not.
+* `FrozenMap.copyTo` copies the bindings into an array of `KeyValuePair`s from an index, as `CopyTo` does, and throws what
+  it throws: `ArgumentNullException` for a `null` array, `ArgumentOutOfRangeException` for an index below zero or beyond
+  the length of the array, and `ArgumentException` when the array has no room for the bindings.
+* `FrozenMap.ofArray`, `FrozenMap.ofList` and `FrozenMap.ofSeq` take the bindings as `KeyValuePair`s, reference tuples or
+  struct tuples: they are static members of `FrozenDictionary<'Key, 'Value>` in the auto-opened `FrozenMapExtensions`
+  module, one overload per shape, and every shape keeps the last binding of a repeated key, as `Map.ofSeq` does: the value
+  of the last binding, and the key of the first one when the comparer finds distinct keys equal, as `ToFrozenDictionary`
+  does. They take a dictionary, an F# `Map` or another frozen map too. C# does not see them as members of
+  `FrozenDictionary`; it calls the public static methods `FrozenMapExtensions.OfArray`, `OfList` and `OfSeq`, or the members
+  of the struct below. A reflection over the `FrozenMap` module does not list them.
+* `FrozenMap.forKeyComparer` returns a `CustomComparersFrozenMap<'Key, 'Value>` struct whose members `empty`, `ofArray`,
+  `ofList`, `ofReadOnlySpan`, `ofSeq`, `ofSeqBy`, `ofSpan` and `singleton` create frozen maps with its key comparer:
+  `(FrozenMap.forKeyComparer StringComparer.OrdinalIgnoreCase).ofSeq pairs`. A `null` comparer throws
+  `ArgumentNullException`.
+* `ofSeq` of that struct also gives an existing frozen map another key comparer:
+  `(FrozenMap.forKeyComparer comparer).ofSeq table`. A frozen map whose comparer equals the key comparer of the struct comes
+  back itself, as `ToFrozenDictionary` does. Any other frozen map is rebuilt, and keys that the new comparer makes equal
+  merge: the first key stays, with the value of the last binding.
+* The single-key idioms of the BCL are functions of the module: `tryFind` is `TryGetValue`, and `tryFind` followed by
+  `ValueOption.defaultValue` is `GetValueOrDefault`. `ToFrozenDictionary` with an element selector has no function. To build
+  the same map, pass the elements mapped to `KeyValuePair`s to `FrozenMap.ofSeq`, which keeps the last binding of a repeated
+  key where the BCL rejects every repeated key; `FrozenMap.ofSeqBy` rejects them like the BCL, with the elements as the
+  values. `GetValueRefOrNullRef` and the indexer return a reference, which a function cannot: `find` and `tryFind` cover the
+  lookup.
+* On `net10.0`, `FrozenMap.alternateLookup` and `FrozenMap.tryAlternateLookup` look the bindings up by keys of another type
+  through `FrozenDictionary.GetAlternateLookup` and `FrozenDictionary.TryGetAlternateLookup`; the type of the alternate
+  keys is their first type argument: `FrozenMap.alternateLookup<int, _, _> table`. The BCL members come with .NET 9 and the
+  package has no `net9.0` target, so the two functions are not on `net8.0`.
+* The `FSharp.Collections.Immutable.Option` and `FSharp.Collections.Immutable.Tuple` namespaces have `FrozenMap` modules
+  that repeat the functions that use value options or return struct tuples with options and reference tuples.
+* `frozenMap { }` builds a frozen map from `yield struct (key, value)` and `yield KeyValuePair (key, value)`; `FrozenMapCE`
+  takes a key comparer, and a `null` one throws `ArgumentNullException`.
+* `FrozenMap` keeps the convention of `FrozenDictionary` where it differs from `Map`: a later binding of a key replaces the
+  value of an earlier one and leaves its key, `ofSeqBy` rejects every repeated key, and `ofSeq` of a frozen map whose
+  comparer equals the requested one returns that map.
 
 ### Changed
 
