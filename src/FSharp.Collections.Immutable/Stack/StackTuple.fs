@@ -16,19 +16,19 @@ let unfold (generator : 'State -> ('T * 'State) voption) (state : 'State) =
         | ValueSome (item, next) -> ValueSome (struct (item, next))
         | ValueNone -> ValueNone
 
-    FSharp.Collections.Immutable.Stack.unfold generateStruct state
+    Stack.unfold generateStruct state
 
 // ---- Access ----
 
 [<CompiledName "TryPeekPop">]
 let tryUncons (stack : Stack<'T>) =
-    match FSharp.Collections.Immutable.Stack.tryUncons stack with
+    match Stack.tryUncons stack with
     | ValueSome (struct (head, tail)) -> ValueSome (head, tail)
     | ValueNone -> ValueNone
 
 [<CompiledName "PeekPop">]
 let uncons (stack : Stack<'T>) =
-    let struct (head, tail) = FSharp.Collections.Immutable.Stack.uncons stack
+    let struct (head, tail) = Stack.uncons stack
     head, tail
 
 [<return : Struct>]
@@ -91,7 +91,7 @@ let mapFold (mapping : 'State -> 'T -> 'Result * 'State) (state : 'State) (stack
         let result, next = mapping state item
         struct (result, next)
 
-    let struct (results, final) = FSharp.Collections.Immutable.Stack.mapFold mapStruct state stack
+    let struct (results, final) = Stack.mapFold mapStruct state stack
     results, final
 
 [<CompiledName "MapFoldBack">]
@@ -100,7 +100,7 @@ let mapFoldBack (mapping : 'T -> 'State -> 'Result * 'State) (stack : Stack<'T>)
         let result, next = mapping item state
         struct (result, next)
 
-    let struct (results, final) = FSharp.Collections.Immutable.Stack.mapFoldBack mapStruct stack state
+    let struct (results, final) = Stack.mapFoldBack mapStruct stack state
     results, final
 
 // ---- Partitioning and grouping ----
@@ -117,15 +117,15 @@ let groupBy (projection : 'T -> 'Key) (stack : Stack<'T>) =
 
 [<CompiledName "Partition">]
 let partition predicate (stack : Stack<'T>) =
-    let struct (accepted, rejected) = FSharp.Collections.Immutable.Stack.partition predicate stack
+    let struct (accepted, rejected) = Stack.partition predicate stack
     accepted, rejected
 
 [<CompiledName "PartitionWith">]
 let partitionWith (partitioner : 'T -> Choice<'T1, 'T2>) (stack : Stack<'T>) =
-    let struct (first, second) = FSharp.Collections.Immutable.Stack.partitionWith partitioner stack
+    let struct (first, second) = Stack.partitionWith partitioner stack
     first, second
 
 [<CompiledName "SplitAt">]
 let splitAt index (stack : Stack<'T>) =
-    let struct (before, after) = FSharp.Collections.Immutable.Stack.splitAt index stack
+    let struct (before, after) = Stack.splitAt index stack
     before, after
