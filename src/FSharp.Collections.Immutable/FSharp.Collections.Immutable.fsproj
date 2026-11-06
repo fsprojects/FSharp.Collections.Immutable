@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
+    <TargetFramework>net8.0</TargetFramework>
     <AssemblyName>$(AssemblyBaseName)</AssemblyName>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Deterministic>true</Deterministic>
@@ -37,16 +37,6 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-  </ItemGroup>
-
-  <!--
-    The package requires the FSharp.Core and System.Collections.Immutable versions that 1.0.0 required,
-    not the ones the repository builds with: a project that references an older version than the package
-    requires gets NU1605 (package downgrade), which the SDK treats as an error.
-  -->
-  <ItemGroup>
-    <PackageReference Update="FSharp.Core" VersionOverride="4.7.0" />
-    <PackageReference Update="System.Collections.Immutable" VersionOverride="1.7.0" />
   </ItemGroup>
 
 </Project>
