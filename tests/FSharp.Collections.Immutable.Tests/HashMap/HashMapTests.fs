@@ -14,9 +14,9 @@ open Microsoft.VisualStudio.TestTools.UnitTesting
 /// </remarks>
 [<RequireQualifiedAccess>]
 type SpanCreation =
-    /// <c>ofReadOnlySpan</c>, which takes a <c>ReadOnlySpan</c>.
+    /// <summary><c>ofReadOnlySpan</c>, which takes a <c>ReadOnlySpan</c>.</summary>
     | OfReadOnlySpan
-    /// <c>ofSpan</c>, which takes a <c>Span</c>.
+    /// <summary><c>ofSpan</c>, which takes a <c>Span</c>.</summary>
     | OfSpan
 
     /// Every function, as the rows of the tests that run once per function.
@@ -569,7 +569,8 @@ type HashMapTests () =
         |> ignore
 
         let table = HashMap.ofSeqBy (fun (value : int) -> string value) [| 1; 1 |]
-        Assert.AreEqual<int>(1, HashMap.count table, "HashMap.ofSeqBy must keep one binding of a repeated element")
+        Assert.ContainsSingle (table, "HashMap.ofSeqBy must keep one binding of a repeated element")
+        |> ignore
 
     [<TestMethod>]
     member _.``ofSeqBy keeps the first of the elements of a key that the default comparer finds equal`` () =
