@@ -375,7 +375,7 @@ type SortedMapComputationExpressionTests () =
             "SortedMapCE must order the keys with the comparer"
         )
 
-        Assert.AreEqual<int>(3, SortedMap.count table, "SortedMapCE must merge the keys that the comparer considers equal")
+        Assert.HasCount (3, table, "SortedMapCE must merge the keys that the comparer considers equal")
         Assert.AreEqual<int>(4, SortedMap.find "a" table, "SortedMapCE must keep the last binding of equal keys")
 
     [<TestMethod; DynamicData(nameof SortedMapComputationExpressionTests.NullSequenceExpressions)>]

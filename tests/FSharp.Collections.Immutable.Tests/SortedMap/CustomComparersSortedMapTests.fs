@@ -487,11 +487,7 @@ type CustomComparersSortedMapTests () =
 
         let ignoreCase = (SortedMap.forComparers StringComparer.OrdinalIgnoreCase byLength).ofSeq table
 
-        Assert.AreEqual<int>(
-            2,
-            SortedMap.count ignoreCase,
-            "ofSeq must merge the keys that the comparer of the struct makes equal"
-        )
+        Assert.HasCount (2, ignoreCase, "ofSeq must merge the keys that the comparer of the struct makes equal")
 
         Assert.AreEqual<string voption>(
             ValueSome firstKey,
