@@ -21,6 +21,33 @@ module FSharp.Collections.Immutable.ComputationExpressions
 val flatList : FlatListCE
 
 /// <summary>
+/// Builds a frozen set that compares with <see cref="P:System.Collections.Generic.EqualityComparer`1.Default"/>.
+/// </summary>
+/// <remarks>
+/// The value is a type function, so that one value builds frozen sets of every element type. A
+/// <see cref="T:FSharp.Collections.Immutable.FrozenSetCE`1"/> created with an equality comparer builds frozen sets that
+/// compare with it. The expression freezes its elements once, after it has collected all of them.
+/// </remarks>
+/// <example id="frozenSet-1">
+/// <code lang="fsharp">
+/// let squares = frozenSet {
+///     for i in -2..2 do
+///         yield i * i
+///     yield! [ 4; 9 ]
+/// }
+/// </code>
+/// Evaluates to a frozen set of 0, 1, 4 and 9.
+/// </example>
+/// <example id="frozenSet-2">
+/// <code lang="fsharp">
+/// let names = FrozenSetCE StringComparer.OrdinalIgnoreCase { "Ann"; "ANN"; "Bob" }
+/// </code>
+/// Evaluates to a frozen set of "Ann" and "Bob" that ignores case.
+/// </example>
+[<GeneralizableValue>]
+val frozenSet<'T> : FrozenSetCE<'T>
+
+/// <summary>
 /// Builds a hash set that compares with <see cref="P:System.Collections.Generic.EqualityComparer`1.Default"/>.
 /// </summary>
 /// <remarks>
