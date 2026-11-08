@@ -257,8 +257,9 @@ let iter (action : 'Key -> 'Value -> unit) (pairs : seq<KeyValuePair<'Key, 'Valu
 /// </para>
 /// <para>
 /// FSharp.Core has no such function for maps, so there is no summary to repeat. The function fills a target that the caller
-/// creates, instead of returning a map, so that the caller picks the comparers of the result: the keys keep the comparer of
-/// the input, and the values, which change their type, get the default comparer of their type (ADR 0001, D5, Comparers).
+/// creates, instead of returning a map, so that the caller picks the comparers of the result. The values change their type,
+/// so they get the default comparer of their type (ADR 0001, D5, Comparers). The keys keep the comparer of the input in the
+/// function of a hash map; the function of the interface cannot read that comparer and uses the default one.
 /// </para>
 /// </remarks>
 /// <seealso cref="M:FSharp.Collections.Immutable.HashMap.Choose``3(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpFunc{``1,Microsoft.FSharp.Core.FSharpValueOption{``2}}},System.Collections.Immutable.ImmutableDictionary{``0,``1})"/>
@@ -285,8 +286,9 @@ let choose (chooser : 'Key -> 'Value -> 'U voption) (target : IDictionary<'Key, 
 /// It exists because
 /// <see cref="M:Microsoft.FSharp.Collections.MapModule.Map``3(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpFunc{``1,``2}},Microsoft.FSharp.Collections.FSharpMap{``0,``1})"/>
 /// takes an F# map and returns one. The function fills a target that the caller creates, so that
-/// the keys keep the comparer of the input and the values, which change their type, get the default comparer of their type
-/// (ADR 0001, D5, Comparers).
+/// the caller picks the comparers of the result. The values change their type, so they get the default comparer of their
+/// type (ADR 0001, D5, Comparers). The keys keep the comparer of the input in the function of a hash map; the function of
+/// the interface cannot read that comparer and uses the default one.
 /// </para>
 /// </remarks>
 /// <seealso cref="M:FSharp.Collections.Immutable.HashMap.Map``3(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpFunc{``1,``2}},System.Collections.Immutable.ImmutableDictionary{``0,``1})"/>
