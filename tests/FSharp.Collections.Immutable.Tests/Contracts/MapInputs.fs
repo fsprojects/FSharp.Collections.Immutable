@@ -8,7 +8,10 @@ open System.Collections.Generic
 /// </summary>
 /// <remarks>
 /// <para>
-/// The bindings map <see cref="T:System.Int32"/> keys to <see cref="T:System.String"/> values. The FSharp.Core <c>Map</c>
+/// The bindings map
+/// <see cref="T:System.Int32"/> keys to
+/// <see cref="T:System.String"/> values. The FSharp.Core
+/// <see cref="T:Microsoft.FSharp.Collections.MapModule"/>
 /// module computes the expectations. A hash map enumerates its bindings in an unspecified order, so the contracts compare
 /// the bindings sorted by key, and compute the expectations of the functions that visit the bindings one by one over the
 /// order in which the map under test enumerates them (ADR 0001, D8).
@@ -54,7 +57,9 @@ type MapInputs =
     }
 
     /// <summary>
-    /// Bindings that repeat keys with other values; in the FSharp.Core <c>Map</c> module the later binding of a key wins.
+    /// Bindings that repeat keys with other values; in the FSharp.Core
+    /// <see cref="T:Microsoft.FSharp.Collections.MapModule"/>
+    /// module the later binding of a key wins.
     /// </summary>
     static member RepeatedKeys = [|
         struct (1, "one")

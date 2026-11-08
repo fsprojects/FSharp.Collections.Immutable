@@ -14,9 +14,15 @@ open Microsoft.VisualStudio.TestTools.UnitTesting
 /// </remarks>
 [<RequireQualifiedAccess>]
 type SpanCreation =
-    /// <summary><c>ofReadOnlySpan</c>, which takes a <c>ReadOnlySpan</c>.</summary>
+    /// <summary>
+    /// <see cref="M:FSharp.Collections.Immutable.HashMap.OfReadOnlySpan``2(System.ReadOnlySpan{System.Collections.Generic.KeyValuePair{``0,``1}})"/>, which takes a
+    /// <see cref="T:System.ReadOnlySpan`1"/>.
+    /// </summary>
     | OfReadOnlySpan
-    /// <summary><c>ofSpan</c>, which takes a <c>Span</c>.</summary>
+    /// <summary>
+    /// <see cref="M:FSharp.Collections.Immutable.HashMap.OfSpan``2(System.Span{System.Collections.Generic.KeyValuePair{``0,``1}})"/>, which takes a
+    /// <see cref="T:System.Span`1"/>.
+    /// </summary>
     | OfSpan
 
     /// Every function, as the rows of the tests that run once per function.
