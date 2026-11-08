@@ -6,3 +6,5 @@ module FSharp.Collections.Immutable.ComputationExpressions
 let flatList = FlatListCE ()
 
 let indexedList = IndexedListCE ()
+
+let queue = QueueCE ()
