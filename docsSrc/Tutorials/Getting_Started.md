@@ -22,7 +22,7 @@ open FSharp.Collections.Immutable
 
 ``` F#
 // Create an immutable list
-let list1 = ImmutableList.ofSeq [1; 2; 3]
+let list1 = IndexedList.ofSeq [1; 2; 3]
 
 // Create an immutable hash set
 let set1 = HashSet.ofSeq ["a"; "b"]

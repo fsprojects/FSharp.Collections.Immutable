@@ -1,5 +1,7 @@
 namespace FSharp.Collections.Immutable.Tests
 
+open FSharp.Collections.Immutable
+
 /// The inputs that the contract tests run the functions on.
 /// Expectations are computed with FSharp.Core over the order in which the collection enumerates its elements (ADR 0001, D8).
 /// Every property builds new arrays on each read: MSTest hands the arrays of a row source to the tests as they are, so an
@@ -45,3 +47,13 @@ type Inputs =
         struct (0, 'e')
         struct (2, 'f')
     |]
+
+    /// Pairs like `Pairs` for the tests of a stable sort: 20 of them, with the keys 0, 1, 2, 0, 1, … and the tags 'a' to 't'.
+    /// The sort of .NET (`Array.Sort`, behind `ImmutableList.Sort`) orders up to 16 elements by insertion, which keeps the
+    /// order of equal keys, so only a longer input tells a stable sort from an unstable one; this one is reordered by it
+    /// ascending and descending.
+    static member ManyPairs = [| for index in 0..19 -> struct (index % 3, char (int 'a' + index)) |]
+
+    /// A default flat list given as a sequence: the input that a function rejects as it rejects a null sequence, because
+    /// the sequence fails with `InvalidOperationException` as soon as the function enumerates it (ADR 0001, D6).
+    static member DefaultFlatListAsSeq<'T> () : seq<'T> = Unchecked.defaultof<FlatList<'T>> :> seq<'T>
