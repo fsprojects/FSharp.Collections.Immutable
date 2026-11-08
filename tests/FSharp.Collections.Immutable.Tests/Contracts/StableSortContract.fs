@@ -25,8 +25,10 @@ type KeyedItem = {
     /// The key of the elements whose comparison throws.
     static member UncomparableKey = Int32.MinValue
 
+    /// <summary>
     /// The keyed items of the pairs of <see cref="P:FSharp.Collections.Immutable.Tests.Inputs.ManyPairs"/>, in their order:
     /// the first component of a pair is the key, and the second one is the tag.
+    /// </summary>
     static member OfManyPairs () : KeyedItem array =
         Inputs.ManyPairs
         |> Array.map (fun struct (key, tag) -> { Key = key; Tag = tag })
@@ -108,9 +110,13 @@ type StableSortOps<'C> = {
     SortWith : (struct (int * char) -> struct (int * char) -> int) -> 'C -> 'C
     SortWithComparer : IComparer<struct (int * char)> -> 'C -> 'C
 
+    /// <summary>
     /// Sorts a collection of the given integers with <c>sortDescending</c>.
+    /// </summary>
     SortIntegersDescending : int array -> int array
+    /// <summary>
     /// Sorts a collection of the given integers with <c>sortByDescending</c>, by the integers themselves.
+    /// </summary>
     SortIntegersByDescending : int array -> int array
 }
 
