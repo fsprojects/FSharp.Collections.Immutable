@@ -874,9 +874,13 @@ type FrozenSetTests () =
         let stored = String ('x', 3)
         let set = caseless.ofArray [| stored; "apple" |]
 
-        match FrozenSet.tryGetValue "XXX" set with
-        | ValueSome found -> Assert.AreSame (stored, found, "FrozenSet.tryGetValue must return the instance of the frozen set")
-        | ValueNone -> Assert.Fail "FrozenSet.tryGetValue must find the element that equals the value in the comparer"
+        let found =
+            Assert.WantValueSome (
+                FrozenSet.tryGetValue "XXX" set,
+                "FrozenSet.tryGetValue must find the element that equals the value in the comparer"
+            )
+
+        Assert.AreSame (stored, found, "FrozenSet.tryGetValue must return the instance of the frozen set")
 
         Assert.AreEqual<string voption>(
             ValueSome "apple",
@@ -1046,11 +1050,14 @@ type FrozenSetAlternateLookupTests () =
     member _.``tryAlternateLookup returns the lookup of a comparer with the alternate type`` (count : int) =
         let set = numbers count
 
-        match FrozenSet.tryAlternateLookup<int, _> set with
-        | ValueSome lookup ->
-            Assert.AreSame (set, lookup.Set, "FrozenSet.tryAlternateLookup must look up in the frozen set")
-            Assert.IsTrue (lookup.Contains 2, "FrozenSet.tryAlternateLookup must return a lookup that finds 2")
-        | ValueNone -> Assert.Fail "FrozenSet.tryAlternateLookup must return the lookup of a comparer with the alternate type"
+        let lookup =
+            Assert.WantValueSome (
+                FrozenSet.tryAlternateLookup<int, _> set,
+                "FrozenSet.tryAlternateLookup must return the lookup of a comparer with the alternate type"
+            )
+
+        Assert.AreSame (set, lookup.Set, "FrozenSet.tryAlternateLookup must look up in the frozen set")
+        Assert.IsTrue (lookup.Contains 2, "FrozenSet.tryAlternateLookup must return a lookup that finds 2")
 
     [<TestMethod; DynamicData(nameof FrozenSetAlternateLookupTests.WithoutAlternate)>]
     member _.``tryAlternateLookup returns nothing for a comparer without the alternate type`` (comparer : string) =
