@@ -75,16 +75,16 @@ type QueueOptionTests () =
         let found : (int * Queue<int>) option = Queue.tryUncons several
 
         // A tuple compares an array by reference, so the first element and the other elements are compared apart
-        match found with
-        | Some (head, tail) ->
-            Assert.AreEqual<int>(Array.head Inputs.Several, head, "Option.Queue.tryUncons must return the first element")
+        let head, tail =
+            Assert.WantSome (found, "Option.Queue.tryUncons must return the elements of a queue with elements")
 
-            CollectionAssert.AreEqual (
-                Array.tail Inputs.Several,
-                Queue.toArray tail,
-                "Option.Queue.tryUncons must return the other elements"
-            )
-        | None -> Assert.Fail "Option.Queue.tryUncons must return the elements of a queue with elements"
+        Assert.AreEqual<int>(Array.head Inputs.Several, head, "Option.Queue.tryUncons must return the first element")
+
+        CollectionAssert.AreEqual (
+            Array.tail Inputs.Several,
+            Queue.toArray tail,
+            "Option.Queue.tryUncons must return the other elements"
+        )
 
         Assert.IsTrue ((Queue.tryUncons Queue.empty<int>).IsNone, "Option.Queue.tryUncons must return None for an empty queue")
 

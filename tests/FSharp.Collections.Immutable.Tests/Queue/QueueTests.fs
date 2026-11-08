@@ -607,15 +607,16 @@ type QueueTests () =
 
     [<TestMethod>]
     member _.``tryUncons returns the first element and the other elements or nothing`` () =
-        match Queue.tryUncons (mixed ()) with
-        | ValueSome (struct (head, tail)) ->
-            Assert.AreEqual<int>(Array.head Inputs.Several, head, "Queue.tryUncons must return the first element")
-            CollectionAssert.AreEqual (
-                Array.tail Inputs.Several,
-                Queue.toArray tail,
-                "Queue.tryUncons must return the other elements"
-            )
-        | ValueNone -> Assert.Fail "Queue.tryUncons must return the elements of a queue with elements"
+        let struct (head, tail) =
+            Assert.WantValueSome (Queue.tryUncons (mixed ()), "Queue.tryUncons must return the elements of a queue with elements")
+
+        Assert.AreEqual<int>(Array.head Inputs.Several, head, "Queue.tryUncons must return the first element")
+
+        CollectionAssert.AreEqual (
+            Array.tail Inputs.Several,
+            Queue.toArray tail,
+            "Queue.tryUncons must return the other elements"
+        )
 
         Assert.IsTrue ((Queue.tryUncons Queue.empty<int>).IsNone, "Queue.tryUncons of an empty queue must return nothing")
 

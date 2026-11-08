@@ -117,7 +117,10 @@ type IQueueTests () =
     static let sameElementType : Map<string, IQueue<int> -> IQueue<int>> =
         Map.ofArray [|
             nameof IQueue.tail, IQueue.tail
-            nameof IQueue.tryTail, (fun queue -> (IQueue.tryTail queue).Value)
+            nameof IQueue.tryTail,
+            (fun queue ->
+                Assert.WantValueSome (IQueue.tryTail queue, "IQueue.tryTail must return the tail of a queue with elements")
+            )
             (nameof IQueue.uncons,
              fun queue ->
                  let struct (_, tail) = IQueue.uncons queue
