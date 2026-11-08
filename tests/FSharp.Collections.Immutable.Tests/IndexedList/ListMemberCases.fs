@@ -64,19 +64,23 @@ module ListOracles =
     let compareKeys (direction : SortDirection) =
         direction.Apply (fun (struct (left : int, _ : char)) (struct (right : int, _ : char)) -> compare left right)
 
+    /// <summary>
     /// The keys and the tags of the keyed items of <see cref="P:FSharp.Collections.Immutable.Tests.Inputs.ManyPairs"/> after
     /// a stable sort of a range by key, as
     /// <see cref="M:Microsoft.FSharp.Collections.ListModule.Sort``1(Microsoft.FSharp.Collections.FSharpList{``0})"/> sorts
     /// them. The items compare by their keys only.
+    /// </summary>
     let sortedKeyedRange index count =
         KeyedItem.KeysAndTags (
             changeRange (fun part -> List.sort (List.ofArray part) |> List.toArray) (KeyedItem.OfManyPairs ()) index count
         )
 
+    /// <summary>
     /// The pairs of <see cref="P:FSharp.Collections.Immutable.Tests.Inputs.ManyPairs"/> after a stable sort of a range with a
     /// comparison, as
     /// <see cref="M:Microsoft.FSharp.Collections.ListModule.SortWith``1(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpFunc{``0,System.Int32}},Microsoft.FSharp.Collections.FSharpList{``0})"/>
     /// sorts them.
+    /// </summary>
     let sortedPairRange (comparison : struct (int * char) -> struct (int * char) -> int) index count =
         changeRange (stableSort comparison) Inputs.ManyPairs index count
 
@@ -84,10 +88,12 @@ module ListOracles =
     let removeEach (equal : 'T -> 'T -> bool) (items : 'T array) (elements : 'T array) =
         Array.fold (fun remaining item -> FlatListOracles.removeFirst equal item remaining) elements items
 
+    /// <summary>
     /// The index of the last element of a range that the equality finds equal to the value, or -1: the oracle of the
     /// searches from the back, which ends at the start index and has the count of elements. A range of no elements has no
     /// element wherever it lies, also at <see cref="F:System.Int32.MaxValue"/>, where the bounds of the range overflow in
     /// <see cref="M:FSharp.Collections.Immutable.Tests.FlatListOracles.lastInRange"/>.
+    /// </summary>
     let lastIndexOfRange (equal : 'T -> 'T -> bool) startIndex count (value : 'T) (elements : 'T array) =
         match count with
         | 0 -> -1
@@ -186,16 +192,20 @@ type ListMemberCases =
                 struct (input, value)
     }
 
+    /// <summary>
     /// The values of <see cref="P:FSharp.Collections.Immutable.Tests.ListMemberCases.Values"/> that an element equals in the
     /// default equality of strings.
+    /// </summary>
     static member PresentValues = seq {
         for struct (input, value) in ListMemberCases.Values do
             if Array.contains value input then
                 struct (input, value)
     }
 
+    /// <summary>
     /// The values of <see cref="P:FSharp.Collections.Immutable.Tests.ListMemberCases.Values"/> that an element equals when
     /// the case is ignored.
+    /// </summary>
     static member PresentValuesIgnoringCase = seq {
         for struct (input, value) in ListMemberCases.Values do
             if Array.exists (FlatListOracles.equalIgnoringCase value) input then

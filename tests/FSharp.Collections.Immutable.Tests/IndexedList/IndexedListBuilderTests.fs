@@ -187,7 +187,7 @@ type IndexedListBuilderTests () =
     [<TestMethod>]
     member _.``builder starts empty`` () =
         let builder = IndexedList.builder<int>()
-        Assert.AreEqual<int>(0, builder.Count, "IndexedList.builder must start without elements")
+        Assert.IsEmpty (builder, "IndexedList.builder must start without elements")
 
     [<TestMethod>]
     member _.``ofBuilder returns the contents and keeps the builder usable`` () =
@@ -261,7 +261,7 @@ type IndexedListBuilderTests () =
     [<TestMethod>]
     member _.``clear removes every element`` () =
         let builder = filled () |> IndexedListBuilder.clear
-        Assert.AreEqual<int>(0, IndexedListBuilder.length builder, "IndexedListBuilder.clear must remove every element")
+        Assert.IsEmpty (builder, "IndexedListBuilder.clear must remove every element")
 
     [<TestMethod>]
     member _.``contains, indexOf and lastIndexOf search the builder`` () =
