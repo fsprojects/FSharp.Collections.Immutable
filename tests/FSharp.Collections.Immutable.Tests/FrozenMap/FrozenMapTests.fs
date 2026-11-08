@@ -768,16 +768,19 @@ type FrozenMapAlternateLookupTests () =
     member _.``tryAlternateLookup returns the lookup`` (size : int) =
         let table = alternateTable size
 
-        match FrozenMap.tryAlternateLookup<int, _, _> table with
-        | ValueSome lookup ->
-            Assert.AreSame (table, lookup.Dictionary, "FrozenMap.tryAlternateLookup must look the bindings of the map up")
-
-            Assert.AreEqual<bool>(
-                size > 0,
-                lookup.ContainsKey 1,
-                "FrozenMap.tryAlternateLookup must find 1 exactly when the map has a binding"
+        let lookup =
+            Assert.WantValueSome (
+                FrozenMap.tryAlternateLookup<int, _, _> table,
+                "FrozenMap.tryAlternateLookup must return a lookup for a comparer with the alternate key type"
             )
-        | ValueNone -> Assert.Fail "FrozenMap.tryAlternateLookup must return a lookup for a comparer with the alternate key type"
+
+        Assert.AreSame (table, lookup.Dictionary, "FrozenMap.tryAlternateLookup must look the bindings of the map up")
+
+        Assert.AreEqual<bool>(
+            size > 0,
+            lookup.ContainsKey 1,
+            "FrozenMap.tryAlternateLookup must find 1 exactly when the map has a binding"
+        )
 
     [<TestMethod>]
     member _.``tryAlternateLookup returns nothing for a comparer without the alternate key type`` () =

@@ -393,7 +393,7 @@ type FrozenMapComputationExpressionTests () =
             "FrozenMapCE must keep the key comparer"
         )
 
-        Assert.AreEqual<int>(2, FrozenMap.count table, "FrozenMapCE must merge the keys that the comparer considers equal")
+        Assert.HasCount (2, table, "FrozenMapCE must merge the keys that the comparer considers equal")
         Assert.AreEqual<int>(2, FrozenMap.find "One" table, "FrozenMapCE must keep the last value of equal keys")
 
         CollectionAssert.AreEquivalent (

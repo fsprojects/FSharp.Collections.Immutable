@@ -112,9 +112,13 @@ type FrozenMapOptionTests () =
         let found : FrozenMap<int64, string>.AlternateLookup<int> option =
             FrozenMap.tryAlternateLookup<int, _, _> longs
 
-        match found with
-        | Some lookup -> Assert.IsTrue (lookup.ContainsKey 1, "Option.FrozenMap.tryAlternateLookup must return a working lookup")
-        | None -> Assert.Fail "Option.FrozenMap.tryAlternateLookup must return Some for a comparer with the alternate key type"
+        let lookup =
+            Assert.WantSome (
+                found,
+                "Option.FrozenMap.tryAlternateLookup must return Some for a comparer with the alternate key type"
+            )
+
+        Assert.IsTrue (lookup.ContainsKey 1, "Option.FrozenMap.tryAlternateLookup must return a working lookup")
 
     [<TestMethod>]
     member _.``tryAlternateLookup returns None for a comparer without the alternate key type`` () =
