@@ -116,7 +116,9 @@ type SetMutationOps<'S> = {
 /// 5 are equal, so the contract states its expectations in remainders, whatever the type of the comparer.
 /// </remarks>
 type SetCustomComparerOps<'S> = {
+    /// <summary>
     /// The comparer that the struct returns from its <c>Comparer</c> property.
+    /// </summary>
     Comparer : obj
 
     Empty : unit -> 'S
@@ -145,7 +147,9 @@ type SetCreationOps<'S> = {
     ParamName : string -> string
     /// The elements in the order in which the set enumerates them.
     ToArray : 'S -> int array
+    /// <summary>
     /// The comparer of a set, as the <c>comparer</c> function of the module returns it.
+    /// </summary>
     Comparer : 'S -> obj
 
     Empty : unit -> 'S
@@ -158,6 +162,8 @@ type SetCreationOps<'S> = {
     OfSpan : int array -> 'S
     Singleton : int -> 'S
 
+    /// <summary>
     /// The members of the struct that <c>forComparer</c> creates with the comparer of <c>SetInputs</c>.
+    /// </summary>
     CustomComparer : SetCustomComparerOps<'S>
 }
