@@ -46,19 +46,19 @@ type OrderedKeys =
 type OrderedCreation =
     /// A builder that the bindings fill one by one.
     | Builder
-    /// <c>add</c> of each binding to the empty sorted map.
+    /// <summary><c>add</c> of each binding to the empty sorted map.</summary>
     | Empty
-    /// <c>ofArray</c> of struct tuples.
+    /// <summary><c>ofArray</c> of struct tuples.</summary>
     | OfArrayOfStructTuples
-    /// <c>ofList</c> of struct tuples.
+    /// <summary><c>ofList</c> of struct tuples.</summary>
     | OfListOfStructTuples
-    /// <c>ofSeq</c> of key/value pairs.
+    /// <summary><c>ofSeq</c> of key/value pairs.</summary>
     | OfSeqOfKeyValuePairs
-    /// <c>ofSeq</c> of struct tuples.
+    /// <summary><c>ofSeq</c> of struct tuples.</summary>
     | OfSeqOfStructTuples
-    /// <c>add</c> of each binding to the sorted map of the last one.
+    /// <summary><c>add</c> of each binding to the sorted map of the last one.</summary>
     | Singleton
-    /// The <c>sortedMap { }</c> expression.
+    /// <summary>The <c>sortedMap { }</c> expression.</summary>
     | Expression
 
     /// Every creation: the rows of the tests of the order. The property builds its rows on each read.
@@ -888,7 +888,8 @@ type SortedMapTests () =
         // The module before ADR 0001 passed the argument of singleton as a comparer to ImmutableSortedDictionary.Create,
         // which built an empty map
         let table = SortedMap.singleton "key" "value"
-        Assert.AreEqual<int>(1, SortedMap.count table, "SortedMap.singleton must create one binding")
+        Assert.ContainsSingle (table, "SortedMap.singleton must create one binding")
+        |> ignore
         Assert.AreEqual<string>("value", SortedMap.find "key" table, "SortedMap.singleton must bind the key to the value")
 
         Assert.AreSame<IComparer<string>>(
@@ -959,7 +960,8 @@ type SortedMapTests () =
         |> ignore
 
         let table = SortedMap.ofSeqBy (fun (value : int) -> string value) [| 1; 1 |]
-        Assert.AreEqual<int>(1, SortedMap.count table, "SortedMap.ofSeqBy must keep one binding of a repeated element")
+        Assert.ContainsSingle (table, "SortedMap.ofSeqBy must keep one binding of a repeated element")
+        |> ignore
 
     [<TestMethod>]
     member _.``ofSeqBy keeps the first of the elements of a key that the default comparer finds equal`` () =

@@ -23,7 +23,9 @@ type KeyPredicate =
     /// No binding.
     | Never
 
+    /// <summary>
     /// Every predicate: the rows of the test of <c>tryFindKey</c>. The property builds its rows on each read.
+    /// </summary>
     static member All : KeyPredicate seq = seq {
         KeyPredicate.AboveTen
         KeyPredicate.Negative

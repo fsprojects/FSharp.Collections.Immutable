@@ -109,13 +109,13 @@ type SortedMapBuilderTests () =
             "SortedMap.update must keep the key comparer"
         )
 
-        Assert.AreEqual<int>(2, SortedMap.count table, "SortedMap.update must not change the input")
+        Assert.HasCount (2, table, "SortedMap.update must not change the input")
         Assert.IsTrue (SortedMap.containsKey "one" table, "SortedMap.update must not change the input")
 
     [<TestMethod>]
     member _.``builder starts empty with F# generic comparison and the default value comparer`` () =
         let builder = SortedMap.builder<string, int>()
-        Assert.AreEqual<int>(0, builder.Count, "SortedMap.builder must start without bindings")
+        Assert.IsEmpty (builder, "SortedMap.builder must start without bindings")
 
         Assert.AreSame<IComparer<string>>(
             LanguagePrimitives.FastGenericComparer<string>,
@@ -168,7 +168,8 @@ type SortedMapBuilderTests () =
 
         builder["one"] <- 1
         builder["ONE"] <- 2
-        Assert.AreEqual<int>(1, builder.Count, "The builder of SortedMap.forKeyComparer must look the keys up with the comparer")
+        Assert.ContainsSingle (builder, "The builder of SortedMap.forKeyComparer must look the keys up with the comparer")
+        |> ignore
 
         Assert.AreSame<IEqualityComparer<int>>(
             EqualityComparer<int>.Default,
@@ -191,7 +192,7 @@ type SortedMapBuilderTests () =
             "SortedMap.ofBuilder must return the bindings"
         )
 
-        Assert.AreEqual<int>(2, builder.Count, "SortedMap.ofBuilder must keep the builder usable")
+        Assert.HasCount (2, builder, "SortedMap.ofBuilder must keep the builder usable")
 
         Assert.AreSame<IComparer<string>>(
             StringComparer.OrdinalIgnoreCase,
@@ -220,7 +221,7 @@ type SortedMapBuilderTests () =
         builder["THREE"] <- 3
         builder.Remove "ONE" |> ignore
 
-        Assert.AreEqual<int>(2, builder.Count, "SortedMap.toBuilder must hold the bindings and use the key comparer")
+        Assert.HasCount (2, builder, "SortedMap.toBuilder must hold the bindings and use the key comparer")
 
         Assert.AreSame<IComparer<string>>(
             StringComparer.OrdinalIgnoreCase,
@@ -228,7 +229,7 @@ type SortedMapBuilderTests () =
             "SortedMap.toBuilder must keep the key comparer"
         )
 
-        Assert.AreEqual<int>(2, SortedMap.count table, "SortedMap.toBuilder must not change the map")
+        Assert.HasCount (2, table, "SortedMap.toBuilder must not change the map")
         Assert.IsTrue (SortedMap.containsKey "one" table, "SortedMap.toBuilder must not change the map")
 
     [<TestMethod>]
