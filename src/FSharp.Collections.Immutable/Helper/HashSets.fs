@@ -3,7 +3,10 @@
 /// </summary>
 /// <remarks>
 /// <para>
-/// The transformations of the <c>HashSet</c> and <c>ISet</c> modules that change the element type share them: the
+/// The transformations of the
+/// <see cref="T:FSharp.Collections.Immutable.HashSet"/> and
+/// <see cref="T:FSharp.Collections.Immutable.ISet"/>
+/// modules that change the element type share them: the
 /// comparer of the input cannot compare elements of another type.
 /// </para>
 /// <para>
