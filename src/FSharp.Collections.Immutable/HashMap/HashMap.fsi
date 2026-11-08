@@ -7,7 +7,7 @@
 /// its semantics, its argument checks and its exceptions (ADR 0001), except
 /// <see cref="M:FSharp.Collections.Immutable.HashMap.Add``2(``0,``1,System.Collections.Immutable.ImmutableDictionary{``0,``1})"/>.
 /// It is the <see cref="M:System.Collections.Immutable.ImmutableDictionary`2.Add(`0,`1)"/> of the BCL, as it was in 1.0.0:
-/// it throws for a key that is bound to another value, where <c>Map.add</c> replaces the value, and
+/// it throws for a key that is bound to another value, where <see cref="M:Microsoft.FSharp.Collections.MapModule.Add``2(``0,``1,Microsoft.FSharp.Collections.FSharpMap{``0,``1})"/> replaces the value, and
 /// <see cref="M:FSharp.Collections.Immutable.HashMap.SetItem``2(``0,``1,System.Collections.Immutable.ImmutableDictionary{``0,``1})"/>
 /// replaces it (ADR 0001, D14). The other functions wrap a member of
 /// <see cref="T:System.Collections.Immutable.ImmutableDictionary`2"/> and keep its semantics and its exceptions.
@@ -36,9 +36,9 @@
 /// The single-key idioms of the BCL are functions of the module or compositions of them. <c>TryGetValue</c> is
 /// <see cref="M:FSharp.Collections.Immutable.HashMap.TryFind``2(``0,System.Collections.Immutable.ImmutableDictionary{``0,``1})"/>,
 /// and <c>GetValueOrDefault</c> is <c>HashMap.tryFind key table |> ValueOption.defaultValue defaultValue</c>. Adding a
-/// binding only when the key has none, as <c>ImmutableInterlocked.TryAdd</c> does, is
+/// binding only when the key has none, as <see cref="M:System.Collections.Immutable.ImmutableInterlocked.TryAdd``2(System.Collections.Immutable.ImmutableDictionary{``0,``1}@,``0,``1)"/> does, is
 /// <see cref="M:FSharp.Collections.Immutable.HashMap.Change``2(``0,Microsoft.FSharp.Core.FSharpFunc{Microsoft.FSharp.Core.FSharpValueOption{``1},Microsoft.FSharp.Core.FSharpValueOption{``1}},System.Collections.Immutable.ImmutableDictionary{``0,``1})"/>
-/// with a function that keeps an existing value. The other members of <c>ImmutableInterlocked</c> replace a field
+/// with a function that keeps an existing value. The other members of <see cref="T:System.Collections.Immutable.ImmutableInterlocked"/> replace a field
 /// atomically and stay direct calls with a reference to the field.
 /// </para>
 /// <para>
@@ -459,7 +459,7 @@ val tryGetKey : key : 'Key -> table : HashMap<'Key, 'Value> -> 'Key voption
 /// </para>
 /// <para>
 /// The value comparer of the map decides whether the values are equal. No composition of the other functions asks it:
-/// <c>HashMap.tryFind</c> followed by <c>=</c> compares with F# equality, which for a comparer that ignores the case finds
+/// <see cref="M:FSharp.Collections.Immutable.HashMap.TryFind``2(``0,System.Collections.Immutable.ImmutableDictionary{``0,``1})"/> followed by <c>=</c> compares with F# equality, which for a comparer that ignores the case finds
 /// <c>"Hello"</c> and <c>"HELLO"</c> different.
 /// </para>
 /// </remarks>
@@ -584,7 +584,7 @@ val tryPick : chooser : ('Key -> 'Value -> 'U voption) -> table : HashMap<'Key, 
 /// <para>
 /// O(log n). The function wraps <see cref="M:System.Collections.Immutable.ImmutableDictionary`2.Add(`0,`1)"/> and
 /// behaves as it does (ADR 0001, D14), as the 1.0.0 function did: it does not replace the value of a key, where
-/// <c>Map.add</c> does. When the value comparer of the hash map finds the value equal to the current value of the key, the
+/// <see cref="M:Microsoft.FSharp.Collections.MapModule.Add``2(``0,``1,Microsoft.FSharp.Collections.FSharpMap{``0,``1})"/> does. When the value comparer of the hash map finds the value equal to the current value of the key, the
 /// binding stays as it is, its key included, and the input itself comes back.
 /// </para>
 /// <para>
@@ -639,7 +639,7 @@ val addRange : pairs : seq<KeyValuePair<'Key, 'Value>> -> table : HashMap<'Key, 
 /// </para>
 /// <para>
 /// Adding a binding only when the key has none is <c>HashMap.change key (function ValueNone -> ValueSome value | existing -> existing)</c>,
-/// which the BCL offers as <c>ImmutableInterlocked.TryAdd</c> for a field.
+/// which the BCL offers as <see cref="M:System.Collections.Immutable.ImmutableInterlocked.TryAdd``2(System.Collections.Immutable.ImmutableDictionary{``0,``1}@,``0,``1)"/> for a field.
 /// </para>
 /// </remarks>
 [<CompiledName "Change">]
@@ -729,7 +729,7 @@ val removeRange : keys : seq<'Key> -> table : HashMap<'Key, 'Value> -> HashMap<'
 /// <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="table"/> is <see langword="null"/>.</exception>
 /// <remarks>
 /// O(log n). The function wraps <see cref="M:System.Collections.Immutable.ImmutableDictionary`2.SetItem(`0,`1)"/> and
-/// replaces the value of a key, as <c>Map.add</c> does, where
+/// replaces the value of a key, as <see cref="M:Microsoft.FSharp.Collections.MapModule.Add``2(``0,``1,Microsoft.FSharp.Collections.FSharpMap{``0,``1})"/> does, where
 /// <see cref="M:FSharp.Collections.Immutable.HashMap.Add``2(``0,``1,System.Collections.Immutable.ImmutableDictionary{``0,``1})"/>
 /// throws for a key that is bound to another value. When the value comparer of the hash map finds the value equal to the
 /// current value of the key, the binding stays as it is, its key included (ADR 0001, D14).

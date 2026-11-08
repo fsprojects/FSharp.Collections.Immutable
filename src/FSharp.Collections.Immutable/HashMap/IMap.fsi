@@ -7,7 +7,7 @@
 /// its semantics, its argument checks and its exceptions (ADR 0001), except
 /// <see cref="M:FSharp.Collections.Immutable.IMap.Add``2(``0,``1,System.Collections.Immutable.IImmutableDictionary{``0,``1})"/>.
 /// It is the <see cref="M:System.Collections.Immutable.IImmutableDictionary`2.Add(`0,`1)"/> of the interface: it throws for
-/// a key that is bound to another value, where <c>Map.add</c> replaces the value, and
+/// a key that is bound to another value, where <see cref="M:Microsoft.FSharp.Collections.MapModule.Add``2(``0,``1,Microsoft.FSharp.Collections.FSharpMap{``0,``1})"/> replaces the value, and
 /// <see cref="M:FSharp.Collections.Immutable.IMap.SetItem``2(``0,``1,System.Collections.Immutable.IImmutableDictionary{``0,``1})"/>
 /// replaces it (ADR 0001, D14). The other functions wrap a member of
 /// <see cref="T:System.Collections.Immutable.IImmutableDictionary`2"/> and keep its semantics and its exceptions.
@@ -170,7 +170,7 @@ val tryGetKey : key : 'Key -> table : IMap<'Key, 'Value> -> 'Key voption
 /// </para>
 /// <para>
 /// The interface hides the value comparer of the map, so this is the only function that tests a binding with it: finding
-/// the value with <c>IMap.tryFind</c> and comparing with <c>=</c> uses F# equality instead.
+/// the value with <see cref="M:FSharp.Collections.Immutable.IMap.TryFind``2(``0,System.Collections.Immutable.IImmutableDictionary{``0,``1})"/> and comparing with <c>=</c> uses F# equality instead.
 /// </para>
 /// </remarks>
 [<CompiledName "ContainsBinding">]
@@ -275,7 +275,7 @@ val tryPick : chooser : ('Key -> 'Value -> 'U voption) -> table : IMap<'Key, 'Va
 /// O(log n) for the immutable dictionaries. The function wraps
 /// <see cref="M:System.Collections.Immutable.IImmutableDictionary`2.Add(`0,`1)"/> and behaves as it does (ADR 0001, D14),
 /// as <see cref="M:FSharp.Collections.Immutable.HashMap.Add``2(``0,``1,System.Collections.Immutable.ImmutableDictionary{``0,``1})"/>
-/// does: it does not replace the value of a key, where <c>Map.add</c> does. When the value comparer of the map finds the
+/// does: it does not replace the value of a key, where <see cref="M:Microsoft.FSharp.Collections.MapModule.Add``2(``0,``1,Microsoft.FSharp.Collections.FSharpMap{``0,``1})"/> does. When the value comparer of the map finds the
 /// value equal to the current value of the key, the binding stays as it is, its key included, and the input itself comes
 /// back.
 /// </para>
@@ -427,7 +427,7 @@ val removeRange : keys : seq<'Key> -> table : IMap<'Key, 'Value> -> IMap<'Key, '
 /// <remarks>
 /// O(log n) for the immutable dictionaries. The function wraps
 /// <see cref="M:System.Collections.Immutable.IImmutableDictionary`2.SetItem(`0,`1)"/> and replaces the value of a key, as
-/// <c>Map.add</c> does, where
+/// <see cref="M:Microsoft.FSharp.Collections.MapModule.Add``2(``0,``1,Microsoft.FSharp.Collections.FSharpMap{``0,``1})"/> does, where
 /// <see cref="M:FSharp.Collections.Immutable.IMap.Add``2(``0,``1,System.Collections.Immutable.IImmutableDictionary{``0,``1})"/>
 /// throws for a key that is bound to another value. When the value comparer of an immutable dictionary finds the value
 /// equal to the current value of the key, the dictionary leaves the binding as it is, its key included, and returns the
