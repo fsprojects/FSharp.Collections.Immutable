@@ -220,7 +220,7 @@ val keyComparer : table : FrozenMap<'Key, 'Value> -> IEqualityComparer<'Key>
 /// <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="table"/> is <see langword="null"/>.</exception>
 /// <remarks>
 /// O(1). The function wraps <see cref="P:System.Collections.Frozen.FrozenDictionary`2.Keys"/>: the flat list shares the
-/// array of the keys of the frozen map instead of copying it. <c>FlatList.asSpan</c> views the array as a span, also
+/// array of the keys of the frozen map instead of copying it. <see cref="M:FSharp.Collections.Immutable.FlatList.AsSpan``1(System.Collections.Immutable.ImmutableArray{``0})"/> views the array as a span, also
 /// without a copy.
 /// </remarks>
 [<CompiledName "Keys">]
@@ -234,7 +234,7 @@ val keys : table : FrozenMap<'Key, 'Value> -> FlatList<'Key>
 /// <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="table"/> is <see langword="null"/>.</exception>
 /// <remarks>
 /// O(1). The function wraps <see cref="P:System.Collections.Frozen.FrozenDictionary`2.Values"/>: the flat list shares the
-/// array of the values of the frozen map instead of copying it. <c>FlatList.asSpan</c> views the array as a span, also
+/// array of the values of the frozen map instead of copying it. <see cref="M:FSharp.Collections.Immutable.FlatList.AsSpan``1(System.Collections.Immutable.ImmutableArray{``0})"/> views the array as a span, also
 /// without a copy.
 /// </remarks>
 [<CompiledName "Values">]
