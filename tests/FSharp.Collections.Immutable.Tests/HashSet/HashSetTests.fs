@@ -571,9 +571,13 @@ type HashSetTests () =
         let stored = String ('x', 3)
         let set = caseless.ofArray [| stored; "apple" |]
 
-        match HashSet.tryGetValue "XXX" set with
-        | ValueSome found -> Assert.AreSame (stored, found, "HashSet.tryGetValue must return the instance of the hash set")
-        | ValueNone -> Assert.Fail "HashSet.tryGetValue must find the element that equals the value in the comparer"
+        let found =
+            Assert.WantValueSome (
+                HashSet.tryGetValue "XXX" set,
+                "HashSet.tryGetValue must find the element that equals the value in the comparer"
+            )
+
+        Assert.AreSame (stored, found, "HashSet.tryGetValue must return the instance of the hash set")
 
         Assert.AreEqual<string voption>(
             ValueSome "apple",
