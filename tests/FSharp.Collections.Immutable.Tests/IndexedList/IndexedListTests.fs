@@ -1021,3 +1021,96 @@ type IndexedListTests () =
             |> IndexedList.toArray,
             $"IndexedList.choose must keep the chosen elements of a long list in order (%d{percent} %% chosen)"
         )
+
+    /// The tree of a long array is built from a span: every index must find its element, which a tree that is not balanced
+    /// as the indexer expects would not.
+    [<TestMethod>]
+    member _.``ofArray of a long array keeps the order and the indices`` () =
+        let items = Array.init 100_000 (fun index -> index * 7)
+        let list = IndexedList.ofArray items
+
+        Assert.HasCount (items.Length, list, "IndexedList.ofArray must keep all elements of a long array")
+        CollectionAssert.AreEqual (items, IndexedList.toArray list, "IndexedList.ofArray must keep the order of a long array")
+
+        let wrong = [|
+            for index in 0 .. items.Length - 1 do
+                if list[index] <> items[index] then
+                    index
+        |]
+        Assert.IsEmpty (wrong, "Every index of IndexedList.ofArray must give the element at that index")
+
+    [<TestMethod; DataRow 0; DataRow 1; DataRow 5000>]
+    member _.``replicate repeats the value for strings and integers`` (count : int) =
+        CollectionAssert.AreEqual (
+            List.replicate count "x" |> List.toArray,
+            IndexedList.replicate count "x" |> IndexedList.toArray,
+            "IndexedList.replicate must repeat the string"
+        )
+
+        CollectionAssert.AreEqual (
+            List.replicate count 7 |> List.toArray,
+            IndexedList.replicate count 7 |> IndexedList.toArray,
+            "IndexedList.replicate must repeat the integer"
+        )
+
+    /// The temporary array of these functions is a new array below `Buffers.PooledFrom` elements and a rented one above, so
+    /// the lengths around it take both ways. The strings show that a rented array is cleared as far as it was written.
+    [<TestMethod>]
+    [<DataRow(0)>]
+    [<DataRow(1)>]
+    [<DataRow(Buffers.PooledFrom - 1)>]
+    [<DataRow(Buffers.PooledFrom)>]
+    [<DataRow(Buffers.PooledFrom + 1)>]
+    [<DataRow(5000)>]
+    member _.``the functions that fill an array give the results of List around the length of the rented array`` (length : int) =
+        let items = Array.init length (fun index -> $"item %d{index}")
+        let list = IndexedList.ofArray items
+        let expected = List.ofArray items
+        let tag (index : int) (item : string) = $"%d{index}:%s{item}"
+        let step (total : int) (item : string) = total * 31 + item.Length
+
+        CollectionAssert.AreEqual (
+            List.init length (fun index -> $"%d{index}!")
+            |> List.toArray,
+            IndexedList.init length (fun index -> $"%d{index}!")
+            |> IndexedList.toArray,
+            "IndexedList.init must give the strings in order"
+        )
+
+        CollectionAssert.AreEqual (
+            List.rev expected |> List.toArray,
+            IndexedList.rev list |> IndexedList.toArray,
+            "IndexedList.rev must reverse the strings"
+        )
+
+        CollectionAssert.AreEqual (
+            List.mapi tag expected |> List.toArray,
+            IndexedList.mapi tag list |> IndexedList.toArray,
+            "IndexedList.mapi must map the strings in order"
+        )
+
+        CollectionAssert.AreEqual (
+            List.scan step 7 expected |> List.toArray,
+            IndexedList.scan step 7 list |> IndexedList.toArray,
+            "IndexedList.scan must give the states"
+        )
+
+        let struct (mapped, final) =
+            IndexedList.mapFold (fun total item -> struct (tag total item, step total item)) 7 list
+        let expectedMapped, expectedFinal =
+            List.mapFold (fun total item -> tag total item, step total item) 7 expected
+
+        CollectionAssert.AreEqual (
+            expectedMapped |> List.toArray,
+            IndexedList.toArray mapped,
+            "IndexedList.mapFold must map the strings with the state"
+        )
+
+        Assert.AreEqual<int>(expectedFinal, final, "IndexedList.mapFold must return the last state")
+
+        if length >= 2 then
+            CollectionAssert.AreEqual (
+                Array.sub items 1 (length - 2),
+                IndexedList.sub list 1 (length - 2) |> IndexedList.toArray,
+                "IndexedList.sub must give the strings of the range"
+            )
