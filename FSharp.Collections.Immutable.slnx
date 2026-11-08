@@ -13,6 +13,7 @@
     <Project Path="src\FSharp.Collections.Immutable\FSharp.Collections.Immutable.fsproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests\FSharp.Collections.Immutable.CSharp.Tests\FSharp.Collections.Immutable.CSharp.Tests.csproj" />
     <Project Path="tests\FSharp.Collections.Immutable.Tests\FSharp.Collections.Immutable.Tests.fsproj" />
   </Folder>
   <Project Path="build\build.fsproj" />
