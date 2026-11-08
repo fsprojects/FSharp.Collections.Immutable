@@ -14,32 +14,51 @@ open Microsoft.VisualStudio.TestTools.UnitTesting
 /// creates sorted sets of any element type with F# comparison, which a table of functions of one type cannot do.
 /// </remarks>
 type SortedSetCreation =
-    /// <summary><c>SortedSet.empty</c>, which ignores the elements.</summary>
+    /// <summary><see cref="M:FSharp.Collections.Immutable.SortedSet.Empty``1"/>, which ignores the elements.</summary>
     | Empty
-    /// <summary><c>SortedSet.ofArray</c>.</summary>
+    /// <summary><see cref="M:FSharp.Collections.Immutable.SortedSet.OfArray``1(``0[])"/>.</summary>
     | OfArray
-    /// <summary><c>SortedSet.ofList</c>, with the elements in a list.</summary>
+    /// <summary>
+    /// <see cref="M:FSharp.Collections.Immutable.SortedSet.OfList``1(Microsoft.FSharp.Collections.FSharpList{``0})"/>,
+    /// with the elements in a list.
+    /// </summary>
     | OfList
     /// <summary>
-    /// <c>SortedSet.ofReadOnlySpan</c>, with a read-only span over the elements.
+    /// <see cref="M:FSharp.Collections.Immutable.SortedSet.OfReadOnlySpan``1(System.ReadOnlySpan{``0})"/>,
+    /// with a read-only span over the elements.
     /// </summary>
     | OfReadOnlySpan
-    /// <summary><c>SortedSet.ofSeq</c>, with the elements in a lazy sequence.</summary>
+    /// <summary>
+    /// <see cref="M:FSharp.Collections.Immutable.SortedSet.OfSeq``1(System.Collections.Generic.IEnumerable{``0})"/>,
+    /// with the elements in a lazy sequence.
+    /// </summary>
     | OfSeq
-    /// <summary><c>SortedSet.ofSpan</c>, with a span over the elements.</summary>
+    /// <summary>
+    /// <see cref="M:FSharp.Collections.Immutable.SortedSet.OfSpan``1(System.Span{``0})"/>,
+    /// with a span over the elements.
+    /// </summary>
     | OfSpan
-    /// <summary><c>SortedSet.add</c> of every element to <c>SortedSet.empty</c>.</summary>
+    /// <summary>
+    /// <see cref="M:FSharp.Collections.Immutable.SortedSet.Add``1(``0,System.Collections.Immutable.ImmutableSortedSet{``0})"/> of every element to
+    /// <see cref="M:FSharp.Collections.Immutable.SortedSet.Empty``1"/>.
+    /// </summary>
     | Add
     /// <summary>
-    /// <c>SortedSet.singleton</c> of every element, united by <c>SortedSet.unionMany</c>.
+    /// <see cref="M:FSharp.Collections.Immutable.SortedSet.Singleton``1(``0)"/>
+    /// of every element, united by
+    /// <see cref="M:FSharp.Collections.Immutable.SortedSet.UnionMany``1(System.Collections.Generic.IEnumerable{System.Collections.Immutable.ImmutableSortedSet{``0}})"/>.
     /// </summary>
     | Singleton
     /// <summary>
-    /// <c>SortedSet.build</c> with an action that adds the elements to the builder.
+    /// <see cref="M:FSharp.Collections.Immutable.SortedSet.Build``1(Microsoft.FSharp.Core.FSharpFunc{System.Collections.Immutable.ImmutableSortedSet.Builder{``0},Microsoft.FSharp.Core.Unit})"/>
+    /// with an action that adds the elements to the builder.
     /// </summary>
     | Build
     /// <summary>
-    /// A builder of <c>SortedSet.builder</c> filled with the elements, through <c>SortedSet.ofBuilder</c>.
+    /// A builder of
+    /// <see cref="M:FSharp.Collections.Immutable.SortedSet.CreateBuilder``1"/>
+    /// filled with the elements, through
+    /// <see cref="M:FSharp.Collections.Immutable.SortedSet.OfBuilder``1(System.Collections.Immutable.ImmutableSortedSet.Builder{``0})"/>.
     /// </summary>
     | Builder
 
@@ -130,7 +149,8 @@ type SortedSetTests () =
     /// "Banana".
     /// </summary>
     /// <remarks>
-    /// <c>empty</c> and <c>singleton</c> get the other elements through <c>SortedSet.add</c>.
+    /// <c>empty</c> and <c>singleton</c> get the other elements through
+    /// <see cref="M:FSharp.Collections.Immutable.SortedSet.Add``1(``0,System.Collections.Immutable.ImmutableSortedSet{``0})"/>.
     /// </remarks>
     static let structCreations : Map<string, unit -> SortedSet<string>> =
         Map.ofArray [|
