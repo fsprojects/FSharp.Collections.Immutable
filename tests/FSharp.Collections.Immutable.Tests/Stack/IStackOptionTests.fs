@@ -66,16 +66,16 @@ type IStackOptionTests () =
         let found : (int * IImmutableStack<int>) option = IStack.tryUncons several
 
         // A tuple compares an array by reference, so the first element and the other elements are compared apart
-        match found with
-        | Some (head, tail) ->
-            Assert.AreEqual<int>(Array.head Inputs.Several, head, "Option.IStack.tryUncons must return the first element")
+        let head, tail =
+            Assert.WantSome (found, "Option.IStack.tryUncons must return the elements of a stack with elements")
 
-            CollectionAssert.AreEqual (
-                Array.tail Inputs.Several,
-                IStack.toArray tail,
-                "Option.IStack.tryUncons must return the other elements"
-            )
-        | None -> Assert.Fail "Option.IStack.tryUncons must return the elements of a stack with elements"
+        Assert.AreEqual<int>(Array.head Inputs.Several, head, "Option.IStack.tryUncons must return the first element")
+
+        CollectionAssert.AreEqual (
+            Array.tail Inputs.Several,
+            IStack.toArray tail,
+            "Option.IStack.tryUncons must return the other elements"
+        )
 
         Assert.IsTrue ((IStack.tryUncons empty).IsNone, "Option.IStack.tryUncons must return None for an empty stack")
 

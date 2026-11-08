@@ -58,7 +58,10 @@ type IStackTests () =
     static let sameElementType : Map<string, IImmutableStack<int> -> IImmutableStack<int>> =
         Map.ofArray [|
             nameof IStack.tail, IStack.tail
-            nameof IStack.tryTail, (fun stack -> (IStack.tryTail stack).Value)
+            nameof IStack.tryTail,
+            (fun stack ->
+                Assert.WantValueSome (IStack.tryTail stack, "IStack.tryTail must return the tail of a stack with elements")
+            )
             (nameof IStack.uncons,
              fun stack ->
                  let struct (_, tail) = IStack.uncons stack

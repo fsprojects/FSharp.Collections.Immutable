@@ -59,7 +59,14 @@ type StackTests () =
     static let topRemovals : Map<string, struct ((Stack<int> -> Stack<int>) * int)> =
         Map.ofArray [|
             nameof Stack.tail, struct (Stack.tail, 1)
-            nameof Stack.tryTail, struct ((fun stack -> (Stack.tryTail stack).Value), 1)
+            (nameof Stack.tryTail,
+             struct ((fun stack ->
+                         Assert.WantValueSome (
+                             Stack.tryTail stack,
+                             "Stack.tryTail must return the tail of a stack with elements"
+                         )
+                     ),
+                     1))
             nameof Stack.skip, struct (Stack.skip 3, 3)
             nameof Stack.skipWhile, struct (Stack.skipWhile (fun item -> item <> 8), 2)
             nameof Stack.takeLast, struct (Stack.takeLast 5, 3)
@@ -591,11 +598,11 @@ type StackTests () =
     member _.``tryUncons returns the top and the stack below it or nothing`` () =
         let stack = several ()
 
-        match Stack.tryUncons stack with
-        | ValueSome (struct (head, tail)) ->
-            Assert.AreEqual<int>(Array.head Inputs.Several, head, "Stack.tryUncons must return the first element")
-            Assert.AreSame (stack.Pop (), tail, "Stack.tryUncons must return the stack below the top")
-        | ValueNone -> Assert.Fail "Stack.tryUncons must return the elements of a stack with elements"
+        let struct (head, tail) =
+            Assert.WantValueSome (Stack.tryUncons stack, "Stack.tryUncons must return the elements of a stack with elements")
+
+        Assert.AreEqual<int>(Array.head Inputs.Several, head, "Stack.tryUncons must return the first element")
+        Assert.AreSame (stack.Pop (), tail, "Stack.tryUncons must return the stack below the top")
 
         Assert.IsTrue ((Stack.tryUncons Stack.empty<int>).IsNone, "Stack.tryUncons of an empty stack must return nothing")
 
