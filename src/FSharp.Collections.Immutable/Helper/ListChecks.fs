@@ -26,8 +26,6 @@
 /// </remarks>
 module internal FSharp.Collections.Immutable.ListChecks
 
-open System
-
 /// <summary>
 /// The message that
 /// <see cref="M:Microsoft.FSharp.Collections.ListModule.InsertAt``1(System.Int32,``0,Microsoft.FSharp.Collections.FSharpList{``0})"/>,
@@ -483,7 +481,7 @@ let transpose (name : string) (lengths : int array) =
     if lengths.Length > 1 then
         let shortest = Array.min lengths
         let first = lengths[0]
-        let element (index : int) = String.Format ("{0}.[{1}]", name, index)
+        let element (index : int) = $"{name}.[{index}]"
 
         if first = shortest then
             // The first list ends first, so the first list that goes on is longer
