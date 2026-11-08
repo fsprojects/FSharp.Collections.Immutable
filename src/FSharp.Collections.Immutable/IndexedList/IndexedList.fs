@@ -696,6 +696,11 @@ let replaceWith (comparer : IEqualityComparer<'T>) (oldValue : 'T) (newValue : '
 
 [<CompiledName "Reverse">]
 let rev (list : IndexedList<'T>) =
+    // .NET 12 reverses a whole ImmutableList<T> in O(n) by mirroring the tree
+    // (https://github.com/dotnet/runtime/pull/136063). That pull request fixes
+    // https://github.com/dotnet/runtime/issues/136030, which reports the measurement below. The target frameworks
+    // of the library take O(n log n) time, so the copy stays: measure again when the library targets net12.0.
+
     // A copy reversed in place and a new balanced tree are about 8 times faster than ImmutableList.Reverse at 100 000
     // integers (about 3 ms against 23 ms), and the copy is the only extra allocation (ADR 0001, D5); the copy is fresh,
     // so nobody else sees it change

@@ -174,6 +174,8 @@ let replaceWith (comparer : IEqualityComparer<'T>) (oldValue : 'T) (newValue : '
 
 [<CompiledName "Reverse">]
 let rev (builder : IndexedList<'T>.Builder) =
+    // The member reverses in place and takes O(n log n) time on the target frameworks of the library. .NET 12 makes it
+    // O(n): https://github.com/dotnet/runtime/pull/136063. The call needs no change then.
     builder.Reverse ()
     builder
 
