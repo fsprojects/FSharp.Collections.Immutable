@@ -253,7 +253,7 @@ type CustomComparersFrozenMapTests () =
             "The frozen map of FrozenMap.forKeyComparer must have the key comparer"
         )
 
-        Assert.AreEqual<int>(2, FrozenMap.count table, "The comparer must merge the keys that differ in their case")
+        Assert.HasCount (2, table, "The comparer must merge the keys that differ in their case")
         Assert.AreEqual<int>(2, FrozenMap.find "One" table, "The frozen map must keep the last binding of keys that are equal")
         Assert.AreEqual<int>(3, FrozenMap.find "TWO" table, "The frozen map must look the keys up with the comparer")
 
