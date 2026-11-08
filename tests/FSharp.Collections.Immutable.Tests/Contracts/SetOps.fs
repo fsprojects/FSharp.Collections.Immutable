@@ -117,7 +117,8 @@ type SetMutationOps<'S> = {
 /// </remarks>
 type SetCustomComparerOps<'S> = {
     /// <summary>
-    /// The comparer that the struct returns from its <c>Comparer</c> property.
+    /// The comparer that the struct returns from its
+    /// <see cref="P:FSharp.Collections.Immutable.CustomComparerHashSet`1.Comparer"/> property.
     /// </summary>
     Comparer : obj
 
@@ -137,7 +138,8 @@ type SetCustomComparerOps<'S> = {
 /// <c>FrozenSet</c>.
 /// </summary>
 /// <remarks>
-/// The facet also runs the members of the struct that creates sets with a comparer, the struct that <c>forComparer</c>
+/// The facet also runs the members of the struct that creates sets with a comparer, the struct that
+/// <see cref="M:FSharp.Collections.Immutable.HashSet.ForComparer``1(System.Collections.Generic.IEqualityComparer{``0})"/>
 /// of the module returns. The builders are not part of it, because <c>FrozenSet</c> has none.
 /// </remarks>
 type SetCreationOps<'S> = {
@@ -148,7 +150,9 @@ type SetCreationOps<'S> = {
     /// The elements in the order in which the set enumerates them.
     ToArray : 'S -> int array
     /// <summary>
-    /// The comparer of a set, as the <c>comparer</c> function of the module returns it.
+    /// The comparer of a set, as the
+    /// <see cref="M:FSharp.Collections.Immutable.HashSet.Comparer``1(System.Collections.Immutable.ImmutableHashSet{``0})"/>
+    /// function of the module returns it.
     /// </summary>
     Comparer : 'S -> obj
 
@@ -163,7 +167,9 @@ type SetCreationOps<'S> = {
     Singleton : int -> 'S
 
     /// <summary>
-    /// The members of the struct that <c>forComparer</c> creates with the comparer of <c>SetInputs</c>.
+    /// The members of the struct that
+    /// <see cref="M:FSharp.Collections.Immutable.HashSet.ForComparer``1(System.Collections.Generic.IEqualityComparer{``0})"/>
+    /// creates with the comparer of <c>SetInputs</c>.
     /// </summary>
     CustomComparer : SetCustomComparerOps<'S>
 }
