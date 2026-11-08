@@ -176,26 +176,37 @@ let containsValue (value : 'Value) (table : SortedMap<'Key, 'Value>) =
     checkNotNull (nameof table) table
     table.ContainsValue value
 
-// exists and forall loop over the struct enumerator of the sorted map, which allocates nothing. The algorithm that the map
-// modules share, over the key/value pairs of any dictionary, allocated 56 bytes per call, the boxed enumerator; LINQ Any
-// and All allocated 136 bytes, and Seq.exists and Seq.forall 80 bytes (measured in Release; a measured faster path
-// replaces a higher priority, D5). Dispose returns the pooled stack of the enumerator.
+// exists and forall loop over the struct enumerator of the sorted map for value types, which allocates nothing. The
+// algorithm that the map modules share, over the key/value pairs of any dictionary, allocated 56 bytes per call, the boxed
+// enumerator; LINQ Any and All allocated 136 bytes, and Seq.exists and Seq.forall 80 bytes (measured in Release; a measured
+// faster path replaces a higher priority, D5). A map with a reference type as the key or the value is walked through the
+// interface instead, at the price of that boxed enumerator, 56 bytes per call: the code that all reference types share needs a
+// lookup of the exact type at run time for each call of a member of the generic struct enumerator, and for 100 to 100 000
+// bindings exists and forall took 0.55 to 0.84 times as long for strings, and 0.60 to 0.69 for a string next to an integer,
+// where for integers the interface took 1.3 to 1.6 times as long. Dispose returns the pooled stack of the enumerator.
 
 [<CompiledName "Exists">]
 let exists (predicate : 'Key -> 'Value -> bool) (table : SortedMap<'Key, 'Value>) =
     checkNotNull (nameof table) table
-    let mutable enumerator = table.GetEnumerator ()
+    let mutable found = false
 
-    try
-        let mutable found = false
+    if typeof<'Key>.IsValueType && typeof<'Value>.IsValueType then
+        let mutable enumerator = table.GetEnumerator ()
+
+        try
+            while not found && enumerator.MoveNext () do
+                let pair = enumerator.Current
+                found <- predicate pair.Key pair.Value
+        finally
+            enumerator.Dispose ()
+    else
+        use enumerator = (table :> seq<KeyValuePair<'Key, 'Value>>).GetEnumerator()
 
         while not found && enumerator.MoveNext () do
             let pair = enumerator.Current
             found <- predicate pair.Key pair.Value
 
-        found
-    finally
-        enumerator.Dispose ()
+    found
 
 [<CompiledName "FindKey">]
 let findKey predicate (table : SortedMap<'Key, 'Value>) =
@@ -209,18 +220,25 @@ let findKey predicate (table : SortedMap<'Key, 'Value>) =
 [<CompiledName "ForAll">]
 let forall (predicate : 'Key -> 'Value -> bool) (table : SortedMap<'Key, 'Value>) =
     checkNotNull (nameof table) table
-    let mutable enumerator = table.GetEnumerator ()
+    let mutable satisfied = true
 
-    try
-        let mutable satisfied = true
+    if typeof<'Key>.IsValueType && typeof<'Value>.IsValueType then
+        let mutable enumerator = table.GetEnumerator ()
+
+        try
+            while satisfied && enumerator.MoveNext () do
+                let pair = enumerator.Current
+                satisfied <- predicate pair.Key pair.Value
+        finally
+            enumerator.Dispose ()
+    else
+        use enumerator = (table :> seq<KeyValuePair<'Key, 'Value>>).GetEnumerator()
 
         while satisfied && enumerator.MoveNext () do
             let pair = enumerator.Current
             satisfied <- predicate pair.Key pair.Value
 
-        satisfied
-    finally
-        enumerator.Dispose ()
+    satisfied
 
 [<CompiledName "Pick">]
 let pick (chooser : 'Key -> 'Value -> 'U voption) (table : SortedMap<'Key, 'Value>) =
