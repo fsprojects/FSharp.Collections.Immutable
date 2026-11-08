@@ -886,7 +886,9 @@ val append : list1 : IndexedList<'T> -> list2 : IndexedList<'T> -> IndexedList<'
 [<CompiledName "Choose">]
 val choose : chooser : ('T -> 'U voption) -> list : IndexedList<'T> -> IndexedList<'U>
 
-/// <summary>Divides the indexed list into chunks of a given size.</summary>
+/// <summary>
+/// Divides the indexed list into chunks of a given size.
+/// </summary>
 /// <param name="chunkSize">The maximum size of a chunk.</param>
 /// <param name="list">The input indexed list.</param>
 /// <returns>The chunks; the last one can be smaller.</returns>
@@ -911,7 +913,9 @@ val chunkBySize : chunkSize : int -> list : IndexedList<'T> -> IndexedList<Index
 [<CompiledName "Collect">]
 val collect : mapping : ('T -> IndexedList<'U>) -> list : IndexedList<'T> -> IndexedList<'U>
 
-/// <summary>Concatenates a sequence of indexed lists.</summary>
+/// <summary>
+/// Concatenates a sequence of indexed lists.
+/// </summary>
 /// <param name="lists">The indexed lists.</param>
 /// <returns>The concatenation.</returns>
 /// <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="lists"/> is <see langword="null"/> or a default flat list, or one of its indexed lists is <see langword="null"/>.</exception>
@@ -1533,7 +1537,9 @@ val mapFoldBack :
     state : 'State ->
         struct (IndexedList<'Result> * 'State)
 
-/// <summary>Returns the greatest element, in F# generic comparison.</summary>
+/// <summary>
+/// Returns the greatest element, in F# generic comparison.
+/// </summary>
 /// <param name="list">The input indexed list.</param>
 /// <returns>The greatest element.</returns>
 /// <exception cref="T:System.ArgumentException">Thrown when the indexed list is empty.</exception>
@@ -1558,7 +1564,9 @@ val inline max : list : IndexedList<'T> -> 'T when 'T : comparison
 [<CompiledName "MaxBy">]
 val inline maxBy : projection : ('T -> 'U) -> list : IndexedList<'T> -> 'T when 'U : comparison
 
-/// <summary>Returns the smallest element, in F# generic comparison.</summary>
+/// <summary>
+/// Returns the smallest element, in F# generic comparison.
+/// </summary>
 /// <param name="list">The input indexed list.</param>
 /// <returns>The smallest element.</returns>
 /// <exception cref="T:System.ArgumentException">Thrown when the indexed list is empty.</exception>

@@ -244,7 +244,9 @@ val exists2 : predicate : ('T1 -> 'T2 -> bool) -> list1 : IIndexedList<'T1> -> l
 [<CompiledName "Find">]
 val find : predicate : ('T -> bool) -> list : IIndexedList<'T> -> 'T
 
-/// <summary>Returns the last element that satisfies the predicate.</summary>
+/// <summary>
+/// Returns the last element that satisfies the predicate.
+/// </summary>
 /// <param name="predicate">The function to test the elements.</param>
 /// <param name="list">The input list.</param>
 /// <returns>The last element that satisfies the predicate.</returns>
@@ -593,7 +595,9 @@ val chunkBySize : chunkSize : int -> list : IIndexedList<'T> -> IndexedList<Inde
 [<CompiledName "Collect">]
 val collect : mapping : ('T -> IIndexedList<'U>) -> list : IIndexedList<'T> -> IndexedList<'U>
 
-/// <summary>Concatenates a sequence of lists.</summary>
+/// <summary>
+/// Concatenates a sequence of lists.
+/// </summary>
 /// <param name="lists">The lists.</param>
 /// <returns>The concatenation, in an indexed list, because the lists can have different implementations.</returns>
 /// <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="lists"/> is <see langword="null"/> or a default flat list, or one of its lists is <see langword="null"/> or a default flat list.</exception>
@@ -1041,7 +1045,9 @@ val inline averageBy :
         and ^U : (static member DivideByInt : ^U * int -> ^U)
         and ^U : (static member Zero : ^U)
 
-/// <summary>Compares two lists element by element with a comparer.</summary>
+/// <summary>
+/// Compares two lists element by element with a comparer.
+/// </summary>
 /// <param name="comparer">The function that compares two elements.</param>
 /// <param name="list1">The first list.</param>
 /// <param name="list2">The second list.</param>
@@ -1195,7 +1201,9 @@ val mapFoldBack :
     state : 'State ->
         struct (IndexedList<'Result> * 'State)
 
-/// <summary>Returns the greatest element, in F# generic comparison.</summary>
+/// <summary>
+/// Returns the greatest element, in F# generic comparison.
+/// </summary>
 /// <param name="list">The input list.</param>
 /// <returns>The greatest element.</returns>
 /// <exception cref="T:System.ArgumentException">Thrown when the list is empty.</exception>
@@ -1220,7 +1228,9 @@ val inline max : list : IIndexedList<'T> -> 'T when 'T : comparison
 [<CompiledName "MaxBy">]
 val inline maxBy : projection : ('T -> 'U) -> list : IIndexedList<'T> -> 'T when 'U : comparison
 
-/// <summary>Returns the smallest element, in F# generic comparison.</summary>
+/// <summary>
+/// Returns the smallest element, in F# generic comparison.
+/// </summary>
 /// <param name="list">The input list.</param>
 /// <returns>The smallest element.</returns>
 /// <exception cref="T:System.ArgumentException">Thrown when the list is empty.</exception>
