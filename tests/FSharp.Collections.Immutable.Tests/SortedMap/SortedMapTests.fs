@@ -46,7 +46,10 @@ type OrderedKeys =
 type OrderedCreation =
     /// A builder that the bindings fill one by one.
     | Builder
-    /// <summary><c>add</c> of each binding to the empty sorted map.</summary>
+    /// <summary>
+    /// <see cref="M:FSharp.Collections.Immutable.SortedMap.Add``2(``0,``1,System.Collections.Immutable.ImmutableSortedDictionary{``0,``1})"/>
+    /// of each binding to the empty sorted map.
+    /// </summary>
     | Empty
     /// <summary><c>ofArray</c> of struct tuples.</summary>
     | OfArrayOfStructTuples
@@ -56,7 +59,10 @@ type OrderedCreation =
     | OfSeqOfKeyValuePairs
     /// <summary><c>ofSeq</c> of struct tuples.</summary>
     | OfSeqOfStructTuples
-    /// <summary><c>add</c> of each binding to the sorted map of the last one.</summary>
+    /// <summary>
+    /// <see cref="M:FSharp.Collections.Immutable.SortedMap.Add``2(``0,``1,System.Collections.Immutable.ImmutableSortedDictionary{``0,``1})"/>
+    /// of each binding to the sorted map of the last one.
+    /// </summary>
     | Singleton
     /// <summary>The <c>sortedMap { }</c> expression.</summary>
     | Expression
