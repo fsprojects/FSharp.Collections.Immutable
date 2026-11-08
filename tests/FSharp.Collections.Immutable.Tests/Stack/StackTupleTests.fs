@@ -36,16 +36,16 @@ type StackTupleTests () =
         let found : (int * Stack<int>) voption = Stack.tryUncons several
 
         // A tuple compares an array by reference, so the first element and the other elements are compared apart
-        match found with
-        | ValueSome (head, tail) ->
-            Assert.AreEqual<int>(Array.head Inputs.Several, head, "Tuple.Stack.tryUncons must return the first element")
+        let head, tail =
+            Assert.WantValueSome (found, "Tuple.Stack.tryUncons must return the elements of a stack with elements")
 
-            CollectionAssert.AreEqual (
-                Array.tail Inputs.Several,
-                Stack.toArray tail,
-                "Tuple.Stack.tryUncons must return the other elements"
-            )
-        | ValueNone -> Assert.Fail "Tuple.Stack.tryUncons must return the elements of a stack with elements"
+        Assert.AreEqual<int>(Array.head Inputs.Several, head, "Tuple.Stack.tryUncons must return the first element")
+
+        CollectionAssert.AreEqual (
+            Array.tail Inputs.Several,
+            Stack.toArray tail,
+            "Tuple.Stack.tryUncons must return the other elements"
+        )
 
     [<TestMethod>]
     member _.``uncons returns a reference tuple`` () =

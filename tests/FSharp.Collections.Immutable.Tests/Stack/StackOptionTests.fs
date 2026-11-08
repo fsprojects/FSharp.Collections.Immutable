@@ -75,16 +75,16 @@ type StackOptionTests () =
         let found : (int * Stack<int>) option = Stack.tryUncons several
 
         // A tuple compares an array by reference, so the first element and the other elements are compared apart
-        match found with
-        | Some (head, tail) ->
-            Assert.AreEqual<int>(Array.head Inputs.Several, head, "Option.Stack.tryUncons must return the first element")
+        let head, tail =
+            Assert.WantSome (found, "Option.Stack.tryUncons must return the elements of a stack with elements")
 
-            CollectionAssert.AreEqual (
-                Array.tail Inputs.Several,
-                Stack.toArray tail,
-                "Option.Stack.tryUncons must return the other elements"
-            )
-        | None -> Assert.Fail "Option.Stack.tryUncons must return the elements of a stack with elements"
+        Assert.AreEqual<int>(Array.head Inputs.Several, head, "Option.Stack.tryUncons must return the first element")
+
+        CollectionAssert.AreEqual (
+            Array.tail Inputs.Several,
+            Stack.toArray tail,
+            "Option.Stack.tryUncons must return the other elements"
+        )
 
         Assert.IsTrue ((Stack.tryUncons Stack.empty<int>).IsNone, "Option.Stack.tryUncons must return None for an empty stack")
 
