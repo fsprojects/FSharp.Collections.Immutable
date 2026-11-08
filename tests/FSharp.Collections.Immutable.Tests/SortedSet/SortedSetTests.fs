@@ -14,25 +14,33 @@ open Microsoft.VisualStudio.TestTools.UnitTesting
 /// creates sorted sets of any element type with F# comparison, which a table of functions of one type cannot do.
 /// </remarks>
 type SortedSetCreation =
-    /// <c>SortedSet.empty</c>, which ignores the elements.
+    /// <summary><c>SortedSet.empty</c>, which ignores the elements.</summary>
     | Empty
-    /// <c>SortedSet.ofArray</c>.
+    /// <summary><c>SortedSet.ofArray</c>.</summary>
     | OfArray
-    /// <c>SortedSet.ofList</c>, with the elements in a list.
+    /// <summary><c>SortedSet.ofList</c>, with the elements in a list.</summary>
     | OfList
+    /// <summary>
     /// <c>SortedSet.ofReadOnlySpan</c>, with a read-only span over the elements.
+    /// </summary>
     | OfReadOnlySpan
-    /// <c>SortedSet.ofSeq</c>, with the elements in a lazy sequence.
+    /// <summary><c>SortedSet.ofSeq</c>, with the elements in a lazy sequence.</summary>
     | OfSeq
-    /// <c>SortedSet.ofSpan</c>, with a span over the elements.
+    /// <summary><c>SortedSet.ofSpan</c>, with a span over the elements.</summary>
     | OfSpan
-    /// <c>SortedSet.add</c> of every element to <c>SortedSet.empty</c>.
+    /// <summary><c>SortedSet.add</c> of every element to <c>SortedSet.empty</c>.</summary>
     | Add
+    /// <summary>
     /// <c>SortedSet.singleton</c> of every element, united by <c>SortedSet.unionMany</c>.
+    /// </summary>
     | Singleton
+    /// <summary>
     /// <c>SortedSet.build</c> with an action that adds the elements to the builder.
+    /// </summary>
     | Build
+    /// <summary>
     /// A builder of <c>SortedSet.builder</c> filled with the elements, through <c>SortedSet.ofBuilder</c>.
+    /// </summary>
     | Builder
 
     /// Creates a sorted set of the elements with the function of the case.
@@ -934,9 +942,13 @@ type SortedSetTests () =
         let stored = String ('x', 3)
         let set = caseless.ofArray [| stored; "apple" |]
 
-        match SortedSet.tryGetValue "XXX" set with
-        | ValueSome found -> Assert.AreSame (stored, found, "SortedSet.tryGetValue must return the instance of the sorted set")
-        | ValueNone -> Assert.Fail "SortedSet.tryGetValue must find the element that equals the value in the comparer"
+        let found =
+            Assert.WantValueSome (
+                SortedSet.tryGetValue "XXX" set,
+                "SortedSet.tryGetValue must find the element that equals the value in the comparer"
+            )
+
+        Assert.AreSame (stored, found, "SortedSet.tryGetValue must return the instance of the sorted set")
 
         Assert.AreEqual<string voption>(
             ValueSome "apple",
