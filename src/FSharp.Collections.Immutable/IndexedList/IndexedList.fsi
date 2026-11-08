@@ -65,7 +65,10 @@ val ofArray : array : 'T array -> IndexedList<'T>
 /// <summary>Creates an indexed list from a list.</summary>
 /// <param name="list">The input list.</param>
 /// <returns>The indexed list of the elements of the list.</returns>
-/// <remarks>O(n).</remarks>
+/// <remarks>
+/// O(n). The elements are copied into an array first, because the BCL builds the tree by indexing and the indexer of an
+/// F# list walks the list from its head, so that building the tree from the list itself takes O(n²).
+/// </remarks>
 [<CompiledName "OfList">]
 val ofList : list : 'T list -> IndexedList<'T>
 
@@ -89,6 +92,7 @@ val ofReadOnlySpan : span : ReadOnlySpan<'T> -> IndexedList<'T>
 /// <remarks>
 /// O(n). The function wraps <see cref="M:System.Collections.Immutable.ImmutableList.CreateRange``1(System.Collections.Generic.IEnumerable{``0})"/>,
 /// which returns an indexed list itself, without a copy.
+/// An F# list is copied into an array first, as <see cref="M:FSharp.Collections.Immutable.IndexedList.OfList``1(Microsoft.FSharp.Collections.FSharpList{``0})"/> does.
 /// </remarks>
 [<CompiledName "OfSeq">]
 val ofSeq : source : seq<'T> -> IndexedList<'T>

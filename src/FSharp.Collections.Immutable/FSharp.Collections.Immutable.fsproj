@@ -37,6 +37,8 @@
     <Compile Include="Helper\ListArrays.fs" />
     <Compile Include="Helper\Snapshot.fs" />
     <Compile Include="Helper\Collectors.fs" />
+    <Compile Include="Helper\Walk.fs" />
+    <Compile Include="Helper\Buffers.fs" />
     <Compile Include="Helper\Lengths.fs" />
     <Compile Include="Helper\DescendingSorts.fs" />
     <Compile Include="Helper\ListRanges.fs" />
