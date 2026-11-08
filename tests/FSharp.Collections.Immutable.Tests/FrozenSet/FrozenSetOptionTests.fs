@@ -67,10 +67,13 @@ type FrozenSetOptionTests () =
         let found : FrozenSet<int64>.AlternateLookup<int> option =
             FrozenSet.tryAlternateLookup<int, _>(FrozenSetOps.ofInt64WithInt32Comparer [| 1L; 2L; 3L |])
 
-        match found with
-        | Some lookup ->
-            Assert.IsTrue (lookup.Contains 2, "Option.FrozenSet.tryAlternateLookup must return a lookup that finds 2")
-        | None -> Assert.Fail "Option.FrozenSet.tryAlternateLookup must return the lookup of a comparer with the alternate type"
+        let lookup =
+            Assert.WantSome (
+                found,
+                "Option.FrozenSet.tryAlternateLookup must return the lookup of a comparer with the alternate type"
+            )
+
+        Assert.IsTrue (lookup.Contains 2, "Option.FrozenSet.tryAlternateLookup must return a lookup that finds 2")
 
         let missing : FrozenSet<int64>.AlternateLookup<int> option =
             FrozenSet.tryAlternateLookup<int, _>(FrozenSet.ofArray [| 1L |])
