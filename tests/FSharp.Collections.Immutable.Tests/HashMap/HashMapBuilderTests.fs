@@ -103,13 +103,13 @@ type HashMapBuilderTests () =
             "HashMap.update must keep the key comparer"
         )
 
-        Assert.AreEqual<int>(2, HashMap.count table, "HashMap.update must not change the input")
+        Assert.HasCount (2, table, "HashMap.update must not change the input")
         Assert.IsTrue (HashMap.containsKey "one" table, "HashMap.update must not change the input")
 
     [<TestMethod>]
     member _.``builder starts empty with the default comparers`` () =
         let builder = HashMap.builder<string, int>()
-        Assert.AreEqual<int>(0, builder.Count, "HashMap.builder must start without bindings")
+        Assert.IsEmpty (builder, "HashMap.builder must start without bindings")
         Assert.AreSame<IEqualityComparer<string>>(
             EqualityComparer<string>.Default,
             builder.KeyComparer,
@@ -139,7 +139,8 @@ type HashMapBuilderTests () =
             (HashMap.forKeyComparer StringComparer.OrdinalIgnoreCase).builder()
         builder["one"] <- 1
         builder["ONE"] <- 2
-        Assert.AreEqual<int>(1, builder.Count, "The builder of HashMap.forKeyComparer must look the keys up with the comparer")
+        Assert.ContainsSingle (builder, "The builder of HashMap.forKeyComparer must look the keys up with the comparer")
+        |> ignore
 
         Assert.AreSame<IEqualityComparer<int>>(
             EqualityComparer<int>.Default,
@@ -156,7 +157,7 @@ type HashMapBuilderTests () =
         builder["two"] <- 2
 
         CollectionAssert.AreEqual ([| struct ("one", 1) |], HashMap.toArray table, "HashMap.ofBuilder must return the bindings")
-        Assert.AreEqual<int>(2, builder.Count, "HashMap.ofBuilder must keep the builder usable")
+        Assert.HasCount (2, builder, "HashMap.ofBuilder must keep the builder usable")
         Assert.AreSame<IEqualityComparer<string>>(
             StringComparer.OrdinalIgnoreCase,
             HashMap.keyComparer table,
@@ -184,13 +185,13 @@ type HashMapBuilderTests () =
         builder["THREE"] <- 3
         builder.Remove "ONE" |> ignore
 
-        Assert.AreEqual<int>(2, builder.Count, "HashMap.toBuilder must hold the bindings and use the key comparer")
+        Assert.HasCount (2, builder, "HashMap.toBuilder must hold the bindings and use the key comparer")
         Assert.AreSame<IEqualityComparer<string>>(
             StringComparer.OrdinalIgnoreCase,
             builder.KeyComparer,
             "HashMap.toBuilder must keep the key comparer"
         )
-        Assert.AreEqual<int>(2, HashMap.count table, "HashMap.toBuilder must not change the map")
+        Assert.HasCount (2, table, "HashMap.toBuilder must not change the map")
         Assert.IsTrue (HashMap.containsKey "one" table, "HashMap.toBuilder must not change the map")
 
     [<TestMethod>]

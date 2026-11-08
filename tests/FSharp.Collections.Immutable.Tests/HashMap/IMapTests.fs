@@ -11,9 +11,9 @@ open Microsoft.VisualStudio.TestTools.UnitTesting
 /// </summary>
 [<RequireQualifiedAccess>]
 type MapImplementation =
-    /// An <see cref="T:System.Collections.Immutable.ImmutableDictionary`2"/>.
+    /// <summary>An <see cref="T:System.Collections.Immutable.ImmutableDictionary`2"/>.</summary>
     | Hash
-    /// An <see cref="T:System.Collections.Immutable.ImmutableSortedDictionary`2"/>.
+    /// <summary>An <see cref="T:System.Collections.Immutable.ImmutableSortedDictionary`2"/>.</summary>
     | Sorted
 
     /// Every implementation, as the rows of the tests that run once per implementation.
@@ -382,10 +382,11 @@ type IMapTests () =
         let table : IMap<string, int> =
             (HashMap.forKeyComparer HashIdentity.Reference).ofArray [| struct (first, 1); struct (second, 2) |]
 
-        Assert.AreEqual<int>(2, IMap.count table, "The keys must be distinct in the reference comparer of the map")
+        Assert.HasCount (2, table, "The keys must be distinct in the reference comparer of the map")
         let struct (_, lastValue) = IMap.toArray table |> Array.last
         let mapped = IMap.map (fun _ value -> value * 10) table
-        Assert.AreEqual<int>(1, HashMap.count mapped, "IMap.map must merge the keys that the default comparer considers equal")
+        Assert.ContainsSingle (mapped, "IMap.map must merge the keys that the default comparer considers equal")
+        |> ignore
         Assert.AreEqual<int>(
             lastValue * 10,
             HashMap.find "ab" mapped,

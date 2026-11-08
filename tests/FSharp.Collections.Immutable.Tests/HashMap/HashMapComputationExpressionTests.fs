@@ -336,7 +336,7 @@ type HashMapComputationExpressionTests () =
             HashMap.keyComparer table,
             "HashMapCE must keep the key comparer"
         )
-        Assert.AreEqual<int>(2, HashMap.count table, "HashMapCE must merge the keys that the comparer considers equal")
+        Assert.HasCount (2, table, "HashMapCE must merge the keys that the comparer considers equal")
         Assert.AreEqual<int>(2, HashMap.find "One" table, "HashMapCE must keep the last binding of equal keys")
 
     [<TestMethod; DynamicData(nameof HashMapComputationExpressionTests.NullSequenceExpressions)>]

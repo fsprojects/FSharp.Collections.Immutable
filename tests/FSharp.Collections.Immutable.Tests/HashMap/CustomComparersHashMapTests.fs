@@ -354,7 +354,7 @@ type CustomComparersHashMapTests () =
             "The hash map of HashMap.forKeyComparer must have the key comparer"
         )
 
-        Assert.AreEqual<int>(2, HashMap.count table, "The comparer must merge the keys that differ in their case")
+        Assert.HasCount (2, table, "The comparer must merge the keys that differ in their case")
         Assert.AreEqual<int>(2, HashMap.find "One" table, "The hash map must keep the last binding of keys that are equal")
         Assert.AreEqual<int>(3, HashMap.find "TWO" table, "The hash map must look the keys up with the comparer")
 
@@ -505,7 +505,7 @@ type CustomComparersHashMapTests () =
             "ofSeq must give the hash map the key comparer of the struct"
         )
 
-        Assert.AreEqual<int>(2, HashMap.count ignoreCase, "ofSeq must merge the keys that the comparer of the struct makes equal")
+        Assert.HasCount (2, ignoreCase, "ofSeq must merge the keys that the comparer of the struct makes equal")
 
         Assert.AreEqual<int>(
             last,
@@ -523,7 +523,7 @@ type CustomComparersHashMapTests () =
             |> Array.find (fun struct (key, _) -> String.Equals (key, "a", StringComparison.OrdinalIgnoreCase))
 
         let ignoreCase = (HashMap.forComparers StringComparer.OrdinalIgnoreCase byLength).ofSeq table
-        Assert.AreEqual<int>(2, HashMap.count ignoreCase, "ofSeq must merge the keys that the comparer of the struct makes equal")
+        Assert.HasCount (2, ignoreCase, "ofSeq must merge the keys that the comparer of the struct makes equal")
 
         Assert.AreEqual<string voption>(
             ValueSome firstKey,

@@ -53,7 +53,9 @@ type MapInputs =
         MapInputs.Several
     }
 
+    /// <summary>
     /// Bindings that repeat keys with other values; in the FSharp.Core <c>Map</c> module the later binding of a key wins.
+    /// </summary>
     static member RepeatedKeys = [|
         struct (1, "one")
         struct (2, "two")
