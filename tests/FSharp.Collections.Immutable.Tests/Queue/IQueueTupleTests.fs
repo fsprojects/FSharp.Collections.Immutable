@@ -21,16 +21,16 @@ type IQueueTupleTests () =
         let found : (int * IQueue<int>) voption = IQueue.tryUncons several
 
         // A tuple compares an array by reference, so the first element and the other elements are compared apart
-        match found with
-        | ValueSome (head, tail) ->
-            Assert.AreEqual<int>(Array.head Inputs.Several, head, "Tuple.IQueue.tryUncons must return the first element")
+        let head, tail =
+            Assert.WantValueSome (found, "Tuple.IQueue.tryUncons must return the elements of a queue with elements")
 
-            CollectionAssert.AreEqual (
-                Array.tail Inputs.Several,
-                IQueue.toArray tail,
-                "Tuple.IQueue.tryUncons must return the other elements"
-            )
-        | ValueNone -> Assert.Fail "Tuple.IQueue.tryUncons must return the elements of a queue with elements"
+        Assert.AreEqual<int>(Array.head Inputs.Several, head, "Tuple.IQueue.tryUncons must return the first element")
+
+        CollectionAssert.AreEqual (
+            Array.tail Inputs.Several,
+            IQueue.toArray tail,
+            "Tuple.IQueue.tryUncons must return the other elements"
+        )
 
     [<TestMethod>]
     member _.``uncons returns a reference tuple`` () =
