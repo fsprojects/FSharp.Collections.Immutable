@@ -9,9 +9,15 @@ index: 2
 
 | | |
 |---|---|
-| Status | Proposed |
+| Status | Accepted (2026-10-18) |
 | Date | 2026-10-11 |
 | Deciders | maintainers |
+
+The maintainers merged the foundation of this design
+([pull request #25](https://github.com/fsprojects/FSharp.Collections.Immutable/pull/25)) on 2026-10-18 and the `FlatList`
+modules ([#26](https://github.com/fsprojects/FSharp.Collections.Immutable/pull/26),
+[#27](https://github.com/fsprojects/FSharp.Collections.Immutable/pull/27)) on 2026-10-19. The pull requests of the other
+collections follow in the order of D9.
 
 ## Context
 
@@ -309,14 +315,17 @@ skeleton, target frameworks), then `feat/flat-list`, `feat/flat-list-parallel` (
 `feat/hash-set` (with `ISet`), `feat/sorted-set`, `feat/frozen-map`, `feat/frozen-set` (both with the alternate lookup of
 D11), and an optional `chore/benchmarks` (BenchmarkDotNet, excluded from the solution filter). Each pull request deletes
 the legacy file it replaces, keeps the build green and updates the changelog and the documentation table. No release is
-cut mid-chain.
-Step 1 of ADR 0002 (the `EquatableArray` type, its patterns and JSON converter) MAY ship from `main` before the chain.
+cut mid-chain: release 1.5.0 comes from the branch `release/1.x`, which holds the API before the chain.
+Step 1 of ADR 0002 (the `EquatableArray` type, its patterns and JSON converter) is
+[pull request #28](https://github.com/fsprojects/FSharp.Collections.Immutable/pull/28) on `main`. It did not ship before
+the chain, as ADR 0002 first planned: the chain started before the pull request was merged.
 
 ### D10. Target frameworks
 
-`net8.0;net10.0`. The published package already targeted `net8.0` only; `netstandard2.0` is not added (the LINQ surface
-used in D5 would need conditional fallbacks); `net9.0` is not added (short-term support, ended 2026-05; the `net8.0` asset
-serves it). `net10.0` enables `#if NET10_0_OR_GREATER` paths for newer LINQ members and the Frozen alternate lookup (D11).
+`net8.0;net10.0`. Release 1.0.0 targeted `netstandard1.6` and `netstandard2.0`, and release 1.5.0, the last one of the API
+before the chain, targets `netstandard2.0` and `net8.0`. The rewrite drops `netstandard2.0` (the LINQ surface used in D5
+would need conditional fallbacks), so consumers on .NET Framework or on a runtime before .NET 8 stay on 1.5.0. `net9.0` is
+not added (short-term support, ended 2026-05; the `net8.0` asset serves it). `net10.0` enables `#if NET10_0_OR_GREATER` paths for newer LINQ members and the Frozen alternate lookup (D11).
 
 ### D11. `FlatList.Parallel` and the Frozen alternate lookup
 
@@ -453,8 +462,8 @@ Breaking changes (major version): `try*` return `voption`; tuples become struct 
 `ofKeyValuePairs` give way to the structs of D12 and to the overloads of map creation, which C# does not see
 (D13); map and set `length` becomes `count`; map `filter`/`map` follow FSharp.Core semantics; sorted maps and sets order
 by F# generic comparison unless a comparer is given; `Stack`
-element order is defined (first element of `ofSeq` on top); `take`/`skip` throw on short input; `netstandard2.0` is not a
-target. The `Option` and `Tuple` namespaces give consumers a one-line migration path.
+element order is defined (first element of `ofSeq` on top); `take`/`skip` throw on short input; the `netstandard2.0` target
+of release 1.5.0 is dropped (D10). The `Option` and `Tuple` namespaces give consumers a one-line migration path.
 
 Benefits: one vocabulary across ten modules, consistent with FSharp.Core 10.0.300; defects of the current map and set modules
 fixed by construction (comparer preservation, real `singleton`); fewer allocations (`voption`, struct tuples, span and memory views, zero-copy
@@ -478,8 +487,8 @@ also an extensions file; an overloaded map `ofSeq` needs a type annotation insid
   drift that produced today's contradicting exception contracts; rejected.
 * **`Assert.Inconclusive` or capability flags** for inapplicable contract tests – noisy reports and silently skipped tests
   when a flag is forgotten; rejected in favour of one base class per capability.
-* **`netstandard2.0`** – would keep .NET Framework consumers but requires conditional LINQ fallbacks; not a regression
-  because the published package is `net8.0` only; deferred.
+* **`netstandard2.0`** – would keep the consumers on .NET Framework and on runtimes before .NET 8, whom release 1.5.0
+  serves, but requires conditional LINQ fallbacks; deferred. Those consumers stay on 1.5.0 (D10).
 * **A comparer variant of every creation function** (`emptyWithComparers`, `emptyWithKeyComparer`, `ofSeqWithKeyComparer`,
   `builderWithComparers`, `withComparers`, …), the first design of D12 – one more function per creation function and per
   combination of comparers; replaced by one struct per collection that holds the comparers and offers every creation
