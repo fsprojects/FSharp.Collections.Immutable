@@ -226,6 +226,7 @@ module EquatableArray =
     /// <summary>Copies the elements of <paramref name="list"/> into a new array.</summary>
     /// <param name="list">The elements.</param>
     /// <returns>An array with the elements of <paramref name="list"/>, in the same order.</returns>
+    /// <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="list"/> is <see langword="null"/>.</exception>
     /// <remarks>O(n).</remarks>
     [<CompiledName "OfList">]
     val ofList : list : 'T list -> EquatableArray<'T>

@@ -308,6 +308,8 @@ module EquatableArray =
 
     [<CompiledName "OfList">]
     let ofList (list : 'T list) : EquatableArray<'T> =
+        // List.toArray dereferences a null list without a check; a null input throws ArgumentNullException, as in ofArray
+        checkNotNull (nameof list) list
         EquatableArray<'T>(ImmutableCollectionsMarshal.AsImmutableArray (List.toArray list))
 
     [<CompiledName "OfSeq">]
