@@ -56,6 +56,19 @@ type EquatableArrayModuleTests () =
         Assert.IsTrue ((EquatableArray.ofList List.empty<int>).IsEmpty, "an empty list must give the empty array")
 
     [<TestMethod>]
+    member _.``ofList rejects null`` () =
+        let ex =
+            Assert.ThrowsExactly<ArgumentNullException>(
+                (fun () ->
+                    EquatableArray.ofList Unchecked.defaultof<int list>
+                    |> ignore
+                ),
+                "ofList must reject null, where List.toArray dereferences it"
+            )
+
+        Assert.AreEqual<string | null>("list", ex.ParamName, "the exception must name the parameter")
+
+    [<TestMethod>]
     member _.``ofSeq copies a list or an array`` () =
         let source = [| 1; 2; 3 |]
         let array = EquatableArray.ofSeq source
