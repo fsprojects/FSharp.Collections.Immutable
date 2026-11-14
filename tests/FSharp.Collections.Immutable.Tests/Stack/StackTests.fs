@@ -277,6 +277,7 @@ type StackTests () =
 
         [|
             struct (nameof Stack.ofArray, "array", (fun () -> Stack.ofArray (Unchecked.defaultof<int array>) |> ignore))
+            struct (nameof Stack.ofList, "list", (fun () -> Stack.ofList (Unchecked.defaultof<int list>) |> ignore))
             struct (nameof Stack.consMany,
                     "values",
                     (fun () ->
