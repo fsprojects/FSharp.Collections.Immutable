@@ -202,6 +202,7 @@ type QueueTests () =
     static let otherNullRejections =
         [|
             struct (nameof Queue.ofArray, "array", (fun () -> Queue.ofArray (Unchecked.defaultof<int array>) |> ignore))
+            struct (nameof Queue.ofList, "list", (fun () -> Queue.ofList (Unchecked.defaultof<int list>) |> ignore))
             struct (nameof Queue.ofSeq, "source", (fun () -> Queue.ofSeq (Unchecked.defaultof<seq<int>>) |> ignore))
             struct (nameof Queue.concat,
                     "queues",
