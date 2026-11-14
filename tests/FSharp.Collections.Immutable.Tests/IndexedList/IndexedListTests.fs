@@ -334,6 +334,7 @@ type IndexedListTests () =
                         IndexedList.ofArray (Unchecked.defaultof<int array>)
                         |> ignore
                     ))
+            struct (nameof IndexedList.ofList, "list", (fun () -> IndexedList.ofList (Unchecked.defaultof<int list>) |> ignore))
             struct (nameof IndexedList.ofSeq, "source", (fun () -> IndexedList.ofSeq (Unchecked.defaultof<seq<int>>) |> ignore))
             struct (nameof IndexedList.ofBuilder,
                     "builder",
