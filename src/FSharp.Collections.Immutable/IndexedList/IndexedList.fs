@@ -507,7 +507,7 @@ let choose (chooser : 'T -> 'U voption) (list : IndexedList<'T>) =
     // 100 000 elements), and it took no less time than the array. A builder rebalances its tree
     // after every Add and took 3.3 to 3.6 times as long for integers and 2.5 times for strings of 100 000 to a million
     // elements; there is no tree of an input to join to its tree here, as collect and concat have (see Collectors).
-    let chosen = Buffers.ChosenBuffer<'U> list.Count
+    use chosen = new Buffers.ChosenBuffer<'U> (list.Count)
 
     Walk.iter
         (fun item ->

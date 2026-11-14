@@ -19,8 +19,8 @@
 /// <see cref="F:FSharp.Collections.Immutable.Buffers.PooledUpTo"/> elements long; a longer result moves into a list.
 /// </para>
 /// <para>
-/// A buffer that is not turned into a list, because the chooser threw, is not returned to the pool. The pool allocates
-/// another array, and nothing leaks.
+/// The buffer is disposable, and the function that uses it disposes it: the rented array goes back to the pool also when
+/// the chooser throws before the list is built.
 /// </para>
 /// </remarks>
 module internal FSharp.Collections.Immutable.Buffers
@@ -54,24 +54,30 @@ let PooledUpTo = 1048576
 /// Collects the elements that a function chooses from a source of a known length, and builds the indexed list of them.
 /// </summary>
 /// <typeparam name="T">The type of the elements.</typeparam>
+/// <param name="bound">The number of elements to choose from, which is the most that the result can have.</param>
+/// <param name="pool">The pool that lends the array of a long result.</param>
 /// <remarks>
-/// A buffer is used once: <see cref="M:FSharp.Collections.Immutable.Buffers.ChosenBuffer`1.ToImmutable"/> ends it.
+/// A buffer is used once: <see cref="M:FSharp.Collections.Immutable.Buffers.ChosenBuffer`1.ToImmutable"/> ends it. The
+/// pool is a parameter so that a test can give one that records what it lends and what it gets back.
 /// </remarks>
 [<Sealed>]
-type ChosenBuffer<'T> (bound : int) =
+type ChosenBuffer<'T> (bound : int, pool : ArrayPool<'T>) =
 
     let pooled = bound >= PooledFrom
 
     let mutable buffer : 'T array =
-        if bound = 0 then
-            Array.Empty<'T>()
-        elif pooled then
-            ArrayPool<'T>.Shared.Rent(min bound PooledUpTo)
-        else
-            Array.zeroCreate bound
+        if bound = 0 then Array.Empty<'T>()
+        elif pooled then pool.Rent (min bound PooledUpTo)
+        else Array.zeroCreate bound
 
     let mutable count = 0
     let mutable overflow : ResizeArray<'T> | null = null
+
+    /// <summary>
+    /// Creates a buffer that rents the array of a long result from <see cref="P:System.Buffers.ArrayPool`1.Shared"/>.
+    /// </summary>
+    /// <param name="bound">The number of elements to choose from, which is the most that the result can have.</param>
+    new (bound : int) = new ChosenBuffer<'T> (bound, ArrayPool<'T>.Shared)
 
     /// Returns the rented array to the pool, cleared as far as it was written when it holds references. The buffer is
     /// left with an empty array, which is full at once, so that an element goes to the slow path of Add.
@@ -80,7 +86,7 @@ type ChosenBuffer<'T> (bound : int) =
             if RuntimeHelpers.IsReferenceOrContainsReferences<'T>() then
                 Array.Clear (buffer, 0, count)
 
-            ArrayPool<'T>.Shared.Return(buffer, false)
+            pool.Return (buffer, false)
 
         buffer <- Array.Empty<'T>()
         count <- 0
@@ -123,3 +129,14 @@ type ChosenBuffer<'T> (bound : int) =
             this.Release ()
             result
         | spilled -> ImmutableList.Create<'T>(Span<'T>.op_Implicit(CollectionsMarshal.AsSpan spilled))
+
+    interface IDisposable with
+
+        /// <summary>
+        /// Returns the rented array to the pool when the buffer still holds it.
+        /// </summary>
+        /// <remarks>
+        /// A buffer that built its list, or that moved its elements into a list, holds no rented array, and nothing
+        /// happens. The call matters when the chooser throws before the list is built.
+        /// </remarks>
+        member this.Dispose () = this.Release ()

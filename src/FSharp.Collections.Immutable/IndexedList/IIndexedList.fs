@@ -371,7 +371,7 @@ let append (list1 : IIndexedList<'T>) (list2 : IIndexedList<'T>) =
 let choose (chooser : 'T -> 'U voption) (list : IIndexedList<'T>) =
     checkNotNull (nameof list) list
     // As IndexedList.choose: the chosen elements wait in an array as long as the list (see Buffers)
-    let chosen = Buffers.ChosenBuffer<'U> list.Count
+    use chosen = new Buffers.ChosenBuffer<'U> (list.Count)
 
     for item in list do
         match chooser item with
