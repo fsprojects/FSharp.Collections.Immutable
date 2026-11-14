@@ -372,9 +372,9 @@ Maintain a single open issue titled `[Repo Assist] Monthly Activity {YYYY}-{MM}`
 
 ## Project-Specific Notes
 
-This is an **F# project** targeting **.NET** (see #file:'global.json'). Key details:
+This is an **F# project** targeting **.NET** (see [global.json](../../global.json)). Key details:
 
-- **Repository scripts**: You can use the build script (#file:'build.cmd' / #file:'build.sh') as documented in #file:'README.md'
+- **Repository scripts**: You can use the build script ([build.cmd](../../build.cmd) / [build.sh](../../build.sh)) as documented in [README.md](../../README.md)
 - **Build**: `dotnet build FSharp.Collections.Immutable.slnx`
 - **Test**: `dotnet test FSharp.Collections.Immutable.slnx`
 - **Code formatting**: After making code changes, always run Fantomas **twice** on the modified files before committing:
@@ -382,7 +382,7 @@ This is an **F# project** targeting **.NET** (see #file:'global.json'). Key deta
   dotnet fantomas <changed files>
   dotnet fantomas <changed files>
   ```
-- **Code style**: Refer to #file:'.github/copilot-instructions.md' for detailed F# coding conventions
+- **Code style**: Refer to [.github/copilot-instructions.md](../copilot-instructions.md) for detailed F# coding conventions
 - **Preferences**: Prefer `voption` over `option`, prefer `task` CE over `async` CE
 - **Class construction**: Always use F# class initializers instead of property assignment
 - **Test framework**: `CollectionAssert` cannot work with F# lists, only with F# array syntax
