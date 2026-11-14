@@ -34,8 +34,10 @@ let dict1 = HashMap.ofSeq [KeyValuePair ("key1", 42); KeyValuePair ("key2", 100)
 printfn "List: %A" (list1 |> Seq.toList)
 printfn "Set: %A" (set1 |> Seq.toList)
 printfn "Dict: %A" (dict1 |> Seq.toList)
+```
+
 ## Next Steps
 
-- Check out the [How-To Guides](../How_Tos/Doing_A_Thing.html) for common scenarios
+- Check out the [How-To Guides](../How_Tos/Build_A_Flat_List.html) for common scenarios
 - Read the [Background](../Explanations/Background.html) for deeper understanding
 - Browse the [API Reference](../reference/index.html) for detailed documentation
