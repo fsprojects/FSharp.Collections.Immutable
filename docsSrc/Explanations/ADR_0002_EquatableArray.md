@@ -20,16 +20,15 @@ readings and show the order of magnitude only.
 
 The maintainers accepted this design and the recommendations of §11 on 2026-10-18. Step 1 of §6 is
 [pull request #28](https://github.com/fsprojects/FSharp.Collections.Immutable/pull/28), and its tests (§7) pin the
-verified facts. ADR 0001 – Per-collection modules (`ADR_0001_Collection_Modules.md`) proposes to rewrite the
-collection modules and is still proposed, in
-[pull request #23](https://github.com/fsprojects/FSharp.Collections.Immutable/pull/23); §5 to §7 say where the two
-meet.
+verified facts. ADR 0001 – Per-collection modules (`ADR_0001_Collection_Modules.md`) rewrites the collection modules. Its
+document is [pull request #23](https://github.com/fsprojects/FSharp.Collections.Immutable/pull/23), and its
+implementation is on `main` as far as the `FlatList` modules; §5 to §7 say where the two meet.
 
 ## Context
 
 `FlatList<'T>` is a type abbreviation of `System.Collections.Immutable.ImmutableArray<'T>`, and the module `FlatList`
-(compiled name `ImmutableArrayModule`) is its API. No type of this library has an equality of its own, so a `FlatList`
-is compared the way `ImmutableArray` is *(verified)*:
+is its API. No type of this library has an equality of its own, so a `FlatList` is compared the way `ImmutableArray` is
+*(verified)*:
 
 * **Equality depends on who asks.** F# `=`, `hash` and `HashIdentity.Structural` compare the elements. `.Equals`,
   `EqualityComparer<_>.Default`, a default `Dictionary` or `HashSet` and `ValueTuple.Equals` compare the reference of
@@ -96,7 +95,8 @@ create a no-cost wrapper around ImmutableArray that has sequence-equality semant
   `FlatList` is for local computation and for signatures shared with .NET code. Moving between them costs nothing.
 * Its equality differs from that of F# lists in two visible points: `NaN` elements, and elements that are arrays (§2).
   For elements that are arrays, hash-based and sorted collections also disagree on which values are one key (§2).
-* Consumers need a new release: nuget.org has only version 1.0.0 from 2020.
+* Consumers need a release that has the type: version 1.0.0 from 2020 and release 1.5.0, the API before ADR 0001, do
+  not have it.
 
 ## 1. The type
 
@@ -332,8 +332,9 @@ The converter for one element type is private and created through `MakeGenericTy
 * The attribute is written out because the compiler adds the suffix by itself only next to a non-generic type of the
   same name. Next to a generic type alone the module compiles under the plain name *(verified)*, so without the
   attribute the compiled name would depend on the factory class.
-* The name has the form of `ImmutableArrayModule`. A query translator that recognises the functions of this library by
-  their compiled declaring type can tell the two modules apart.
+* A query translator that recognises the functions of this library by their compiled declaring type can tell the two
+  modules apart: the `FlatList` module compiles as `FlatList`, because F# ignores `[<CompiledName>]` on a module
+  (ADR 0001, D2).
 
 Every function of the `FlatList` module exists in `EquatableArray` with the same name, argument order and behaviour and
 with `EquatableArray<'T>` in place of `FlatList<'T>`. Each one unwraps, calls the `FlatList` function and wraps, so no
@@ -408,19 +409,23 @@ tests/FSharp.Collections.Immutable.Tests/
 * **Public API** has XML documentation under the repository's rules; `CHANGELOG.md` gets an entry under Unreleased, and
   the collection lists of `README.md`, `docsSrc/index.md` and `docsSrc/Explanations/Background.md` get the type.
 * **Target framework**: the type needs `net8.0`. `CollectionBuilderAttribute` and `System.HashCode` do not exist on
-  `netstandard2.0`, and System.Text.Json would become a package dependency there. ADR 0001 proposes `net8.0;net10.0`,
-  which fits. The older local branches (`flat-list` to `indexed-list`) add `netstandard2.0`; should that target ever
-  come, the type is compiled for `net8.0` and later only.
+  `netstandard2.0`, and System.Text.Json would become a package dependency there. ADR 0001 sets `net8.0;net10.0`, which
+  fits. Release 1.5.0, the last one of the API before ADR 0001, targets `netstandard2.0` and `net8.0` and does not have
+  the type; should `netstandard2.0` ever come back, the type is compiled for `net8.0` and later only.
 
-**Two steps** (question 7). On `origin/main` the `FlatList` module is one file without a signature. The folder layout,
-the full function set, the builder module and the computation expressions exist only on unmerged local branches, and
-ADR 0001 proposes to rewrite them in a chain of pull requests with no release before its end.
+**Two steps** (question 7). When this design was accepted, the `FlatList` module on `main` was one file without a
+signature, and ADR 0001 proposed to rewrite the modules in a chain of pull requests with no release before its end. The
+type comes in two steps, so that its first part does not wait for the mirror of a module that the chain rewrites:
 
-1. *On `main` now* (pull request #28): the type, the factory class, the converter, the patterns and a module with
-   `empty`, `singleton`, `ofSeq`, `ofArray`, `ofList`, `ofImmutableArray`, `unsafeOfArray`, `toImmutableArray`,
-   `length`, `isEmpty` and `map`, with the tests of §7. This is what the first consumer uses, and a release can follow.
-2. *With the `FlatList` rewrite*: the mirror of the module, the builder functions and the computation expression, as one
-   more pull request of that chain and under its rules for layout, function order and tests.
+1. *The type* (pull request #28): the type, the factory class, the converter, the patterns and a module with `empty`,
+   `singleton`, `ofSeq`, `ofArray`, `ofList`, `ofImmutableArray`, `unsafeOfArray`, `toImmutableArray`, `length`,
+   `isEmpty` and `map`, with the tests of §7. This is what the first consumer uses.
+2. *The mirror of the `FlatList` module*: the mirror of the module, the builder functions and the computation
+   expression, as one more pull request of that chain (`feat/equatable-array` in D9 of ADR 0001) and under its rules for
+   layout, function order and tests.
+
+The `FlatList` pull requests of the chain were merged on 2026-10-19, before pull request #28. Step 1 is therefore built
+on the rewritten `FlatList` module, and question 7 says what that means for the release.
 
 ## 7. Test plan
 
@@ -459,8 +464,8 @@ attributes sorted by type name.
   the read-only `IList<'T>` throw `NotSupportedException`.
 * **JSON**: the table of §4 under plain System.Text.Json and under FSharp.SystemTextJson, which becomes a test-only
   package reference in `Directory.Packages.props`.
-* **Mirrored functions** (step 2 of §6): through the shared contract suites that ADR 0001 proposes, if it is accepted,
-  so that no `FlatList` test is copied.
+* **Mirrored functions** (step 2 of §6): through the shared contract suites of ADR 0001 (D8), so that no `FlatList` test
+  is copied.
 * **Assertions**: whole arrays with `Assert.AreEqual` on `EquatableArray` values, whose equality and `ToString ()` make
   the failure readable; sizes with `Assert.HasCount` and `Assert.IsEmpty`. `CollectionAssert` does not apply: it needs
   the non-generic `ICollection`.
@@ -497,7 +502,7 @@ type; JSON within 10 % of `ImmutableArray<'T>`.
 * **`FlatList` users** change nothing. They switch a field to `EquatableArray<'T>` where the value is a key, is compared
   or is persisted; stored JSON stays valid (§4).
 * **Query translators** that map collection functions by compiled declaring type add
-  `FSharp.Collections.Immutable.EquatableArrayModule` to the family of `ImmutableArrayModule`.
+  `FSharp.Collections.Immutable.EquatableArrayModule` next to `FSharp.Collections.Immutable.FlatList`.
 
 ## 10. Relation to the RFCs
 
@@ -555,7 +560,11 @@ The maintainers accepted every recommendation on 2026-10-18. The questions stay 
    default value. It takes effect under plain System.Text.Json only (§4).
 7. **Two steps** (§6): release the type, the patterns and the converter from `main` before the chain of ADR 0001 starts,
    or make the type one link of that chain? *Decided: release first.* The first consumer is waiting for a
-   release, and the chain cuts none before its end.
+   release, and the chain cuts none before its end. *What happened:* the chain started first. Its foundation and its
+   `FlatList` pull requests are on `main` since 2026-10-19, before pull request #28, and release 1.5.0 comes from the
+   branch `release/1.x`, the API before the chain, without the type. The type ships with the first release from `main`
+   after pull request #28 is merged, and D9 of ADR 0001 cuts none before the end of the chain: the first consumer waits
+   for that end, or for a decision of the maintainers to release earlier.
 8. **Keys with array elements** (decision 5). Accept that equality and comparison disagree on F# arrays, `FlatList`s
    and tuples that hold them, or compare such elements by contents, as `.Equals` on an F# list does?
    *Decided: accept.* The element keeps the equality that .NET and C# give it. The type needs no list of element
