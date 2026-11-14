@@ -88,6 +88,7 @@ val ofArray : array : 'T array -> Stack<'T>
 /// </summary>
 /// <param name="list">The input list.</param>
 /// <returns>The stack of the elements of the list, with the first element on top.</returns>
+/// <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="list"/> is <see langword="null"/>.</exception>
 /// <remarks>
 /// O(n). The function pushes the elements from the last one to the first one.
 /// </remarks>

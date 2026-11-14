@@ -95,7 +95,10 @@ let ofArray (array : 'T array) =
     ofArrayUnchecked array
 
 [<CompiledName "OfList">]
-let ofList (list : 'T list) = List.toArray list |> ofArrayUnchecked
+let ofList (list : 'T list) =
+    // List.toArray dereferences a null list without a check; a null input throws ArgumentNullException here (ADR 0001, D6)
+    checkNotNull (nameof list) list
+    List.toArray list |> ofArrayUnchecked
 
 [<CompiledName "OfReadOnlySpan">]
 let ofReadOnlySpan (span : ReadOnlySpan<'T>) = ofArrayUnchecked (span.ToArray ())
