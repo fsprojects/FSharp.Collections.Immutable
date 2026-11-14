@@ -30,7 +30,14 @@ module's `.fsi` and the `.fs` on its `.fs`, so that Visual Studio shows them as 
 │   │   ├── Raise.fs                                    – the exceptions of the FSharp.Core DetailedExceptions module
 │   │   ├── ArrayChecks.fs                              – the checks that the functions of several arrays share
 │   │   ├── Arrays.fs                                   – the algorithms over arrays that the default and Tuple modules share
-│   │   └── ParallelArrays.fs                           – the parallel algorithms that the default and Tuple modules share
+│   │   ├── ParallelArrays.fs                           – the parallel algorithms that the default and Tuple modules share
+│   │   ├── ListChecks.fs                               – the argument checks of the FSharp.Core List module
+│   │   ├── ListArrays.fs                               – the List functions of two or three lists, over arrays
+│   │   ├── Snapshot.fs                                 – the snapshots in arrays of the collections without an underlying array
+│   │   ├── Collectors.fs                               – the accumulators that build an indexed list from many collections
+│   │   ├── Lengths.fs                                  – the lengths of queues and stacks, counted as far as a caller needs
+│   │   ├── DescendingSorts.fs                          – the stable descending sorts in the order of F# generic comparison
+│   │   └── ListRanges.fs                               – the range checks of the functions that wrap members of ImmutableList
 │   ├── FlatList/                                       – ImmutableArray API surface and builders
 │   │   ├── FlatListTypes.fs                            – the FlatList abbreviation
 │   │   ├── FlatList.fs / FlatList.fsi                  – includes the nested Parallel module

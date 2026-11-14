@@ -65,6 +65,7 @@ val ofArray : array : 'T array -> IndexedList<'T>
 /// <summary>Creates an indexed list from a list.</summary>
 /// <param name="list">The input list.</param>
 /// <returns>The indexed list of the elements of the list.</returns>
+/// <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="list"/> is <see langword="null"/>.</exception>
 /// <remarks>O(n).</remarks>
 [<CompiledName "OfList">]
 val ofList : list : 'T list -> IndexedList<'T>

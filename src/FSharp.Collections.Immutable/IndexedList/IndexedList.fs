@@ -76,7 +76,10 @@ let ofArray (array : 'T array) =
     ImmutableList.CreateRange array
 
 [<CompiledName "OfList">]
-let ofList (list : 'T list) = ImmutableList.CreateRange list
+let ofList (list : 'T list) =
+    // The BCL reports a null list under the name of its own parameter, items; the name is the parameter's here (D6)
+    checkNotNull (nameof list) list
+    ImmutableList.CreateRange list
 
 [<CompiledName "OfReadOnlySpan">]
 let ofReadOnlySpan (span : ReadOnlySpan<'T>) = ImmutableList.Create<'T> span
