@@ -142,6 +142,54 @@ type ChosenBuffer<'T> (bound : int, pool : ArrayPool<'T>) =
         member this.Dispose () = this.Release ()
 
 /// <summary>
+/// Builds the indexed list of the elements that a function writes into an array of a known length, with a given pool, and
+/// returns what the function returns as well.
+/// </summary>
+/// <typeparam name="T">The type of the elements.</typeparam>
+/// <typeparam name="R">The type of what the function returns.</typeparam>
+/// <param name="pool">The pool that lends the array of a long list.</param>
+/// <param name="length">The number of elements.</param>
+/// <param name="fill">
+/// Writes the elements at the indexes 0 to <paramref name="length"/> - 1 of the array that it gets, which can be longer.
+/// </param>
+/// <returns>The indexed list, and the value that <paramref name="fill"/> returned.</returns>
+/// <remarks>
+/// <para>
+/// The array is rented from the pool for <see cref="F:FSharp.Collections.Immutable.Buffers.PooledFrom"/> to
+/// <see cref="F:FSharp.Collections.Immutable.Buffers.PooledUpTo"/> elements. It goes back to the pool, cleared as far as
+/// it was written when it holds references, also when <paramref name="fill"/> throws.
+/// </para>
+/// <para>
+/// A shorter array is a new one: it is cheap, and the pool would only add its own work. A longer array is a new one of
+/// the exact length too. The shared pool lends arrays whose lengths are powers of two, so it would answer a request for
+/// 1 048 577 elements with an array of 2 097 152, and it would keep that array after the call.
+/// </para>
+/// <para>
+/// The pool is a parameter so that a test can give one that records what it lends and what it gets back.
+/// </para>
+/// </remarks>
+let ofFilledFrom (pool : ArrayPool<'T>) (length : int) (fill : 'T array -> 'R) : struct (ImmutableList<'T> * 'R) =
+    if length < PooledFrom || length > PooledUpTo then
+        let items : 'T array =
+            if length = 0 then
+                Array.Empty<'T>()
+            else
+                Array.zeroCreate length
+        let extra = fill items
+        struct (ImmutableList.Create<'T>(ReadOnlySpan<'T>(items)), extra)
+    else
+        let items = pool.Rent length
+
+        try
+            let extra = fill items
+            struct (ImmutableList.Create<'T>(ReadOnlySpan<'T>(items, 0, length)), extra)
+        finally
+            if RuntimeHelpers.IsReferenceOrContainsReferences<'T>() then
+                Array.Clear (items, 0, length)
+
+            pool.Return (items, false)
+
+/// <summary>
 /// Builds the indexed list of the elements that a function writes into an array of a known length, and returns what the
 /// function returns as well.
 /// </summary>
@@ -153,34 +201,12 @@ type ChosenBuffer<'T> (bound : int, pool : ArrayPool<'T>) =
 /// </param>
 /// <returns>The indexed list, and the value that <paramref name="fill"/> returned.</returns>
 /// <remarks>
-/// <para>
-/// The array is a new one below <see cref="F:FSharp.Collections.Immutable.Buffers.PooledFrom"/> elements, and one rented
-/// from the pool above, which is cleared as far as it was written when it holds references and returned.
-/// </para>
-/// <para>
-/// A function that throws does not return the rented array. The pool allocates another one, and nothing leaks.
-/// </para>
+/// The array of a long list comes from <see cref="P:System.Buffers.ArrayPool`1.Shared"/>, as
+/// <see cref="M:FSharp.Collections.Immutable.Buffers.ofFilledFrom``2(System.Buffers.ArrayPool{``0},System.Int32,Microsoft.FSharp.Core.FSharpFunc{``0[],``1})"/>
+/// describes.
 /// </remarks>
 let ofFilledWith (length : int) (fill : 'T array -> 'R) : struct (ImmutableList<'T> * 'R) =
-    if length < PooledFrom then
-        let items : 'T array =
-            if length = 0 then
-                Array.Empty<'T>()
-            else
-                Array.zeroCreate length
-        let extra = fill items
-        struct (ImmutableList.Create<'T>(ReadOnlySpan<'T>(items)), extra)
-    else
-        let pool = ArrayPool<'T>.Shared
-        let items = pool.Rent length
-        let extra = fill items
-        let result = ImmutableList.Create<'T>(ReadOnlySpan<'T>(items, 0, length))
-
-        if RuntimeHelpers.IsReferenceOrContainsReferences<'T>() then
-            Array.Clear (items, 0, length)
-
-        pool.Return (items, false)
-        struct (result, extra)
+    ofFilledFrom ArrayPool<'T>.Shared length fill
 
 /// <summary>
 /// Builds the indexed list of the elements that a function writes into an array of a known length.
