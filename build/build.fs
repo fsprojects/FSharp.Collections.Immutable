@@ -299,7 +299,9 @@ let updateChangelog ctx =
                 latest with
                     SemVer = semVer
                     NuGetVersion = semVer.AsString
-                    AssemblyVersion = semVer.AsString
+                    // The version of the assembly has no prerelease label, as in an entry that FAKE parses: a label in
+                    // AssemblyVersion makes the F# compiler warn (FS2003) and write the version 0.0.0.0
+                    AssemblyVersion = $"%d{semVer.Major}.%d{semVer.Minor}.%d{semVer.Patch}"
             }
 
 let revertChangelog _ =
@@ -474,7 +476,8 @@ let generateAssemblyInfo _ =
             XElement ("Product", productName),
             XElement ("AssemblyVersion", latestEntry.AssemblyVersion),
             XElement ("FileVersion", latestEntry.AssemblyVersion),
-            XElement ("InformationalVersion", latestEntry.AssemblyVersion),
+            // The informational version is the version of the package, which keeps the prerelease label
+            XElement ("InformationalVersion", latestEntry.NuGetVersion),
             // The git hash is in the metadata, so the SDK must not append the source revision to the informational version
             XElement ("IncludeSourceRevisionInInformationalVersion", "false")
         )
@@ -505,7 +508,7 @@ let generateAssemblyInfo _ =
             | Some date -> "AssemblyMetadata_ReleaseDate", date
             | None -> ()
             "AssemblyFileVersion", latestEntry.AssemblyVersion
-            "AssemblyInformationalVersion", latestEntry.AssemblyVersion
+            "AssemblyInformationalVersion", latestEntry.NuGetVersion
             "AssemblyMetadata_ReleaseChannel", releaseChannel
             "AssemblyMetadata_GitHash", gitHash
         }
