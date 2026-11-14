@@ -36,7 +36,10 @@ let ofArray (array : 'T array) =
     ImmutableQueue.Create<'T>(ReadOnlySpan<'T> array)
 
 [<CompiledName "OfList">]
-let ofList (list : 'T list) = List.toArray list |> Queues.ofFreshArray
+let ofList (list : 'T list) =
+    // List.toArray dereferences a null list without a check; a null input throws ArgumentNullException here (ADR 0001, D6)
+    checkNotNull (nameof list) list
+    List.toArray list |> Queues.ofFreshArray
 
 [<CompiledName "OfReadOnlySpan">]
 let ofReadOnlySpan (span : ReadOnlySpan<'T>) = ImmutableQueue.Create<'T> span

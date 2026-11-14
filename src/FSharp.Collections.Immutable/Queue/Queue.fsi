@@ -71,6 +71,7 @@ val ofArray : array : 'T array -> Queue<'T>
 /// <summary>Creates a queue from a list.</summary>
 /// <param name="list">The input list.</param>
 /// <returns>The queue of the elements of the list, whose first element is the head of the list.</returns>
+/// <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="list"/> is <see langword="null"/>.</exception>
 /// <remarks>O(n).</remarks>
 [<CompiledName "OfList">]
 val ofList : list : 'T list -> Queue<'T>
