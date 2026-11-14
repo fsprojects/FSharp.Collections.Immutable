@@ -1022,3 +1022,21 @@ type IndexedListTests () =
             |> IndexedList.toArray,
             $"IndexedList.choose must keep the chosen elements of a long list in order (%d{percent} %% chosen)"
         )
+
+    [<TestMethod; Timeout 5000; DynamicData(nameof LongLists.Kinds, typeof<LongLists>)>]
+    member _.``ofSeq copies a long list before the BCL builds the tree`` (kind : string) =
+        CollectionAssert.AreEqual (
+            LongLists.Elements,
+            IndexedList.ofSeq (LongLists.Create kind)
+            |> IndexedList.toArray,
+            "IndexedList.ofSeq must keep the elements of a long list in order"
+        )
+
+    [<TestMethod; Timeout 5000; DynamicData(nameof LongLists.Kinds, typeof<LongLists>)>]
+    member _.``insertManyAt copies a long list before the BCL builds the tree`` (kind : string) =
+        CollectionAssert.AreEqual (
+            Array.append LongLists.Elements [| "last" |],
+            IndexedList.insertManyAt 0 (LongLists.Create kind) (IndexedList.singleton ("last" :> obj))
+            |> IndexedList.toArray,
+            "IndexedList.insertManyAt must keep the elements of a long list in order, before the elements of the list"
+        )

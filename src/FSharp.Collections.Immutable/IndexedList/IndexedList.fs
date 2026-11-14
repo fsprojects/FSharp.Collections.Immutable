@@ -82,10 +82,8 @@ let ofReadOnlySpan (span : ReadOnlySpan<'T>) = ImmutableList.Create<'T> span
 let ofSeq (source : seq<'T>) =
     // A default flat list given as a sequence is a null input; the BCL would fail while it enumerates it (ADR 0001, D6)
     checkNotNullOrDefaultSeq (nameof source) source
-
-    match source with
-    | :? ('T list) as list -> ofList list
-    | _ -> ImmutableList.CreateRange source
+    // An F# list is copied into an array first, as in ofList, also a list of strings that is given as a sequence of objects
+    ImmutableList.CreateRange (Snapshot.forTree source)
 
 [<CompiledName "OfSpan">]
 let ofSpan (span : Span<'T>) = ImmutableList.Create<'T>(Span<'T>.op_Implicit span)
@@ -589,7 +587,8 @@ let insertManyAt index (values : seq<'T>) (source : IndexedList<'T>) =
     // List checks the index before it reads the values
     ListChecks.insertAt (nameof index) index source.Count
     checkNotNullOrDefaultSeq (nameof values) values
-    source.InsertRange (index, values)
+    // InsertRange builds the tree of the values by indexing, which takes O(n²) for an F# list (see Snapshot.forTree)
+    source.InsertRange (index, Snapshot.forTree values)
 
 [<CompiledName "Map">]
 let map (mapping : 'T -> 'U) (list : IndexedList<'T>) =

@@ -15,7 +15,8 @@ type IndexedListCE () =
     member inline _.YieldFrom (items : seq<'T>) : IndexedListBuffer<'T> =
         // A default flat list given as a sequence is a null input, as in IndexedList.ofSeq (ADR 0001, D6)
         checkNotNullOrDefaultSeq (nameof items) items
-        fun builder -> builder.AddRange items
+        // The function of the builder module copies an F# list before the builder indexes it (see IndexedListBuilder.addRange)
+        fun builder -> IndexedListBuilder.addRange items builder |> ignore
 
     member inline _.YieldFrom (items : 'T array) : IndexedListBuffer<'T> = fun builder -> builder.AddRange items
 

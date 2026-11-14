@@ -444,7 +444,8 @@ let insertManyAt index (values : seq<'T>) (source : IIndexedList<'T>) =
     // List checks the index before it reads the values
     ListChecks.insertAt (nameof index) index source.Count
     checkNotNullOrDefaultSeq (nameof values) values
-    source.InsertRange (index, values)
+    // InsertRange of an indexed list builds the tree of the values by indexing, as in IndexedList.insertManyAt
+    source.InsertRange (index, Snapshot.forTree values)
 
 [<CompiledName "Map">]
 let map (mapping : 'T -> 'U) (list : IIndexedList<'T>) =

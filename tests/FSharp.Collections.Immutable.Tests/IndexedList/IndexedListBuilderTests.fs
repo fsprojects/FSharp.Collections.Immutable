@@ -949,3 +949,27 @@ type IndexedListBuilderTests () =
             "target",
             (fun () -> IndexedListBuilder.blit (filled ()) 0 (Unchecked.defaultof<int array>) 0 0)
         )
+
+    [<TestMethod; Timeout 5000; DynamicData(nameof LongLists.Kinds, typeof<LongLists>)>]
+    member _.``addRange copies a long list before the BCL builds the tree`` (kind : string) =
+        let builder =
+            builderOf [| "first" :> obj |]
+            |> IndexedListBuilder.addRange (LongLists.Create kind)
+
+        CollectionAssert.AreEqual (
+            Array.append [| "first" |] LongLists.Elements,
+            IndexedListBuilder.toArray builder,
+            "IndexedListBuilder.addRange must keep the elements of a long list in order, after the elements of the builder"
+        )
+
+    [<TestMethod; Timeout 5000; DynamicData(nameof LongLists.Kinds, typeof<LongLists>)>]
+    member _.``insertManyAt copies a long list before the BCL builds the tree`` (kind : string) =
+        let builder =
+            builderOf [| "last" :> obj |]
+            |> IndexedListBuilder.insertManyAt 0 (LongLists.Create kind)
+
+        CollectionAssert.AreEqual (
+            Array.append LongLists.Elements [| "last" |],
+            IndexedListBuilder.toArray builder,
+            "IndexedListBuilder.insertManyAt must keep the elements of a long list in order, before the elements of the builder"
+        )
