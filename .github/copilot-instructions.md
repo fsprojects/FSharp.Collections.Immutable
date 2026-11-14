@@ -32,7 +32,8 @@ module's `.fsi` and the `.fs` on its `.fs`, so that Visual Studio shows them as 
 │   │   ├── Arrays.fs                                   – the algorithms over arrays that the default and Tuple modules share
 │   │   ├── ParallelArrays.fs                           – the parallel algorithms that the default and Tuple modules share
 │   │   ├── Sets.fs                                     – the algorithms that the set modules share, whatever the type of the set
-│   │   └── HashSets.fs                                 – the algorithms that build hash sets with the default comparer
+│   │   ├── HashSets.fs                                 – the algorithms that build hash sets with the default comparer
+│   │   └── SortedSets.fs                               – the algorithms that build sorted sets one element at a time
 │   ├── FlatList/                                       – ImmutableArray API surface and builders
 │   │   ├── FlatListTypes.fs                            – the FlatList abbreviation
 │   │   ├── FlatList.fs / FlatList.fsi                  – includes the nested Parallel module
