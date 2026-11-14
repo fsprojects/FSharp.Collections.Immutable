@@ -679,7 +679,7 @@ binary searches with `ArgumentException`, as the documentation of the BCL says (
 | `containsBinding` | | ᵇ | ᵇ | ᵇ | ᵇ | `Contains (KeyValuePair)`: the value comparer decides whether the values are equal (`FrozenMap`: `EqualityComparer<'Value>.Default`) |
 | `containsKey` / `containsValue` | | ✓/ᵇ | ✓/ᵇ | ✓/– | ✓/ᵃ | |
 | `exists` / `forall` | | ✓ | ✓ | ✓ | ✓ | |
-| `findKey` / `tryFindKey` | Ⓥ | ✓ | ✓ | ✓ | ✓ | |
+| `findKey` / `tryFindKey` | Ⓥ (`tryFindKey`) | ✓ | ✓ | ✓ | ✓ | |
 | `pick` / `tryPick` | Ⓥ | ✓ | ✓ | ✓ | ✓ | |
 | **Transformation** | | | | | | |
 | `add` / `addRange` | | ᵇ/ᵇ | ᵇ/ᵇ | ᵇ/ᵇ | – | `add` is the BCL `Add`: `ArgumentException` for a key bound to another value, the input itself for an equal binding (D6, D14); `setItem` replaces. `addRange` takes `KeyValuePair`s; `Tuple.addRange` and `ValueTuple.addRange` in the submodules (D13) |
