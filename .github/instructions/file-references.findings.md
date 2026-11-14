@@ -73,7 +73,8 @@ NuGet packs [README.md](../../README.md) into the package (`PackageReadmeFile` i
 * Claude Code loads these files of a subfolder when the model reads a file in that subfolder.
 * Claude Code loads a rule with `paths` when the model reads a file that matches. Claude Code matches `paths` with the `ignore` package, which uses the rules of `.gitignore`. The pattern `**/*.md` also matches the files in `.github` and `.claude`.
 * Claude Code writes "Contents of <path>" before the text of each instruction file.
-* Claude Code reads `AGENTS.md` only if there is no `CLAUDE.md`. It does not read `.github/copilot-instructions.md` without an import.
+* By default, Claude Code reads `AGENTS.md` only if there is no `CLAUDE.md`. The setting "Project instructions" in `/config` has the value `claude-md-and-agents-md`. With this value, Claude Code reads the two files.
+* Claude Code does not read `.github/copilot-instructions.md` without an import.
 * Claude Code resolves an import in `CLAUDE.md`, `CLAUDE.local.md`, `.claude/rules/*.md`, and the files in `~/.claude`. The regular expression is `(?:^|\s)@((?:[^\s\\]|\\ )+)`.
 * The path starts in the folder of the file. Claude Code accepts `~/` and absolute paths. For a file outside the project, Claude Code asks for an approval one time.
 * Write a space in a path as `\ `. Quotes do not work.
