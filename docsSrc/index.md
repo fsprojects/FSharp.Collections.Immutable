@@ -52,7 +52,7 @@ F# bindings for [System.Collections.Immutable](https://learn.microsoft.com/en-us
         <p class="card-text">Guides you through the steps involved in addressing key problems and use-cases. </p>
       </div>
       <div class="card-footer text-right   border-top-0">
-        <a href="{{root}}How_Tos/Doing_A_Thing.html" class="btn btn-primary">Learn Usecases</a>
+        <a href="{{root}}How_Tos/Build_A_Flat_List.html" class="btn btn-primary">Learn Usecases</a>
       </div>
     </div>
   </div>
