@@ -15,7 +15,7 @@ let unfold (generator : 'State -> ('T * 'State) voption) (state : 'State) =
         | ValueSome (item, next) -> ValueSome (struct (item, next))
         | ValueNone -> ValueNone
 
-    FSharp.Collections.Immutable.FlatList.unfold generateStruct state
+    FlatList.unfold generateStruct state
 
 // ---- Transformation ----
 
@@ -72,7 +72,7 @@ let mapFold (mapping : 'State -> 'T -> 'Result * 'State) (state : 'State) (array
         let result, next = mapping state item
         struct (result, next)
 
-    let struct (results, final) = FSharp.Collections.Immutable.FlatList.mapFold mapStruct state array
+    let struct (results, final) = FlatList.mapFold mapStruct state array
     results, final
 
 [<CompiledName "MapFoldBack">]
@@ -81,7 +81,7 @@ let mapFoldBack (mapping : 'T -> 'State -> 'Result * 'State) (array : FlatList<'
         let result, next = mapping item state
         struct (result, next)
 
-    let struct (results, final) = FSharp.Collections.Immutable.FlatList.mapFoldBack mapStruct array state
+    let struct (results, final) = FlatList.mapFoldBack mapStruct array state
     results, final
 
 // ---- Partitioning and grouping ----
@@ -98,17 +98,17 @@ let groupBy (projection : 'T -> 'Key) (array : FlatList<'T>) =
 
 [<CompiledName "Partition">]
 let partition predicate (array : FlatList<'T>) =
-    let struct (accepted, rejected) = FSharp.Collections.Immutable.FlatList.partition predicate array
+    let struct (accepted, rejected) = FlatList.partition predicate array
     accepted, rejected
 
 [<CompiledName "PartitionWith">]
 let partitionWith (partitioner : 'T -> Choice<'T1, 'T2>) (array : FlatList<'T>) =
-    let struct (first, second) = FSharp.Collections.Immutable.FlatList.partitionWith partitioner array
+    let struct (first, second) = FlatList.partitionWith partitioner array
     first, second
 
 [<CompiledName "SplitAt">]
 let splitAt index (array : FlatList<'T>) =
-    let struct (before, after) = FSharp.Collections.Immutable.FlatList.splitAt index array
+    let struct (before, after) = FlatList.splitAt index array
     before, after
 
 // As in the module above: the functions that build a tuple per element share their algorithm with the default module,
