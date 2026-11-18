@@ -40,6 +40,7 @@ module's `.fsi` and the `.fs` on its `.fs`, so that Visual Studio shows them as 
 │   │   └── FlatListCE.fs / FlatListCE.fsi
 │   ├── EquatableArray/                                 – ImmutableArray with value semantics, JSON converter, patterns
 │   │   ├── EquatableArray.fs / EquatableArray.fsi
+│   │   ├── EquatableArrayLinqExtensions.fs / EquatableArrayLinqExtensions.fsi – LINQ operators for C# that do not box the array
 │   │   └── EquatableArrayPatterns.fs / EquatableArrayPatterns.fsi
 │   ├── IndexedList/                                    – ImmutableList API surface and builders
 │   │   ├── IndexedListTypes.fs
@@ -120,7 +121,7 @@ module's `.fsi` and the `.fs` on its `.fs`, so that Visual Studio shows them as 
 │   │   ├── FrozenSetTuple.fs / FrozenSetTuple.fsi
 │   │   └── FrozenSetCE.fs / FrozenSetCE.fsi
 │   └── ComputationExpressions.fs / .fsi                – the computation expression instances
-├── tests/FSharp.Collections.Immutable.CSharp.Tests/     – MSTest project in C#: collection expressions, ranges, operators;
+├── tests/FSharp.Collections.Immutable.CSharp.Tests/     – MSTest project in C#: collection expressions, ranges, operators, LINQ;
 │                                                          uses the category attributes of the F# test project
 └── tests/FSharp.Collections.Immutable.Tests/            – MSTest test project
     ├── TestCategories.fs                               – centralized custom test category attributes

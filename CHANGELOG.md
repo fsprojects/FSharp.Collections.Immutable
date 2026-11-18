@@ -40,6 +40,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * The `EquatableArray` module: `empty`, `ofArray`, `ofImmutableArray`, `ofList`, `ofSeq`, `singleton`,
     `unsafeOfArray`, `isEmpty`, `length`, `map`, `toImmutableArray`
   * The struct partial active patterns `Arr0`, `Arr1`, `Arr2`, `Arr3` and `ArrN`
+  * `EquatableArrayLinqExtensions`: the LINQ operators that `ImmutableArray<'T>` has in `System.Linq`, as extension methods
+    for C# that do not box the array (`Aggregate`, `All`, `Any`, `ElementAt`, `ElementAtOrDefault`, `First`,
+    `FirstOrDefault`, `Last`, `LastOrDefault`, `Select`, `SelectMany`, `Single`, `SingleOrDefault`, `ToArray`,
+    `ToDictionary` and `Where`); they give the results and the exceptions of `Enumerable`
 
 ### Changed
 
