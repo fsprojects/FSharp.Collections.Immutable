@@ -81,8 +81,8 @@ create a no-cost wrapper around ImmutableArray that has sequence-equality semant
    elements by reference, `CompareTo` by contents. This is accepted. A default `HashSet` can then hold two values where
    a `Set` holds one (§2, question 8).
 6. The type satisfies `equality` and `comparison` only when its element type does.
-7. Conversion to and from `ImmutableArray<'T>` is O(1). C# collection expressions and JSON work without registration
-   (§4).
+7. Conversion to and from `ImmutableArray<'T>` is O(1). C# collection expressions and JSON work without registration,
+   and C# gets the LINQ operators of `ImmutableArray` without boxing (§4).
 8. The module `EquatableArray`, compiled as `EquatableArrayModule`, mirrors the `FlatList` module. Construction reuses
    the builder of `FlatList`, and there are a computation expression and struct active patterns (§5).
 9. No language syntax is assumed.
@@ -179,10 +179,17 @@ persisted.
 
 `%A` is produced through `StructuredFormatDisplay` with a property that returns text. A property that returns a list was
 tried: `%A` then prints an `EquatableArray` nested in another one as `...` *(verified)*, which hides the children of a
-syntax tree. The price of text is that a value too wide for one line loses its indentation. Each nested display also
-starts a new formatter, which resets the depth limit and the cycle check of `%A`. A depth guard that the nested
-displays share therefore shows `...` at a nesting of 100, the default limit of `%A`. Without it, a cycle through a
-mutable record or a very deep tree overflows the stack.
+syntax tree. The price of text is that a value too wide for one line loses its indentation.
+
+Each nested display also starts a new formatter, which resets the depth limit, the size budget and the cycle check of
+`%A`. The nested displays therefore share two limits, and a display shows `...` past either of them:
+
+* A nesting of 100, the default depth limit of `%A`. Without it, a cycle through a mutable record or a very deep tree
+  overflows the stack.
+* 1 000 displays for each outermost display. Without it, a tree that holds the same child twice shows the child again
+  for each reference, so its text and the work double with each level *(verified)*: 20 such levels gave 21 million
+  characters in 90 seconds. With the limit they give 20 KB in about 0.1 s.
+  No measured tree gave more than 41 KB, and a tree of 511 arrays is still shown in full.
 
 **Where it differs from F# lists and arrays.** Elements are compared with `EqualityComparer<'T>.Default`, not with F#
 equality:
@@ -233,7 +240,8 @@ Allocated bytes per operation on 32 elements *(verified)*:
   about 1.1 µs and 48 B.
 * `for`, the active patterns and wrapping or unwrapping an `ImmutableArray` allocate nothing.
   `equatableArray { 1; 2; 3 }` allocates 128 B, `EquatableArray.ofArray [| 1; 2; 3 |]` 80 B.
-* Use as a `seq<'T>` boxes the value (24 B), like any struct.
+* Use as a `seq<'T>` boxes the value (24 B), like any struct. C# gets the LINQ operators of `ImmutableArray` without
+  the box from `EquatableArrayLinqExtensions` (§4).
 
 **Element equality.** Three ways for a library type to compare its elements, in bytes for one `=` on 32 elements:
 
@@ -299,6 +307,21 @@ element it works with warning FS3391, which is on by default. An argument that i
 and spreads compile through `CollectionBuilderAttribute`; `foreach` uses the struct enumerator; `xs[1..^1]` and `xs[^1]`
 slice and index through `Slice`, `Length` and the indexer; `==`, `!=`, a default `HashSet`, `Dictionary` and `SortedSet`,
 and a `record struct` that holds the type all compare by elements; `default` is the empty array.
+
+**LINQ from C#.** The operators of `System.Linq.Enumerable` take an `IEnumerable<'T>`, so each call boxes the array
+(24 B). `System.Linq.ImmutableArrayExtensions` has overloads for `ImmutableArray` that do not box, and
+`EquatableArrayLinqExtensions` has the same operators for `EquatableArray`: `Aggregate`, `All`, `Any`, `ElementAt`,
+`ElementAtOrDefault`, `First`, `FirstOrDefault`, `Last`, `LastOrDefault`, `Select`, `SelectMany`, `Single`,
+`SingleOrDefault`, `ToArray`, `ToDictionary` and `Where`, 28 methods in all. Each calls the method of that class on
+`Items`. C# binds them, because the receiver matches their first parameter without a conversion, where `Enumerable`
+needs a boxing conversion. A maintainer asked in the review of pull request #28 whether such methods exist.
+
+They give the results, and throw the exceptions, of `Enumerable` *(verified)*. A comparison of the two classes on empty,
+one-element and several-element arrays, with and without a match, with null delegates and with duplicate keys found
+one difference in 97 cases: `ImmutableArrayExtensions.Aggregate` gives the default value for an empty array, where
+`Enumerable.Aggregate` throws `InvalidOperationException`. The extension throws too, so that adding it does not change
+what existing code gets. The other operators of `Enumerable`, such as `Count`, `Contains` and `SequenceEqual`, still
+box; `Length` replaces `Count`, and `Equals` replaces `SequenceEqual` for two arrays.
 
 **F# collection expressions.** The draft of [RFC FS-1342](https://github.com/fsharp/fslang-design/pull/838) gives
 target-typed `[ ... ]` to types with `CollectionBuilderAttribute` and requires the builder type to be non-generic with
@@ -391,12 +414,15 @@ a union case cannot convert its input; a `FlatList` is matched after an O(1) wra
 src/FSharp.Collections.Immutable/
 ├── EquatableArray/
 │   ├── EquatableArray.fsi / EquatableArray.fs                   – the type, the factory class, the JSON converter factory, the module
+│   ├── EquatableArrayLinqExtensions.fsi / .fs                   – the LINQ operators of ImmutableArray for C#, without boxing
 │   ├── EquatableArrayPatterns.fsi / EquatableArrayPatterns.fs   – Arr0 … ArrN
 │   └── EquatableArrayCE.fs                                      – the builder type of equatableArray { }
 └── ComputationExpressions.fs                                    – adds the value equatableArray
 tests/FSharp.Collections.Immutable.Tests/
+├── Assert.fs                                                    – adds Assert.HasLength for spans
 ├── TestCategories.fs                                            – adds the category attributes of §7
 └── EquatableArray/                                              – one test file per operation group
+tests/FSharp.Collections.Immutable.CSharp.Tests/                 – what only the C# compiler binds; uses the categories above
 ```
 
 * **One file for the type and its converter.** The attribute on the type names the converter factory, and the factory
@@ -406,6 +432,10 @@ tests/FSharp.Collections.Immutable.Tests/
   `EquatableArray.fs`, the override modules of ADR 0001 D3, in the compile order of ADR 0001 D2.
 * **Nullness**: the converter calls the non-generic `JsonSerializer.Deserialize`, because the generic overload on a
   struct result gives warning FS3265.
+* **LINQ extensions**: `EquatableArrayLinqExtensions.fsi/.fs` follow `EquatableArray.fs` and use only its public
+  members. The calls that return `T?` in `ImmutableArrayExtensions` (`Aggregate` and the `*OrDefault` operators) sit in
+  one internal helper under a scoped `#nowarn "3261"`: F# has no nullable type for an unconstrained `'T`, because
+  `'T | null` needs `'T : not struct`, so the public methods return a plain `'T`.
 * **Public API** has XML documentation under the repository's rules; `CHANGELOG.md` gets an entry under Unreleased, and
   the collection lists of `README.md`, `docsSrc/index.md` and `docsSrc/Explanations/Background.md` get the type.
 * **Target framework**: the type needs `net8.0`. `CollectionBuilderAttribute` and `System.HashCode` do not exist on
@@ -429,15 +459,16 @@ on the rewritten `FlatList` module, and question 7 says what that means for the 
 
 ## 7. Test plan
 
-Under the repository's rules: MSTest 4, a failure message on every assert, categories from `TestCategories.fs`,
-attributes sorted by type name.
+Under the repository's rules: MSTest 4, a failure message on every assert, the cases of a test as data rows,
+categories from `TestCategories.fs`, attributes sorted by type name.
 
 * **Categories.** The `TestCategoryBaseAttribute` descendants of `TestCategories.fs`, on the test classes only, as in
   ADR 0001 D8: `EquatableArrayTestCategory` on every test class, and the area that the class examines –
   `AllocationTestCategory`, `ComparisonTestCategory`, `DefaultValueTestCategory`, `EqualityTestCategory`,
   `FormattingTestCategory`, `InteropTestCategory`, `JsonTestCategory`, `ModuleFunctionsTestCategory` or
   `PatternMatchingTestCategory`. Categories are never strings, and test methods carry none. Step 1 adds
-  `TestCategories.fs`; `BuilderTestCategory` and `ComputationExpressionTestCategory` come with step 2.
+  `TestCategories.fs`; `BuilderTestCategory` and `ComputationExpressionTestCategory` come with step 2. The C# test
+  project below uses these attributes through a project reference, so that no category is declared twice.
 * **Equality under every caller**: `=`, `.Equals`, `EqualityComparer<_>.Default`, `HashIdentity.Structural`, a default
   `Dictionary` and `HashSet`, `ValueTuple.Equals`, a record field, a recursive union.
 * **The defects of `ImmutableArray` as regression tests**: arrays of different length compare, sort and build a `Set`;
@@ -462,17 +493,31 @@ attributes sorted by type name.
   `Create`, and the class has exactly one `Create`; `GetSlice` follows F# arrays; `Slice` follows `ImmutableArray.Slice`,
   including `ArgumentOutOfRangeException`; `op_Equality` and `op_Inequality` agree with `Equals`; the mutating members of
   the read-only `IList<'T>` throw `NotSupportedException`.
+* **Formatting**: `%A` and `ToString ()` show the elements in F# array notation, a nested array shows its children, and
+  a long array is cut as `%A` cuts a long F# array. The display limits of §2 are tested: a cycle through a mutable
+  record, a tree deeper than 100 levels and a tree of more than 1 000 arrays end in `...`, a tree of up to 511 arrays is
+  shown completely, and the budget starts anew after a display that was cut. A tree that holds the same child twice, of
+  20, 100 and 1 000 levels, must give a bounded text within a timeout, so that a regression of the exponential case
+  fails the test and does not hang the run.
+* **LINQ** (C# project): an expression tree for each of the 28 methods records the method that the compiler bound, so a
+  call that falls back to `Enumerable` fails the test. On none, one and several elements, the results and the exceptions
+  equal those of `Enumerable`, except for `Aggregate` on an empty array (§4); `ToArray` copies; a null delegate throws
+  `ArgumentNullException`. In Release, calls that return a single value allocate 0 B, and a control call of
+  `Enumerable.First` allocates.
 * **JSON**: the table of §4 under plain System.Text.Json and under FSharp.SystemTextJson, which becomes a test-only
   package reference in `Directory.Packages.props`.
 * **Mirrored functions** (step 2 of §6): through the shared contract suites of ADR 0001 (D8), so that no `FlatList` test
   is copied.
 * **Assertions**: whole arrays with `Assert.AreEqual` on `EquatableArray` values, whose equality and `ToString ()` make
-  the failure readable; sizes with `Assert.HasCount` and `Assert.IsEmpty`. `CollectionAssert` does not apply: it needs
-  the non-generic `ICollection`.
+  the failure readable; sizes with `Assert.HasCount` and `Assert.IsEmpty`; the length of a span with
+  `Assert.HasLength`, which `Assert.fs` adds because MSTest has no such method. `CollectionAssert` does not apply: it
+  needs the non-generic `ICollection`.
 
 The maintainers chose to cover C# in CI. The C# MSTest project `tests/FSharp.Collections.Immutable.CSharp.Tests` checks
 what only the C# compiler binds: collection expressions, indices and ranges, `==` and `!=`, the default collections,
-record structs, the implicit conversions and the compiled names of the module.
+record structs, the implicit conversions, the compiled names of the module and the LINQ operators. It targets `net8.0`
+and `net10.0`, as the library does, compiles with the latest C# language version, and names its test methods with
+underscores. It takes the category attributes from the F# test project and runs under the same MSTest runner.
 
 ## 8. Benchmarks before release
 
