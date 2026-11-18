@@ -3,4 +3,4 @@ paths:
   - "tests/**/*.fs"
 ---
 
-@../../.github/instructions/test-categories.instructions.md
+Read [test-categories.instructions.md](../../.github/instructions/test-categories.instructions.md).

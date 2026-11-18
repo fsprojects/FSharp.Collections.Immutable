@@ -2,9 +2,9 @@
 
 ## Project Details
 
-* .NET SDK pinned in #file:'global.json'
-* Common parameters specified in #file:'Directory.Build.props'
-* Central NuGet package version management – versions go in #file:'Directory.Packages.props', not in `.fsproj` files
+* .NET SDK pinned in [global.json](../global.json)
+* Common parameters specified in [Directory.Build.props](../Directory.Build.props)
+* Central NuGet package version management – versions go in [Directory.Packages.props](../Directory.Packages.props), not in `.fsproj` files
 * Build: `dotnet build FSharp.Collections.Immutable.slnx`
 * Test: `dotnet test FSharp.Collections.Immutable.slnx`
 
@@ -159,9 +159,9 @@ Use GitHub MCP tools for code search in these repositories when needed.
 
 ## MCP Servers
 
-Agents discover servers from #file:'.mcp.json'; these are only hints on when to prefer one.
+Agents discover servers from [.mcp.json](../.mcp.json); these are only hints on when to prefer one.
 
-* For F# work, prefer the `F#` server ([FsLangMCP](https://github.com/Neftedollar/FsLangMCP)) over `rg`/plain text search whenever the task depends on symbol meaning, compile context, cross-project usage, diagnostics, or safe refactoring preview. Its tool package is pinned in #file:'.config/dotnet-tools.json' – run `dotnet tool restore` before first use.
+* For F# work, prefer the `F#` server ([FsLangMCP](https://github.com/Neftedollar/FsLangMCP)) over `rg`/plain text search whenever the task depends on symbol meaning, compile context, cross-project usage, diagnostics, or safe refactoring preview. Its tool package is pinned in [.config/dotnet-tools.json](../.config/dotnet-tools.json) – run `dotnet tool restore` before first use.
 * Use the `GitHub` server for code search in dependency repositories. In Claude Code it authenticates through `.claude/scripts/github-mcp-headers.ps1`, which reuses the GitHub token stored by Git Credential Manager, because the server does not support the OAuth dynamic client registration Claude Code needs.
 * Use the `Microsoft Docs` server for official Microsoft and Azure documentation.
 * When adding or changing a server, keep `servers` (VS Code / GitHub Copilot) and `mcpServers` (Claude Code) in sync and sorted alphabetically by key.
