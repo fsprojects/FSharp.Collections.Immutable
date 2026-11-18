@@ -16,7 +16,8 @@ Please also join the [F# Open Source Group](http://fsharp.github.com)
 | `IndexedList` | `ImmutableList<'T>` | `indexedList { }` |
 | `IIndexedList` | `IImmutableList<'T>` | – |
 | `Stack` | `ImmutableStack<'T>` | – |
-| `Queue` | `ImmutableQueue<'T>` | – |
+| `Queue` | `ImmutableQueue<'T>` | `queue { }` |
+| `IQueue` | `IImmutableQueue<'T>` | – |
 | `HashMap` | `ImmutableDictionary<'Key, 'Value>` | – |
 | `SortedMap` | `ImmutableSortedDictionary<'Key, 'Value>` | – |
 | `HashSet` | `ImmutableHashSet<'T>` | – |

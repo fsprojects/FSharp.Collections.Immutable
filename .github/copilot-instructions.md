@@ -37,7 +37,8 @@ module's `.fsi` and the `.fs` on its `.fs`, so that Visual Studio shows them as 
 │   │   ├── Collectors.fs                               – the accumulators that build an indexed list from many collections
 │   │   ├── Lengths.fs                                  – the lengths of queues and stacks, counted as far as a caller needs
 │   │   ├── DescendingSorts.fs                          – the stable descending sorts in the order of F# generic comparison
-│   │   └── ListRanges.fs                               – the range checks of the functions that wrap members of ImmutableList
+│   │   ├── ListRanges.fs                               – the range checks of the functions that wrap members of ImmutableList
+│   │   └── Queues.fs                                   – the helpers that the queue modules share
 │   ├── FlatList/                                       – ImmutableArray API surface and builders
 │   │   ├── FlatListTypes.fs                            – the FlatList abbreviation
 │   │   ├── FlatList.fs / FlatList.fsi                  – includes the nested Parallel module
