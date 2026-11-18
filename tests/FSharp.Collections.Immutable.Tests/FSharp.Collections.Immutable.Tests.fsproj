@@ -80,6 +80,16 @@
     <Compile Include="IndexedList\IndexedListTupleTests.fs" />
     <Compile Include="IndexedList\IIndexedListOptionTests.fs" />
     <Compile Include="IndexedList\IIndexedListTupleTests.fs" />
+    <Compile Include="Stack\StackOps.fs" />
+    <Compile Include="Stack\IStackOps.fs" />
+    <Compile Include="Stack\StackContractTests.fs" />
+    <Compile Include="Stack\StackTests.fs" />
+    <Compile Include="Stack\IStackTests.fs" />
+    <Compile Include="Stack\StackComputationExpressionTests.fs" />
+    <Compile Include="Stack\StackOptionTests.fs" />
+    <Compile Include="Stack\StackTupleTests.fs" />
+    <Compile Include="Stack\IStackOptionTests.fs" />
+    <Compile Include="Stack\IStackTupleTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
