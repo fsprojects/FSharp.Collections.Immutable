@@ -46,3 +46,31 @@ val flatList : FlatListCE
 /// </example>
 [<GeneralizableValue>]
 val hashSet<'T> : HashSetCE<'T>
+
+/// <summary>
+/// Builds a sorted set that compares with F# generic comparison.
+/// </summary>
+/// <remarks>
+/// The value is a type function, so that one value builds sorted sets of every element type. The sorted set enumerates
+/// its elements in the order of the F# set of the same elements. A
+/// <see cref="T:FSharp.Collections.Immutable.SortedSetCE`1"/> created with a comparer builds sorted sets that order
+/// their elements with it.
+/// </remarks>
+/// <example id="sortedSet-1">
+/// <code lang="fsharp">
+/// let squares = sortedSet {
+///     for i in -2..2 do
+///         yield i * i
+///     yield! [ 9; 4 ]
+/// }
+/// </code>
+/// Evaluates to a sorted set of 0, 1, 4 and 9, in this order.
+/// </example>
+/// <example id="sortedSet-2">
+/// <code lang="fsharp">
+/// let names = SortedSetCE StringComparer.OrdinalIgnoreCase { "bob"; "Ann"; "ANN" }
+/// </code>
+/// Evaluates to a sorted set of "Ann" and "bob" that ignores case.
+/// </example>
+[<GeneralizableValue>]
+val sortedSet<'T when 'T : comparison> : SortedSetCE<'T>
