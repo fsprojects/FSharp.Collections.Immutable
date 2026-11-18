@@ -35,7 +35,7 @@ type SeqLikeRandomContract<'C> (ops : SeqOps<'C>) =
     member this.``randomChoice returns an element`` (input : int array) =
         let struct (collection, elements) = this.Create input
         let chosen = ops.RandomChoice collection
-        Assert.Contains (chosen, elements, $"%s{ops.Name}.randomChoice must return an element of the collection")
+        Assert.Contains (chosen, ReadOnlySpan elements, $"%s{ops.Name}.randomChoice must return an element of the collection")
 
     [<TestMethod>]
     member this.``randomChoice throws for an empty collection as FSharp.Core does`` () =
@@ -105,7 +105,7 @@ type SeqLikeRandomContract<'C> (ops : SeqOps<'C>) =
         Assert.HasCount (20, chosen, $"%s{ops.Name}.randomChoices 20 must return 20 elements")
 
         for item in chosen do
-            Assert.Contains (item, elements, $"%s{ops.Name}.randomChoices must return elements of the collection")
+            Assert.Contains (item, ReadOnlySpan elements, $"%s{ops.Name}.randomChoices must return elements of the collection")
 
     [<TestMethod; DynamicData(nameof SeqLikeRandomContract<'C>.ChoicesFailures)>]
     member this.``randomChoices throws for a negative count or an empty collection as FSharp.Core does``
