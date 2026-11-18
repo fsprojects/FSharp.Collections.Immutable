@@ -836,11 +836,16 @@ val chunkBySize : chunkSize : int -> array : FlatList<'T> -> FlatList<FlatList<'
 [<CompiledName "Collect">]
 val collect : mapping : ('T -> FlatList<'U>) -> array : FlatList<'T> -> FlatList<'U>
 
-/// <summary>Concatenates a sequence of flat lists.</summary>
+/// <summary>
+/// Concatenates a sequence of flat lists.
+/// </summary>
 /// <param name="arrays">The flat lists.</param>
-/// <returns>The concatenation.</returns>
+/// <returns>The concatenation, or the flat list itself when it is the only one with elements.</returns>
 /// <exception cref="T:System.ArgumentNullException">Thrown when <paramref name="arrays"/> is <see langword="null"/> or a default flat list, or contains a default flat list.</exception>
-/// <remarks>O(the total length).</remarks>
+/// <remarks>
+/// O(the total length). A sequence that is not an array or a flat list is read once, to the end, before the flat lists
+/// are joined.
+/// </remarks>
 [<CompiledName "Concat">]
 val concat : arrays : seq<FlatList<'T>> -> FlatList<'T>
 
