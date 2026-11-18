@@ -120,7 +120,8 @@ module's `.fsi` and the `.fs` on its `.fs`, so that Visual Studio shows them as 
 │   │   ├── FrozenSetTuple.fs / FrozenSetTuple.fsi
 │   │   └── FrozenSetCE.fs / FrozenSetCE.fsi
 │   └── ComputationExpressions.fs / .fsi                – the computation expression instances
-├── tests/FSharp.Collections.Immutable.CSharp.Tests/     – MSTest project in C#: collection expressions, ranges, operators
+├── tests/FSharp.Collections.Immutable.CSharp.Tests/     – MSTest project in C#: collection expressions, ranges, operators;
+│                                                          uses the category attributes of the F# test project
 └── tests/FSharp.Collections.Immutable.Tests/            – MSTest test project
     ├── TestCategories.fs                               – centralized custom test category attributes
     ├── TestCategoriesTests.fs                          – enforces the test category rules
@@ -359,6 +360,7 @@ module MyTypeExtensions =
 * Prefix interface names with `I`.
 * Do not prefix type parameters with `T` (e.g., use `'Result` instead of `'TResult`).
 * Name tests using spaces (e.g., `member this.``Test name with spaces``() : Task = ...`).
+* Name C# tests with underscores in place of the spaces (e.g., `public void Test_name_with_underscores ()`).
 
 ## Testing
 
