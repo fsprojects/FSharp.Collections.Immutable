@@ -69,7 +69,7 @@ type EquatableArrayDefaultValueTests () =
             (EquatableArray.toImmutableArray defaultValue).IsDefault,
             "toImmutableArray must not give a default ImmutableArray"
         )
-        Assert.AreEqual (0, defaultValue.AsSpan().Length, "the span of the default value must be empty")
+        Assert.HasLength (0, defaultValue.AsSpan (), "the span of the default value must be empty")
 
     [<TestMethod>]
     member _.``the default value formats as an empty F# array`` () =

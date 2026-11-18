@@ -68,7 +68,7 @@ type EquatableArrayInteropTests () =
     member _.``Create copies the span`` () =
         let source = [| 1; 2 |]
         let array = EquatableArray.Create (ReadOnlySpan<int> source)
-        Assert.AreEqual (ea [ 1; 2 ], array, "Create must keep the elements")
+        Assert.AreEqual (ea [| 1; 2 |], array, "Create must keep the elements")
         Assert.AreNotSame<int array | null>(source, underlying array.Items, "Create must copy the span")
 
     [<TestMethod>]
@@ -90,14 +90,14 @@ type EquatableArrayInteropTests () =
     [<TestMethod>]
     member _.``F# slices with extreme reversed bounds are empty`` () =
         // The length of such a range overflows when it is computed before the bounds are compared
-        let array = ea [ 1; 2; 3; 4 ]
+        let array = ea [| 1; 2; 3; 4 |]
         Assert.IsTrue (array[2 .. Int32.MinValue].IsEmpty, "a finish of Int32.MinValue must give the empty array")
         Assert.IsTrue (array[Int32.MaxValue .. Int32.MinValue].IsEmpty, "the most reversed range must give the empty array")
         Assert.IsTrue (array[Int32.MaxValue ..].IsEmpty, "a start of Int32.MaxValue must give the empty array")
 
     [<TestMethod>]
     member _.``an F# slice of all elements shares the array and other slices copy`` () =
-        let array = ea [ 1; 2; 3; 4 ]
+        let array = ea [| 1; 2; 3; 4 |]
         Assert.AreSame<int array | null>(
             underlying array.Items,
             underlying array[*].Items,
@@ -112,8 +112,8 @@ type EquatableArrayInteropTests () =
 
     [<TestMethod>]
     member _.``Slice follows ImmutableArray.Slice`` () =
-        let array = ea [ 1; 2; 3; 4 ]
-        Assert.AreEqual (ea [ 2; 3 ], array.Slice (1, 2), "Slice must take length elements from start")
+        let array = ea [| 1; 2; 3; 4 |]
+        Assert.AreEqual (ea [| 2; 3 |], array.Slice (1, 2), "Slice must take length elements from start")
         Assert.AreSame<int array | null>(
             underlying array.Items,
             underlying (array.Slice (0, 4)).Items,
@@ -135,9 +135,9 @@ type EquatableArrayInteropTests () =
 
     [<TestMethod>]
     member _.``the C# equality operators agree with Equals`` () =
-        let array = ea [ 1; 2 ]
+        let array = ea [| 1; 2 |]
         let equal = EquatableArray.ofArray [| 1; 2 |]
-        let different = ea [ 2; 1 ]
+        let different = ea [| 2; 1 |]
         Assert.IsTrue (EquatableArray<int>.op_Equality(array, equal), "== must be true for equal arrays")
         Assert.IsFalse (EquatableArray<int>.op_Inequality(array, equal), "!= must be false for equal arrays")
         Assert.IsFalse (EquatableArray<int>.op_Equality(array, different), "== must be false for different arrays")
@@ -145,14 +145,14 @@ type EquatableArrayInteropTests () =
 
     [<TestMethod>]
     member _.``IReadOnlyList gives the count, the elements and their order`` () =
-        let list = ea [ 10; 20; 30 ] :> IReadOnlyList<int>
+        let list = ea [| 10; 20; 30 |] :> IReadOnlyList<int>
         Assert.HasCount (3, list, "the count must be the length")
         Assert.AreEqual (20, list[1], "the indexer must give the element")
         CollectionAssert.AreEqual ([| 10; 20; 30 |], Seq.toArray list, "the enumeration must keep the order")
 
     [<TestMethod>]
-    member _.``IList is read-only`` () =
-        let list = ea [ 10; 20; 30 ] :> IList<int>
+    member _.``IList reads like an array`` () =
+        let list = ea [| 10; 20; 30 |] :> IList<int>
         Assert.IsTrue (list.IsReadOnly, "the array must report that it is read-only")
         Assert.AreEqual (1, list.IndexOf 20, "IndexOf must find the element")
         Assert.IsTrue (list.Contains 30, "Contains must find the element")
@@ -160,25 +160,32 @@ type EquatableArrayInteropTests () =
         list.CopyTo (target, 1)
         CollectionAssert.AreEqual ([| 0; 10; 20; 30 |], target, "CopyTo must copy the elements to the index")
 
-        let writers : (string * (unit -> unit)) list = [
-            "Add", (fun () -> list.Add 40)
-            "Clear", (fun () -> list.Clear ())
-            "Remove", (fun () -> list.Remove 10 |> ignore)
-            "Insert", (fun () -> list.Insert (0, 5))
-            "RemoveAt", (fun () -> list.RemoveAt 0)
-            "the indexer setter", (fun () -> list[0] <- 5)
-        ]
+    [<TestMethod;
+      DataRow "Add";
+      DataRow "Clear";
+      DataRow "Remove";
+      DataRow "Insert";
+      DataRow "RemoveAt";
+      DataRow "the indexer setter">]
+    member _.``IList rejects the members that write`` (operation : string) =
+        let list = ea [| 10; 20; 30 |] :> IList<int>
 
-        for name, write in writers do
-            Assert.ThrowsExactly<NotSupportedException>(
-                (fun () -> write ()),
-                $"%s{name} must throw, because the array is read-only"
-            )
-            |> ignore
+        let write () =
+            match operation with
+            | "Add" -> list.Add 40
+            | "Clear" -> list.Clear ()
+            | "Remove" -> list.Remove 10 |> ignore
+            | "Insert" -> list.Insert (0, 5)
+            | "RemoveAt" -> list.RemoveAt 0
+            | "the indexer setter" -> list[0] <- 5
+            | _ -> failwith $"The test does not know the operation %s{operation}."
+
+        Assert.ThrowsExactly<NotSupportedException>((fun () -> write ()), "the array is read-only, so the operation must throw")
+        |> ignore
 
     [<TestMethod>]
     member _.``AsSpan and AsMemory show the elements without a copy`` () =
-        let array = ea [ 1; 2; 3 ]
+        let array = ea [| 1; 2; 3 |]
         CollectionAssert.AreEqual ([| 1; 2; 3 |], array.AsSpan().ToArray(), "the span must show the elements")
         let mutable segment = ArraySegment<int>()
         Assert.IsTrue (MemoryMarshal.TryGetArray (array.AsMemory (), &segment), "the memory must be backed by an array")
@@ -186,7 +193,7 @@ type EquatableArrayInteropTests () =
 
     [<TestMethod>]
     member _.``FSharp.Core and LINQ read the elements`` () =
-        let array = ea [ 1; 2; 3 ]
+        let array = ea [| 1; 2; 3 |]
         Assert.AreEqual (3, Seq.length array, "Seq.length must count the elements")
         CollectionAssert.AreEqual ([| 1; 2; 3 |], Seq.toArray array, "Seq.toArray must copy the elements in order")
         Assert.AreEqual (3, Enumerable.Count array, "Enumerable.Count must count the elements")

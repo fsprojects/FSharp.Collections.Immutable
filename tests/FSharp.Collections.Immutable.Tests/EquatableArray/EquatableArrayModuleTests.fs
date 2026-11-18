@@ -21,7 +21,7 @@ type EquatableArrayModuleTests () =
         let source = [| 1; 2; 3 |]
         let array = EquatableArray.ofArray source
         source[0] <- 9
-        Assert.AreEqual (ea [ 1; 2; 3 ], array, "a later change of the source must not change the result")
+        Assert.AreEqual (ea [| 1; 2; 3 |], array, "a later change of the source must not change the result")
         Assert.AreNotSame<int array | null>(source, underlying array.Items, "ofArray must not share the source")
 
     [<TestMethod>]
@@ -73,9 +73,9 @@ type EquatableArrayModuleTests () =
         let source = [| 1; 2; 3 |]
         let array = EquatableArray.ofSeq source
         source[0] <- 9
-        Assert.AreEqual (ea [ 1; 2; 3 ], array, "a later change of the source array must not change the result")
-        Assert.AreEqual (ea [ 1; 2 ], EquatableArray.ofSeq (List<int> [ 1; 2 ]), "ofSeq must copy a List")
-        Assert.AreEqual (ea [ 0; 1; 2 ], EquatableArray.ofSeq (Seq.init 3 id), "ofSeq must read a lazy sequence")
+        Assert.AreEqual (ea [| 1; 2; 3 |], array, "a later change of the source array must not change the result")
+        Assert.AreEqual (ea [| 1; 2 |], EquatableArray.ofSeq (List<int> [| 1; 2 |]), "ofSeq must copy a List")
+        Assert.AreEqual (ea [| 0; 1; 2 |], EquatableArray.ofSeq (Seq.init 3 id), "ofSeq must read a lazy sequence")
 
     [<TestMethod>]
     member _.``ofSeq shares an ImmutableArray and rejects a default one`` () =
@@ -108,7 +108,7 @@ type EquatableArrayModuleTests () =
     [<TestMethod>]
     member _.``singleton holds one element`` () =
         let array = EquatableArray.singleton "a"
-        Assert.AreEqual (1, array.Length, "singleton must hold one element")
+        Assert.HasCount (1, array, "singleton must hold one element")
         Assert.AreEqual ("a", array[0], "singleton must hold the given element")
 
     [<TestMethod>]
@@ -122,9 +122,9 @@ type EquatableArrayModuleTests () =
     [<TestMethod>]
     member _.``unsafeOfArray works as a first-class function`` () =
         let arrays =
-            [ [| 1 |]; [| 2; 3 |] ]
-            |> List.map EquatableArray.unsafeOfArray
-        Assert.AreEqual<EquatableArray<int> list>([ ea [ 1 ]; ea [ 2; 3 ] ], arrays, "unsafeOfArray must work in List.map")
+            [| [| 1 |]; [| 2; 3 |] |]
+            |> Array.map EquatableArray.unsafeOfArray
+        CollectionAssert.AreEqual ([| ea [| 1 |]; ea [| 2; 3 |] |], arrays, "unsafeOfArray must work in Array.map")
 
     [<TestMethod>]
     member _.``unsafeOfArray rejects null`` () =
@@ -143,25 +143,25 @@ type EquatableArrayModuleTests () =
     member _.``isEmpty is true only without elements`` () =
         Assert.IsTrue (EquatableArray.isEmpty EquatableArray.empty<int>, "the empty array must be empty")
         Assert.IsTrue (EquatableArray.isEmpty Unchecked.defaultof<EquatableArray<int>>, "the default value must be empty")
-        Assert.IsFalse (EquatableArray.isEmpty (ea [ 1 ]), "an array with an element must not be empty")
+        Assert.IsFalse (EquatableArray.isEmpty (ea [| 1 |]), "an array with an element must not be empty")
 
     [<TestMethod>]
     member _.``length counts the elements`` () =
         Assert.AreEqual (0, EquatableArray.length Unchecked.defaultof<EquatableArray<int>>, "the default value has no elements")
-        Assert.AreEqual (3, EquatableArray.length (ea [ 1; 2; 3 ]), "length must count every element")
+        Assert.AreEqual (3, EquatableArray.length (ea [| 1; 2; 3 |]), "length must count every element")
 
     [<TestMethod>]
     member _.``map applies the function to each element in order`` () =
         let calls = List<int>()
 
         let mapped =
-            ea [ 1; 2; 3 ]
+            ea [| 1; 2; 3 |]
             |> EquatableArray.map (fun item ->
                 calls.Add item
                 string (item * 10)
             )
 
-        Assert.AreEqual (ea [ "10"; "20"; "30" ], mapped, "map must apply the function to each element")
+        Assert.AreEqual (ea [| "10"; "20"; "30" |], mapped, "map must apply the function to each element")
         CollectionAssert.AreEqual ([| 1; 2; 3 |], calls.ToArray (), "map must call the function once per element, in order")
         Assert.IsTrue (
             (EquatableArray.map string Unchecked.defaultof<EquatableArray<int>>).IsEmpty,

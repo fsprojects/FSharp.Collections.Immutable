@@ -17,14 +17,19 @@ type EquatableArrayPatternTests () =
         | ArrN 4 -> $"four {array[3]}"
         | _ -> "more"
 
-    [<TestMethod>]
-    member _.``each length matches its pattern and longer arrays fall through`` () =
-        Assert.AreEqual ("none", describe EquatableArray.empty, "the empty array must match Arr0")
-        Assert.AreEqual ("one 1", describe (ea [ 1 ]), "one element must match Arr1")
-        Assert.AreEqual ("two 1 2", describe (ea [ 1; 2 ]), "two elements must match Arr2")
-        Assert.AreEqual ("three 1 2 3", describe (ea [ 1; 2; 3 ]), "three elements must match Arr3")
-        Assert.AreEqual ("four 4", describe (ea [ 1; 2; 3; 4 ]), "four elements must match ArrN 4")
-        Assert.AreEqual ("more", describe (ea [ 1; 2; 3; 4; 5 ]), "five elements must fall through to the next case")
+    /// The elements of arrays of none to five elements, with the text that `describe` gives for each.
+    static member Lengths = seq {
+        struct ([||], "none")
+        struct ([| 1 |], "one 1")
+        struct ([| 1; 2 |], "two 1 2")
+        struct ([| 1; 2; 3 |], "three 1 2 3")
+        struct ([| 1; 2; 3; 4 |], "four 4")
+        struct ([| 1; 2; 3; 4; 5 |], "more")
+    }
+
+    [<TestMethod; DynamicData(nameof EquatableArrayPatternTests.Lengths)>]
+    member _.``each length matches its pattern and longer arrays fall through`` (elements : int array, expected : string) =
+        Assert.AreEqual (expected, describe (ea elements), "the array must match the pattern of its length, or fall through")
 
     [<TestMethod>]
     member _.``the default value matches Arr0`` () =
@@ -33,7 +38,7 @@ type EquatableArrayPatternTests () =
     [<TestMethod>]
     member _.``a struct tuple payload also binds with the struct keyword`` () =
         let sum =
-            match ea [ 1; 2 ] with
+            match ea [| 1; 2 |] with
             | Arr2 (struct (first, second)) -> first + second
             | _ -> 0
 
@@ -42,7 +47,7 @@ type EquatableArrayPatternTests () =
     [<TestMethod>]
     member _.``a pattern nested in a union case matches the children`` () =
         let sum =
-            match Branch (ea [ Leaf 1; Leaf 2 ]) with
+            match Branch (ea [| Leaf 1; Leaf 2 |]) with
             | Branch (Arr2 (Leaf first, Leaf second)) -> first + second
             | _ -> 0
 
