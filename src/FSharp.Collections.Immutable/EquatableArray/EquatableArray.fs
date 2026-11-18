@@ -36,20 +36,46 @@ type internal ElementComparer<'T> private () =
 
     static member Instance = comparer
 
-/// The nesting of EquatableArray displays on the current thread. %A starts a new formatter for each nested display, so
-/// its own depth limit and cycle check do not reach through them; this counter does.
+/// The limits of the displays of EquatableArray values on the current thread. %A starts a new formatter for each nested
+/// display, so its own limits (the depth, the size and the cycle check) do not reach through the nested displays; these
+/// limits do. Without them, a cycle through a mutable record recurses until the stack overflows. A tree that holds the
+/// same child twice shows the child again for each reference, so its text and the work double with each level: a tree of
+/// 20 such levels gave 21 million characters in 90 seconds.
 [<AbstractClass; Sealed>]
-type internal DisplayDepth private () =
+type internal DisplayLimits private () =
 
     [<ThreadStatic; DefaultValue>]
     static val mutable private depth : int
 
-    /// The nesting at which a display shows "...", as %A does at its own default depth limit.
-    static member Limit = 100
+    [<ThreadStatic; DefaultValue>]
+    static val mutable private displays : int
 
-    static member Current = DisplayDepth.depth
-    static member Enter () = DisplayDepth.depth <- DisplayDepth.depth + 1
-    static member Exit () = DisplayDepth.depth <- DisplayDepth.depth - 1
+    /// The nesting at which a display shows "...", as %A does at its own default depth limit.
+    static member MaxDepth = 100
+
+    /// The number of displays, nested or not, that one outermost display starts before the next ones show "...". %A
+    /// bounds each display, so this bounds the work and the text of the whole display. In a measurement, 1 000
+    /// displays took about 0.1 s and gave at most 40 KB of text, and a tree of 511 arrays was shown completely.
+    static member MaxDisplays = 1000
+
+    /// Starts a display. Returns false, and starts nothing, when the display has to show "..." instead. A display that
+    /// starts must call Exit when it is done.
+    static member TryEnter () : bool =
+        // The outermost display starts a new budget; the displays inside it share it
+        if DisplayLimits.depth = 0 then
+            DisplayLimits.displays <- 0
+
+        if
+            DisplayLimits.depth >= DisplayLimits.MaxDepth
+            || DisplayLimits.displays >= DisplayLimits.MaxDisplays
+        then
+            false
+        else
+            DisplayLimits.depth <- DisplayLimits.depth + 1
+            DisplayLimits.displays <- DisplayLimits.displays + 1
+            true
+
+    static member Exit () = DisplayLimits.depth <- DisplayLimits.depth - 1
 
 [<Struct; CustomEquality; CustomComparison>]
 [<CollectionBuilder(typeof<EquatableArray>, "Create")>]
@@ -149,17 +175,15 @@ type EquatableArray<[<EqualityConditionalOn; ComparisonConditionalOn>] 'T> =
     // which would hide the children of a syntax tree. %A reads this property through reflection, also when it is
     // private.
     member private this.StructuredDisplayText : string =
-        // Each nested display starts a new %A formatter, which resets its depth limit and cycle check. Without a shared
-        // guard, a cycle through a mutable record or a very deep tree recurses until the stack overflows. The guard
-        // shows "..." at its limit, as %A does; the stack check also protects a thread with a small stack.
+        // Each nested display starts a new %A formatter, which resets its depth limit, its size budget and its cycle
+        // check. The limits that the nested displays share (see DisplayLimits) show "..." at their end, as %A does; the
+        // stack check also protects a thread with a small stack.
         if
-            DisplayDepth.Current >= DisplayDepth.Limit
-            || not (RuntimeHelpers.TryEnsureSufficientExecutionStack ())
+            not (RuntimeHelpers.TryEnsureSufficientExecutionStack ())
+            || not (DisplayLimits.TryEnter ())
         then
             "..."
         else
-            DisplayDepth.Enter ()
-
             try
                 // Items is never a default array, so its underlying array is never null
                 let items =
@@ -169,7 +193,7 @@ type EquatableArray<[<EqualityConditionalOn; ComparisonConditionalOn>] 'T> =
 
                 $"%A{items}"
             finally
-                DisplayDepth.Exit ()
+                DisplayLimits.Exit ()
 
     override this.ToString () : string = this.StructuredDisplayText
 
