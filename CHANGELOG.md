@@ -25,7 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `sortRangeWith`, `sortRangeWithComparer`, `sortWith`, `sortWithComparer`, `toArray` and `updateAt`. The functions that
   change the builder return it. `replace` and `replaceWith` leave the builder as it is when no element equals the old
   value, as `ImmutableArray<'T>.Builder.Replace` does, where `FlatList.replace` throws `ArgumentException`.
-* `flatList { }` builds a flat list.
+* `flatList { }` builds a flat list. A `for` loop in it reads a flat list or an array without boxing it. The compiler
+  chooses the overload of `for` by the type of the source, so the type of the source must be known where the loop is
+  written, as for `yield!`: a function parameter without a type annotation needs one.
 * `FlatList.Parallel` has every function of the FSharp.Core `Array.Parallel` module except the in-place sorts, with its
   semantics and exceptions. Its `tryFind`, `tryFindIndex` and `tryPick` return `voption`, `choose` and `tryPick` take
   functions that return `voption`, and `groupBy`, `partition`, `partitionWith` and `zip` return struct tuples; the

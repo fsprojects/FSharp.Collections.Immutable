@@ -12,7 +12,10 @@ type FlatListBuffer<'T> = FlatList<'T>.Builder -> unit
 /// </summary>
 /// <remarks>
 /// The expression collects its elements in an <see cref="T:System.Collections.Immutable.ImmutableArray`1.Builder"/> and
-/// returns them without a copy when the builder is full (ADR 0001, D7).
+/// returns them without a copy when the builder is full (ADR 0001, D7). A <see langword="for"/> loop reads a flat list or
+/// an array directly, without boxing it, and any other source as a sequence. The compiler chooses the overload of
+/// <see langword="for"/> by the type of the source, which must be known where the loop is written, as for
+/// <see langword="yield!"/>: the source of a loop in a function needs a type annotation when its parameter has none.
 /// </remarks>
 [<Sealed>]
 type FlatListCE =
@@ -52,6 +55,14 @@ type FlatListCE =
     /// <summary>Adds the elements of the body for each item of a sequence.</summary>
     /// <exception cref="T:System.ArgumentNullException">Thrown when the sequence is <see langword="null"/> or a default flat list.</exception>
     member inline For : source : seq<'U> * [<InlineIfLambda>] body : ('U -> FlatListBuffer<'T>) -> FlatListBuffer<'T>
+
+    /// <summary>Adds the elements of the body for each item of an array.</summary>
+    /// <exception cref="T:System.ArgumentNullException">Thrown when the array is <see langword="null"/>.</exception>
+    member inline For : source : 'U array * [<InlineIfLambda>] body : ('U -> FlatListBuffer<'T>) -> FlatListBuffer<'T>
+
+    /// <summary>Adds the elements of the body for each item of a flat list.</summary>
+    /// <exception cref="T:System.ArgumentNullException">Thrown when the flat list is a default flat list.</exception>
+    member inline For : source : FlatList<'U> * [<InlineIfLambda>] body : ('U -> FlatListBuffer<'T>) -> FlatListBuffer<'T>
 
     /// <summary>Adds the elements of the body while the guard holds.</summary>
     member inline While : [<InlineIfLambda>] guard : (unit -> bool) * body : FlatListBuffer<'T> -> FlatListBuffer<'T>

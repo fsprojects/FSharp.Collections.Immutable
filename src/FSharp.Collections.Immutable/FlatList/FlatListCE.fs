@@ -43,6 +43,22 @@ type FlatListCE () =
             for item in source do
                 body item builder
 
+    member inline _.For (source : 'U array, [<InlineIfLambda>] body : 'U -> FlatListBuffer<'T>) : FlatListBuffer<'T> =
+        // The check is in the function that the member returns: a statement before that function costs one more closure
+        // for each loop, so that a loop inside a loop allocates for each inner loop
+        fun builder ->
+            checkNotNull (nameof source) source
+
+            for item in source do
+                body item builder
+
+    member inline _.For (source : FlatList<'U>, [<InlineIfLambda>] body : 'U -> FlatListBuffer<'T>) : FlatListBuffer<'T> =
+        // The overload for sequences would box the flat list and read it through an enumerator object. The check is in the
+        // returned function for the reason given at the overload for arrays
+        fun builder ->
+            for item in unwrapArray (nameof source) source do
+                body item builder
+
     member inline _.While ([<InlineIfLambda>] guard : unit -> bool, body : FlatListBuffer<'T>) : FlatListBuffer<'T> =
         fun builder ->
             while guard () do
