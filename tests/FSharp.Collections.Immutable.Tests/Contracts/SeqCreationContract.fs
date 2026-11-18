@@ -47,9 +47,11 @@ type SeqCreationContract<'C> (ops : SeqCreationOps<'C>) =
     member this.``ofArray throws for a null array as FSharp.Core does`` () =
         let source = Unchecked.defaultof<int array>
 
+        // List.ofArray reads a null array without a check and fails with NullReferenceException, while a null input throws
+        // ArgumentNullException (ADR 0001, D6), as Array.toList does for the same conversion
         this.ThrowsLikeFSharpCore (
             (fun () -> Array.copy source),
-            (fun () -> List.ofArray source),
+            (fun () -> Array.toList source),
             (fun () -> ops.OfArray source),
             "ofArray of a null array must throw"
         )
@@ -99,6 +101,18 @@ type SeqCreationContract<'C> (ops : SeqCreationOps<'C>) =
             (fun () -> List.ofSeq source),
             (fun () -> ops.OfSeq source),
             "ofSeq of a null sequence must throw"
+        )
+
+    [<TestMethod>]
+    member _.``ofSeq rejects a default flat list given as a sequence as it rejects a null sequence`` () =
+        let nullSource = Unchecked.defaultof<seq<int>>
+
+        // The default flat list is a boxed struct, not null: it fails with InvalidOperationException when it is enumerated
+        ExceptionAssert.Same (
+            id,
+            (fun () -> ops.OfSeq nullSource |> ignore),
+            (fun () -> ops.OfSeq (Inputs.DefaultFlatListAsSeq<int>()) |> ignore),
+            $"%s{ops.Name}.ofSeq of a default flat list must throw what it throws for a null sequence"
         )
 
     [<TestMethod; DynamicData(nameof Inputs.All, typeof<Inputs>)>]
