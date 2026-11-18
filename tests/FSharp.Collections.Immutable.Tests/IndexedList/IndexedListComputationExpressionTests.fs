@@ -234,3 +234,16 @@ type IndexedListComputationExpressionTests () =
 
         Assert.IsTrue (disposed, "indexedList must dispose the resource of use")
         CollectionAssert.AreEqual ([| 1 |], IndexedList.toArray list, "indexedList must keep the elements of the body of use")
+
+    [<TestMethod; Timeout 5000; DynamicData(nameof LongLists.Kinds, typeof<LongLists>)>]
+    member _.``yield! copies a long list before the BCL builds the tree`` (kind : string) =
+        let list = indexedList {
+            yield "first" :> obj
+            yield! LongLists.Create kind
+        }
+
+        CollectionAssert.AreEqual (
+            Array.append [| "first" |] LongLists.Elements,
+            IndexedList.toArray list,
+            "indexedList must keep the elements of a long list in yield! in order, after the elements before it"
+        )

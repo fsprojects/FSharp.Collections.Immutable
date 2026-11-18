@@ -105,7 +105,8 @@ let add (value : 'T) (builder : IndexedList<'T>.Builder) =
 let addRange (values : seq<'T>) (builder : IndexedList<'T>.Builder) =
     // The member would name a null sequence items, and it fails while it enumerates a default flat list (ADR 0001, D6)
     checkNotNullOrDefaultSeq (nameof values) values
-    builder.AddRange values
+    // AddRange builds the tree of the values by indexing, which takes O(n²) for an F# list (see Snapshot.forTree)
+    builder.AddRange (Snapshot.forTree values)
     builder
 
 [<CompiledName "Clear">]
@@ -123,8 +124,12 @@ let insertManyAt index (values : seq<'T>) (builder : IndexedList<'T>.Builder) =
     // The member checks the index before the values, so an index out of range wins over a missing sequence
     if index >= 0 && index <= builder.Count then
         checkNotNullOrDefaultSeq (nameof values) values
+        // InsertRange builds the tree of the values by indexing, as AddRange does (see addRange)
+        builder.InsertRange (index, Snapshot.forTree values)
+    else
+        // The member throws for the index
+        builder.InsertRange (index, values)
 
-    builder.InsertRange (index, values)
     builder
 
 [<CompiledName "Remove">]

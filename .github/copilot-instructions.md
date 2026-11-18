@@ -35,6 +35,8 @@ module's `.fsi` and the `.fs` on its `.fs`, so that Visual Studio shows them as 
 │   │   ├── ListArrays.fs                               – the List functions of two or three lists, over arrays
 │   │   ├── Snapshot.fs                                 – the snapshots in arrays of the collections without an underlying array
 │   │   ├── Collectors.fs                               – the accumulators that build an indexed list from many collections
+│   │   ├── Walk.fs                                     – the loops over an indexed list with the enumerator that is faster for the element type
+│   │   ├── Buffers.fs                                  – the arrays, new or rented, in which the elements of a result wait for their tree
 │   │   ├── Lengths.fs                                  – the lengths of queues and stacks, counted as far as a caller needs
 │   │   ├── DescendingSorts.fs                          – the stable descending sorts in the order of F# generic comparison
 │   │   └── ListRanges.fs                               – the range checks of the functions that wrap members of ImmutableList
