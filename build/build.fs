@@ -277,10 +277,18 @@ let updateChangelog ctx =
             latestEntry
         else
             let latest = changelog.LatestEntry
+            // The latest entry of a prerelease is the version that is being built, so its CI package keeps that version:
+            // 2.0.0-ci for 2.0.0-alpha.1. After a release the CI package is the next patch: 1.5.1-ci for 1.5.0
+            let patch =
+                if latest.SemVer.PreRelease.IsSome then
+                    latest.SemVer.Patch
+                else
+                    latest.SemVer.Patch + 1u
+
             let semVer = {
                 latest.SemVer with
                     Original = None
-                    Patch = latest.SemVer.Patch + 1u
+                    Patch = patch
                     PreRelease = PreRelease.TryParse "ci"
             }
             {
