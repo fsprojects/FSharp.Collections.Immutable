@@ -83,6 +83,14 @@
     <Compile Include="HashMap\IMapTests.fs" />
     <Compile Include="HashMap\IMapOptionTests.fs" />
     <Compile Include="HashMap\IMapTupleTests.fs" />
+    <Compile Include="FrozenMap\FrozenMapOps.fs" />
+    <Compile Include="FrozenMap\FrozenMapContractTests.fs" />
+    <Compile Include="FrozenMap\FrozenMapTests.fs" />
+    <Compile Include="FrozenMap\FrozenMapExtensionsTests.fs" />
+    <Compile Include="FrozenMap\CustomComparersFrozenMapTests.fs" />
+    <Compile Include="FrozenMap\FrozenMapComputationExpressionTests.fs" />
+    <Compile Include="FrozenMap\FrozenMapOptionTests.fs" />
+    <Compile Include="FrozenMap\FrozenMapTupleTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
