@@ -4,7 +4,7 @@ open System
 open Microsoft.VisualStudio.TestTools.UnitTesting
 
 /// <summary>
-/// The assertions on options, value options, results and the length of spans that extend
+/// The assertions on options, value options and results that extend
 /// <see cref="T:Microsoft.VisualStudio.TestTools.UnitTesting.Assert"/>.
 /// </summary>
 [<TestClass; AssertExtensionsTestCategory>]
@@ -154,22 +154,3 @@ type AssertExtensionsTests () =
         assertContains number "the number must be the default" "IsDefaultOf must fail with its message on a non-default number"
         let option = failureOf (fun () -> Assert.IsDefaultOf (Some 1, "the option must be the default"))
         assertContains option "the option must be the default" "IsDefaultOf must fail with its message on a non-default option"
-
-    // ---- span length ----
-
-    [<TestMethod; DataRow 0; DataRow 1; DataRow 5>]
-    member _.``HasLength passes for a span of the expected length`` (length : int) =
-        Assert.HasLength (length, ReadOnlySpan<int>(Array.zeroCreate length), "message")
-
-    [<TestMethod; DataRow 0; DataRow 3>]
-    member _.``HasLength fails with the message and both lengths for a span of another length`` (expected : int) =
-        let failure =
-            failureOf (fun () -> Assert.HasLength (expected, ReadOnlySpan<int> [| 1; 2 |], "the span has the wrong length"))
-        assertContains failure "the span has the wrong length" "HasLength must fail with its message"
-        assertContains failure $"Expected length: %d{expected}." "HasLength must name the expected length"
-        assertContains failure "Actual: 2." "HasLength must name the actual length"
-
-    [<TestMethod>]
-    member _.``HasLength fails without a message too`` () =
-        let failure = failureOf (fun () -> Assert.HasLength (1, ReadOnlySpan<int>.Empty))
-        assertContains failure "Expected length: 1. Actual: 0." "HasLength must name both lengths without a message"

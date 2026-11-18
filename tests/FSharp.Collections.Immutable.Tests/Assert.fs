@@ -1,8 +1,7 @@
 /// <summary>
 /// Assertions on F# <see cref="T:Microsoft.FSharp.Core.FSharpOption`1"/>,
 /// <see cref="T:Microsoft.FSharp.Core.FSharpValueOption`1"/> and <see cref="T:Microsoft.FSharp.Core.FSharpResult`2"/>
-/// values, and on the length of a span, as extensions of
-/// <see cref="T:Microsoft.VisualStudio.TestTools.UnitTesting.Assert"/>.
+/// values as extensions of <see cref="T:Microsoft.VisualStudio.TestTools.UnitTesting.Assert"/>.
 /// <para>
 /// The assertions whose names start with <c>Want</c> return the unwrapped value or fail the test; their <c>Is</c>
 /// twins discard the value.
@@ -11,7 +10,6 @@
 [<AutoOpen>]
 module FSharp.Collections.Immutable.Tests.AssertExtensions
 
-open System
 open System.Runtime.InteropServices
 open Microsoft.VisualStudio.TestTools.UnitTesting
 
@@ -134,22 +132,3 @@ type Assert with
     /// </summary>
     static member inline ErrorEquals<'R, ^E> (expected : ^E, actual : Result<'R, ^E>, [<Optional>] message : string | null) =
         Assert.AreEqual (box expected, box (Assert.WantError (actual, message)), message)
-
-    /// <summary>
-    /// Fails the test with <paramref name="message"/> unless <paramref name="actual"/> has exactly
-    /// <paramref name="expected"/> elements.
-    /// </summary>
-    /// <remarks>
-    /// <c>Assert.HasCount</c> takes an <see cref="T:System.Collections.Generic.IEnumerable`1"/>, which a span is not.
-    /// </remarks>
-    static member HasLength (expected : int, actual : ReadOnlySpan<'T>, [<Optional>] message : string | null) =
-        let length = actual.Length
-
-        if length <> expected then
-            let description =
-                match message with
-                | null
-                | "" -> ""
-                | message -> $" '{message}'"
-
-            Assert.Fail $"Assert.HasLength failed. Expected length: {expected}. Actual: {length}.{description}"
