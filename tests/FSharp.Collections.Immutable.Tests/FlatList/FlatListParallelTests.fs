@@ -422,6 +422,26 @@ type FlatListParallelTests () =
             "FlatList.Parallel.collect must name the mapping as the source of the default flat list"
         )
 
+    [<TestMethod; DataRow 32768; DataRow 65537>]
+    member _.``collect throws for a total length that does not fit an array as Array.Parallel.collect does`` (count : int) =
+        // The mapping returns the same flat list for every element, so that the input is small and the output would not
+        // fit: the lengths add up to 2^31 for the first count and a little more than 2^32 for the second
+        let part = Array.zeroCreate<int> 65536
+        let flatList = FlatList.ofArray part
+
+        ExceptionAssert.Same (
+            id,
+            (fun () ->
+                Array.Parallel.collect (fun _ -> part) (Array.zeroCreate<int> count)
+                |> ignore
+            ),
+            (fun () ->
+                FlatList.Parallel.collect (fun _ -> flatList) (FlatList.ofArray (Array.zeroCreate<int> count))
+                |> ignore
+            ),
+            $"FlatList.Parallel.collect of %d{count} flat lists of 65536 elements must throw what Array.Parallel.collect throws"
+        )
+
     [<TestMethod; DynamicData(nameof FlatListParallelTests.InputsAndPredicates)>]
     member _.``filter keeps the elements that satisfy the predicate in their order``
         (input : ParallelInput, predicate : ParallelPredicate)

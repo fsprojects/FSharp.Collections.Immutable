@@ -409,14 +409,52 @@ let collect (mapping : 'T -> FlatList<'U>) (array : FlatList<'T>) =
 
     builder.DrainToImmutable ()
 
+/// Joins flat lists into one, in their order. The flat lists are read twice, to add up their lengths and to copy them, so
+/// the array must not change meanwhile. A default flat list throws ArgumentNullException for the parameter of the name.
+let private joinFlatLists (name : string) (parts : FlatList<'T> array) =
+    let mutable total = 0L
+    let mutable nonEmpty = 0
+    let mutable last = empty
+
+    for part in parts do
+        checkNotDefault name part
+
+        if part.Length > 0 then
+            total <- total + int64 part.Length
+            nonEmpty <- nonEmpty + 1
+            last <- part
+
+    if nonEmpty <= 1 then
+        // Nothing to join: the only flat list with elements is the result, as append returns its other flat list
+        last
+    elif total > int64 Int32.MaxValue then
+        // The result does not fit an array. Array.concat reports it as it does for any arrays: it adds up the lengths in
+        // an int, which wraps around, so that it throws OverflowException or ArgumentException, depending on the total
+        Array.concat (Array.map (unwrapArray name) parts)
+        |> wrapArray
+    else
+        let result = Array.zeroCreate (int total)
+        let mutable offset = 0
+
+        for part in parts do
+            part.CopyTo (result, offset)
+            offset <- offset + part.Length
+
+        wrapArray result
+
 [<CompiledName "Concat">]
 let concat (arrays : seq<FlatList<'T>>) =
     checkNotNullOrDefaultSeq (nameof arrays) arrays
 
-    arrays
-    |> Seq.map (fun array -> unwrapArray (nameof arrays) array)
-    |> Array.concat
-    |> wrapArray
+    // Array.concat reads an array of arrays in place and takes a snapshot of any other sequence, which is also what the
+    // two passes of the join need. The array under a flat list cannot change
+    let parts =
+        match arrays with
+        | :? FlatList<FlatList<'T>> as outer -> unwrapArray (nameof arrays) outer
+        | :? (FlatList<'T> array) as outer -> outer
+        | _ -> Seq.toArray arrays
+
+    joinFlatLists (nameof arrays) parts
 
 [<CompiledName "Filter">]
 let filter predicate (array : FlatList<'T>) =
@@ -436,13 +474,23 @@ let insertAt index (value : 'T) (source : FlatList<'T>) =
 [<CompiledName "InsertManyAt">]
 let insertManyAt index (values : seq<'T>) (source : FlatList<'T>) =
     let array = unwrapArray (nameof source) source
+    let inRange = index >= 0 && index <= array.Length
 
     // Array.insertManyAt checks the index before it enumerates the values, and it names the values source then, as
     // Seq.toArray does; the check of the values comes after the one of the index and names the parameter of this function
-    if index >= 0 && index <= array.Length then
+    if inRange then
         checkNotNullOrDefaultSeq (nameof values) values
 
-    Array.insertManyAt index values array |> wrapArray
+    match values with
+    // InsertRange copies the values straight into the result, where Array.insertManyAt copies them into a temporary array
+    // first. It reads the count of the values before it enumerates them, so only the values with a count that cannot
+    // change meanwhile go to it: an array and a flat list. They stay typed as a sequence on purpose: the overload of
+    // InsertRange for an array keeps the array of the caller instead of copying it when the flat list is empty. An empty
+    // flat list is left to Array.insertManyAt: InsertRange would return values that are a flat list as the result, and
+    // values of a derived type, such as strings given as objects, would give a result that is not an array of 'T
+    | :? ('T array)
+    | :? FlatList<'T> when inRange && array.Length > 0 -> source.InsertRange (index, values)
+    | _ -> Array.insertManyAt index values array |> wrapArray
 
 [<CompiledName "Map">]
 let map (mapping : 'T -> 'U) (array : FlatList<'T>) =
@@ -1061,19 +1109,7 @@ module Parallel =
         // As in Array.Parallel.collect, the mapping runs in parallel, and the results are copied in their order into one
         // array of their total length. Array.Parallel.collect dereferences a null result; a default flat list from the
         // mapping throws ArgumentNullException instead, as in the sequential collect (ADR 0001, D6).
-        let results = Array.Parallel.map mapping (unwrapArray (nameof array) array)
-        let mutable length = 0
-
-        for result in results do
-            checkNotDefault (nameof mapping) result
-            length <- length + result.Length
-
-        let builder = ImmutableArray.CreateBuilder<'U> length
-
-        for result in results do
-            builder.AddRange result
-
-        builder.MoveToImmutable ()
+        joinFlatLists (nameof mapping) (Array.Parallel.map mapping (unwrapArray (nameof array) array))
 
     [<CompiledName "Filter">]
     let filter predicate (array : FlatList<'T>) =

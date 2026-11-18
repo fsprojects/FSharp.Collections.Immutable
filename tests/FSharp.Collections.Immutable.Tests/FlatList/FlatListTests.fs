@@ -6,6 +6,15 @@ open System.Runtime.InteropServices
 open FSharp.Collections.Immutable
 open Microsoft.VisualStudio.TestTools.UnitTesting
 
+/// A collection that reports a count and yields another number of elements, as a collection that another thread changes
+/// while it is read does. It is only a collection of a known count: it is not an ICollection, so that a function that
+/// copies a collection with CopyTo does not take it.
+type internal MisreportingCollection (count : int, items : int array) =
+    interface IReadOnlyCollection<int> with
+        member _.Count = count
+        member _.GetEnumerator () : IEnumerator<int> = (items :> seq<int>).GetEnumerator()
+        member _.GetEnumerator () : Collections.IEnumerator = items.GetEnumerator ()
+
 /// The behaviour of `FlatList` that the shared contracts do not cover: default values, shared storage and the extras.
 [<TestClass; FlatListTestCategory>]
 type FlatListTests () =
@@ -464,6 +473,44 @@ type FlatListTests () =
                  after)
         |]
 
+    /// The shapes of a sequence of values, by name, each with the function that makes it from the values. The rows of the
+    /// tests are the names: a function has no readable name in a row.
+    static let sequenceShapes : Map<string, int array -> seq<int>> =
+        Map.ofArray [|
+            "array", (fun values -> Array.copy values :> seq<_>)
+            "list", (fun values -> List.ofArray values :> seq<_>)
+            "lazy sequence", (fun values -> Seq.map id values)
+            "ResizeArray", (fun values -> ResizeArray values :> seq<_>)
+            "flat list", (fun values -> FlatList.ofArray values :> seq<_>)
+        |]
+
+    /// The shapes of a sequence of flat lists, by name, each with the function that makes it from the flat lists.
+    static let outerShapes : Map<string, FlatList<int> array -> seq<FlatList<int>>> =
+        Map.ofArray [|
+            "array", (fun parts -> Array.copy parts :> seq<_>)
+            "list", (fun parts -> List.ofArray parts :> seq<_>)
+            "lazy sequence", (fun parts -> Seq.map id parts)
+            "ResizeArray", (fun parts -> ResizeArray parts :> seq<_>)
+            "flat list", (fun parts -> FlatList.ofArray parts :> seq<_>)
+            "sequence expression",
+            (fun parts -> seq {
+                for part in parts do
+                    yield part
+            })
+        |]
+
+    /// The elements of the flat lists that concat joins, by name.
+    static let partsCases : Map<string, int array array> =
+        Map.ofArray [|
+            "no flat lists", [||]
+            "one empty flat list", [| [||] |]
+            "empty flat lists", [| [||]; [||] |]
+            "one flat list", [| [| 1; 2 |] |]
+            "one flat list among empty ones", [| [||]; [| 3 |]; [||] |]
+            "several flat lists", [| [| 1; 2 |]; [| 3 |]; [| 4; 5; 6 |] |]
+            "several flat lists with empty ones", [| [| 1; 2 |]; [||]; [| 3 |]; [||]; [| 4; 5; 6 |] |]
+        |]
+
     /// Strings whose ordinal order differs from their order in the current culture.
     static let strings () = [| "b"; "A"; "a"; "B" |]
 
@@ -625,6 +672,31 @@ type FlatListTests () =
 
     /// Every index of the strings that binarySearch searches.
     static member StringIndices = seq { 0 .. (strings ()).Length - 1 }
+
+    /// Every shape of a sequence of values with every input, every index to insert at in it, and values: none, one and
+    /// several.
+    static member SequenceShapesAtIndices = seq {
+        for shape in sequenceShapes.Keys do
+            for input in Inputs.All do
+                for index in 0 .. input.Length do
+                    for values in [| [||]; [| 98 |]; [| 98; 99; 100 |] |] do
+                        struct (shape, input, index, values)
+    }
+
+    /// Every shape of a sequence of flat lists with every set of flat lists to join.
+    static member OuterShapesAndParts = seq {
+        for shape in outerShapes.Keys do
+            for name in partsCases.Keys do
+                struct (shape, name)
+    }
+
+    /// The count that a collection reports and the elements that it yields: fewer elements than the count, more, and a
+    /// count of none.
+    static member MisreportedCounts = seq {
+        struct (3, [| 98 |])
+        struct (1, [| 98; 99 |])
+        struct (0, [| 98; 99 |])
+    }
 
     [<TestMethod>]
     member _.``create repeats the value`` () =
@@ -1103,6 +1175,142 @@ type FlatListTests () =
                 FlatList.removeManyWith StringComparer.OrdinalIgnoreCase items (FlatList.ofArray (FlatListOracles.names ()))
             ),
             "FlatList.removeManyWith must remove one element for each value that the comparer finds equal"
+        )
+
+    // ---- insertManyAt and concat ----
+
+    [<TestMethod; DynamicData(nameof FlatListTests.SequenceShapesAtIndices)>]
+    member _.``insertManyAt takes the values as any sequence``
+        (shape : string, input : int array, index : int, values : int array)
+        =
+        CollectionAssert.AreEqual (
+            Array.insertManyAt index values input,
+            FlatList.toArray (FlatList.insertManyAt index (sequenceShapes[shape] values) (FlatList.ofArray input)),
+            $"FlatList.insertManyAt must insert values that are given as a %s{shape}"
+        )
+
+    [<TestMethod; DynamicData(nameof Inputs.All, typeof<Inputs>)>]
+    member _.``insertManyAt copies an array of values`` (input : int array) =
+        // The overload of InsertRange for an array keeps the array of the caller when the flat list is empty, so a write
+        // to the array after the call would change the flat list
+        let values = [| 98; 99 |]
+        let result = FlatList.insertManyAt 0 values (FlatList.ofArray input)
+        values[0] <- 0
+
+        CollectionAssert.AreEqual (
+            Array.append [| 98; 99 |] input,
+            FlatList.toArray result,
+            "FlatList.insertManyAt must copy an array of values"
+        )
+
+    [<TestMethod>]
+    member _.``insertManyAt into an empty flat list of objects gives an array of objects for strings given as objects`` () =
+        // An array of strings, and a flat list of strings, are sequences of objects by covariance. InsertRange would
+        // return their array as the result, which is not an array of objects, so an empty flat list is left to
+        // Array.insertManyAt, which builds a new array of objects
+        let strings = [| "a"; "b" |]
+        let flatListOfStrings = FlatListOracles.stringsAsObjects (FlatList.ofArray strings)
+        let arrayOfStrings = box strings :?> seq<obj>
+
+        Assert.AreEqual<Type>(
+            typeof<obj array>,
+            (underlying (FlatList.insertManyAt 0 flatListOfStrings FlatList.empty)).GetType(),
+            "FlatList.insertManyAt must give an array of objects for a flat list of strings given as objects"
+        )
+
+        Assert.AreEqual<Type>(
+            typeof<obj array>,
+            (underlying (FlatList.insertManyAt 0 arrayOfStrings FlatList.empty)).GetType(),
+            "FlatList.insertManyAt must give an array of objects for an array of strings given as objects"
+        )
+
+    [<TestMethod; DynamicData(nameof FlatListTests.MisreportedCounts)>]
+    member _.``insertManyAt takes the elements that a collection yields, not the count that it reports``
+        (count : int, items : int array)
+        =
+        // InsertRange takes the count of a collection and then enumerates it, which loses or invents elements when the
+        // count is wrong, so only the values with a count that cannot change go to it
+        let input = Inputs.Several
+
+        CollectionAssert.AreEqual (
+            Array.insertManyAt 3 items input,
+            FlatList.toArray (FlatList.insertManyAt 3 (MisreportingCollection (count, items)) (FlatList.ofArray input)),
+            $"FlatList.insertManyAt must insert the elements of a collection that reports a count of %d{count}"
+        )
+
+    [<TestMethod>]
+    member _.``insertManyAt reads a lazy sequence once`` () =
+        let reads = ref 0
+
+        let values = seq {
+            reads.Value <- reads.Value + 1
+            yield 98
+            yield 99
+        }
+
+        let result = FlatList.insertManyAt 3 values (FlatList.ofArray Inputs.Several)
+
+        Assert.AreEqual (1, reads.Value, "FlatList.insertManyAt must enumerate a lazy sequence once")
+
+        CollectionAssert.AreEqual (
+            Array.insertManyAt 3 [| 98; 99 |] Inputs.Several,
+            FlatList.toArray result,
+            "FlatList.insertManyAt must insert the elements of a lazy sequence"
+        )
+
+    [<TestMethod; DynamicData(nameof FlatListTests.OuterShapesAndParts)>]
+    member _.``concat takes the flat lists as any sequence`` (shape : string, name : string) =
+        let parts = partsCases[name]
+
+        CollectionAssert.AreEqual (
+            Array.concat parts,
+            FlatList.toArray (FlatList.concat (outerShapes[shape](Array.map FlatList.ofArray parts))),
+            $"FlatList.concat must join %s{name} that are given as a %s{shape}"
+        )
+
+    [<TestMethod; DataRow 0; DataRow 1; DataRow 3>]
+    member _.``concat returns the only flat list with elements itself`` (empties : int) =
+        let only = FlatList.ofArray [| 1; 2 |]
+        let around = Array.create empties FlatList.empty
+        let parts = Array.concat [| around; [| only |]; around |]
+
+        Assert.AreSame (
+            underlying only,
+            underlying (FlatList.concat parts),
+            $"FlatList.concat must not copy the only flat list with elements, with %d{empties} empty ones around it"
+        )
+
+    [<TestMethod>]
+    member _.``concat reads a lazy sequence once`` () =
+        let reads = ref 0
+
+        let parts = seq {
+            reads.Value <- reads.Value + 1
+            yield FlatList.ofArray [| 1; 2 |]
+            yield FlatList.ofArray [| 3 |]
+        }
+
+        CollectionAssert.AreEqual (
+            [| 1; 2; 3 |],
+            FlatList.toArray (FlatList.concat parts),
+            "FlatList.concat must join the flat lists of a lazy sequence"
+        )
+
+        Assert.AreEqual (1, reads.Value, "FlatList.concat must enumerate a lazy sequence once")
+
+    [<TestMethod; DataRow 32768; DataRow 65536; DataRow 65537>]
+    member _.``concat throws for a total length that does not fit an array as Array.concat does`` (count : int) =
+        // The same flat list is in every part, so that the input is small and the output would not fit: the lengths add
+        // up to 2^31 for the first count, 2^32 for the second and a little more for the third. Array.concat adds them up
+        // in an int, so that it throws OverflowException for the first and ArgumentException for the others
+        let part = Array.zeroCreate<int> 65536
+        let flatList = FlatList.ofArray part
+
+        ExceptionAssert.Same (
+            id,
+            (fun () -> Array.concat (Array.create count part) |> ignore),
+            (fun () -> FlatList.concat (Array.create count flatList) |> ignore),
+            $"FlatList.concat of %d{count} flat lists of 65536 elements must throw what Array.concat throws"
         )
 
     // ---- replace and replaceWith ----
