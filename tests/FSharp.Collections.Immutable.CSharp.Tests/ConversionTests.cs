@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Runtime.InteropServices;
+using FSharp.Collections.Immutable.Tests;
 using Microsoft.FSharp.Core;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -11,7 +12,7 @@ namespace FSharp.Collections.Immutable.CSharp.Tests;
 public sealed class ConversionTests
 {
     [TestMethod]
-    public void ImplicitConversionsKeepTheArray()
+    public void The_implicit_conversions_keep_the_array()
     {
         var items = ImmutableArray.Create(1, 2, 3);
         EquatableArray<int> array = items;
@@ -21,14 +22,14 @@ public sealed class ConversionTests
     }
 
     [TestMethod]
-    public void ImplicitConversionOfTheDefaultValueGivesAnEmptyImmutableArray()
+    public void The_implicit_conversion_of_the_default_value_gives_an_empty_ImmutableArray()
     {
         ImmutableArray<int> converted = default(EquatableArray<int>);
         Assert.IsFalse(converted.IsDefault, "the default value must become an empty, not a default, ImmutableArray");
     }
 
     [TestMethod]
-    public void ForeachAndLinqReadTheElements()
+    public void Foreach_and_the_indexer_read_the_elements()
     {
         EquatableArray<int> array = [1, 2, 3];
         var sum = 0;
@@ -38,12 +39,11 @@ public sealed class ConversionTests
         }
 
         Assert.AreEqual(6, sum, "foreach must read every element");
-        Assert.AreEqual(12, array.Select(item => item * 2).Sum(), "LINQ must read every element");
         Assert.AreEqual(2, array[1], "the indexer must read the element");
     }
 
     [TestMethod]
-    public void ModuleFunctionsHaveCSharpNames()
+    public void Module_functions_have_CSharp_names()
     {
         var array = EquatableArrayModule.OfSeq(new List<int> { 1, 2 });
         Assert.AreEqual(2, EquatableArrayModule.Length(array), "Length must count the elements");

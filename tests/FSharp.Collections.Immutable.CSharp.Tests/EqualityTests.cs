@@ -1,3 +1,4 @@
+using FSharp.Collections.Immutable.Tests;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace FSharp.Collections.Immutable.CSharp.Tests;
@@ -7,10 +8,10 @@ namespace FSharp.Collections.Immutable.CSharp.Tests;
 public sealed class EqualityTests
 {
     [TestMethod]
-    public void OperatorsCompareTheElements()
+    public void The_operators_compare_the_elements()
     {
         EquatableArray<int> left = [1, 2, 3];
-        var right = EquatableArrayModule.OfArray(new[] { 1, 2, 3 });
+        var right = EquatableArrayModule.OfArray([1, 2, 3]);
         EquatableArray<int> different = [3, 2, 1];
 
         // Each operator result goes into a variable, so that the test reads the operator, not an assertion of it
@@ -24,7 +25,7 @@ public sealed class EqualityTests
     }
 
     [TestMethod]
-    public void DefaultValueEqualsTheEmptyArray()
+    public void The_default_value_equals_the_empty_array()
     {
         EquatableArray<int> empty = [];
         var equal = default(EquatableArray<int>) == empty;
@@ -32,10 +33,10 @@ public sealed class EqualityTests
     }
 
     [TestMethod]
-    public void DefaultCollectionsFindEqualArrays()
+    public void Default_collections_find_equal_arrays()
     {
         EquatableArray<int> key = [1, 2];
-        var equal = EquatableArrayModule.OfArray(new[] { 1, 2 });
+        var equal = EquatableArrayModule.OfArray([1, 2]);
         var set = new HashSet<EquatableArray<int>> { key };
         Assert.Contains(equal, set, "a HashSet must find an equal array");
         var dictionary = new Dictionary<EquatableArray<int>, string> { [key] = "found" };
@@ -43,10 +44,10 @@ public sealed class EqualityTests
     }
 
     [TestMethod]
-    public void RecordStructsCompareTheElements() =>
+    public void Record_structs_compare_the_elements() =>
         Assert.AreEqual(
             new Holder("n", [1, 2]),
-            new Holder("n", EquatableArrayModule.OfArray(new[] { 1, 2 })),
+            new Holder("n", EquatableArrayModule.OfArray([1, 2])),
             "a record struct must compare its array member by elements");
 
     /// <summary>A record struct that holds an array, as C# models do.</summary>

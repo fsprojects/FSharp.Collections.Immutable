@@ -1,4 +1,5 @@
 using System.Text.Json;
+using FSharp.Collections.Immutable.Tests;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace FSharp.Collections.Immutable.CSharp.Tests;
@@ -8,7 +9,7 @@ namespace FSharp.Collections.Immutable.CSharp.Tests;
 public sealed class JsonTests
 {
     [TestMethod]
-    public void RecordStructRoundTrips()
+    public void A_record_struct_round_trips()
     {
         var holder = new Holder("n", [1, 2]);
         var json = JsonSerializer.Serialize(holder);

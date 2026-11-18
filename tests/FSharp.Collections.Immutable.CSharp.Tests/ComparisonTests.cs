@@ -1,4 +1,5 @@
 using System.Globalization;
+using FSharp.Collections.Immutable.Tests;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace FSharp.Collections.Immutable.CSharp.Tests;
@@ -8,7 +9,7 @@ namespace FSharp.Collections.Immutable.CSharp.Tests;
 public sealed class ComparisonTests
 {
     [TestMethod]
-    public void SortedSetOrdersByLengthThenByElements()
+    public void A_SortedSet_orders_by_length_then_by_elements()
     {
         EquatableArray<int>[] unsorted = [[3], [1, 2], [1]];
         var sorted = new SortedSet<EquatableArray<int>>(unsorted);
@@ -17,12 +18,15 @@ public sealed class ComparisonTests
     }
 
     [TestMethod]
-    public void StringsCompareOrdinallyInTheTurkishCulture()
+    [DataRow("tr-TR")]
+    [DataRow("en-US")]
+    [DataRow("de-DE")]
+    public void Strings_compare_ordinally_in_every_culture(string culture)
     {
         var previous = CultureInfo.CurrentCulture;
         try
         {
-            CultureInfo.CurrentCulture = new CultureInfo("tr-TR");
+            CultureInfo.CurrentCulture = new CultureInfo(culture);
             EquatableArray<string> lower = ["a"];
             EquatableArray<string> upper = ["B"];
             EquatableArray<string> dotted = ["i"];
