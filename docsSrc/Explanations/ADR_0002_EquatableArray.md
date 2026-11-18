@@ -419,7 +419,6 @@ src/FSharp.Collections.Immutable/
 │   └── EquatableArrayCE.fs                                      – the builder type of equatableArray { }
 └── ComputationExpressions.fs                                    – adds the value equatableArray
 tests/FSharp.Collections.Immutable.Tests/
-├── Assert.fs                                                    – adds Assert.HasLength for spans
 ├── TestCategories.fs                                            – adds the category attributes of §7
 └── EquatableArray/                                              – one test file per operation group
 tests/FSharp.Collections.Immutable.CSharp.Tests/                 – what only the C# compiler binds; uses the categories above
@@ -509,9 +508,9 @@ categories from `TestCategories.fs`, attributes sorted by type name.
 * **Mirrored functions** (step 2 of §6): through the shared contract suites of ADR 0001 (D8), so that no `FlatList` test
   is copied.
 * **Assertions**: whole arrays with `Assert.AreEqual` on `EquatableArray` values, whose equality and `ToString ()` make
-  the failure readable; sizes with `Assert.HasCount` and `Assert.IsEmpty`; the length of a span with
-  `Assert.HasLength`, which `Assert.fs` adds because MSTest has no such method. `CollectionAssert` does not apply: it
-  needs the non-generic `ICollection`.
+  the failure readable; sizes with `Assert.HasCount` and `Assert.IsEmpty`, and the size of a span through its array
+  (`span.ToArray ()`), because MSTest 4.2.3 has no span overloads of these two and newer versions have them.
+  `CollectionAssert` does not apply: it needs the non-generic `ICollection`.
 
 The maintainers chose to cover C# in CI. The C# MSTest project `tests/FSharp.Collections.Immutable.CSharp.Tests` checks
 what only the C# compiler binds: collection expressions, indices and ranges, `==` and `!=`, the default collections,
