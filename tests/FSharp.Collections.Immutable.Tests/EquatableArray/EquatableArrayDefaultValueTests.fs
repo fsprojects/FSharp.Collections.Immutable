@@ -69,9 +69,7 @@ type EquatableArrayDefaultValueTests () =
             (EquatableArray.toImmutableArray defaultValue).IsDefault,
             "toImmutableArray must not give a default ImmutableArray"
         )
-        // MSTest 4.2.3 has no span overloads of Assert.IsEmpty and Assert.HasCount (newer versions have them), so the span
-        // goes through an array; an empty span gives Array.Empty, so the test allocates nothing
-        Assert.IsEmpty (defaultValue.AsSpan().ToArray(), "the span of the default value must be empty")
+        Assert.IsEmpty (defaultValue.AsSpan (), "the span of the default value must be empty")
 
     [<TestMethod>]
     member _.``the default value formats as an empty F# array`` () =
