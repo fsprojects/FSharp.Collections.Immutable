@@ -6,4 +6,7 @@ module FSharp.Collections.Immutable.ComputationExpressions
 let flatList = FlatListCE ()
 
 [<GeneralizableValue>]
+let frozenSet<'T> = FrozenSetCE<'T>()
+
+[<GeneralizableValue>]
 let hashSet<'T> = HashSetCE<'T>()

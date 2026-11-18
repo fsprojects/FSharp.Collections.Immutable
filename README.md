@@ -21,6 +21,7 @@ Please also join the [F# Open Source Group](http://fsharp.github.com)
 | `HashSet` | `ImmutableHashSet<'T>` | `hashSet { }` |
 | `SortedSet` | `ImmutableSortedSet<'T>` | – |
 | `ISet` | `IImmutableSet<'T>` | – |
+| `FrozenSet` | `FrozenSet<'T>` | `frozenSet { }` |
 | `IIndexedSeq` | `IReadOnlyList<'T>` | – |
 
 [Documentation](https://fsprojects.github.io/FSharp.Collections.Immutable/)
