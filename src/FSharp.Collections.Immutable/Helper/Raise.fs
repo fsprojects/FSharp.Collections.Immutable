@@ -65,5 +65,23 @@ let invalidOpListNotEnoughElements (index : int) : 'T =
 /// No element satisfies the predicate of a `find` or `pick` function.
 let indexNotFound () : 'T = raise (KeyNotFoundException ErrorStrings.KeyNotFoundAlt)
 
+/// <summary>
+/// Raises the exception of a map that has no binding of a key, or whose bindings give a chooser no value, as
+/// <see cref="M:Microsoft.FSharp.Collections.MapModule.Find``2(``0,Microsoft.FSharp.Collections.FSharpMap{``0,``1})"/> and
+/// <see cref="M:Microsoft.FSharp.Collections.MapModule.Pick``3(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpFunc{``1,Microsoft.FSharp.Core.FSharpOption{``2}}},Microsoft.FSharp.Collections.FSharpMap{``0,``1})"/> do.
+/// </summary>
+/// <returns>Never: the function always raises. The result is generic so that the call can end a branch of any type.</returns>
+/// <exception cref="T:System.Collections.Generic.KeyNotFoundException">
+/// Always, with the default message of the exception:
+/// <see cref="M:Microsoft.FSharp.Collections.MapModule.Find``2(``0,Microsoft.FSharp.Collections.FSharpMap{``0,``1})"/> and
+/// <see cref="M:Microsoft.FSharp.Collections.MapModule.Pick``3(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpFunc{``1,Microsoft.FSharp.Core.FSharpOption{``2}}},Microsoft.FSharp.Collections.FSharpMap{``0,``1})"/>
+/// give it none of their own.
+/// </exception>
+/// <remarks>
+/// It is not <see cref="M:FSharp.Collections.Immutable.Raise.indexNotFound``1"/>, whose message is the one that the
+/// functions of arrays and lists give to a search that finds nothing.
+/// </remarks>
+let keyNotFound () : 'T = raise (KeyNotFoundException ())
+
 /// A collection has fewer elements than a function needs.
 let notEnoughElements () : 'T = raise (InvalidOperationException ErrorStrings.NotEnoughElements)

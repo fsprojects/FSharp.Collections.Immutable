@@ -30,7 +30,8 @@ module's `.fsi` and the `.fs` on its `.fs`, so that Visual Studio shows them as 
 │   │   ├── Raise.fs                                    – the exceptions of the FSharp.Core DetailedExceptions module
 │   │   ├── ArrayChecks.fs                              – the checks that the functions of several arrays share
 │   │   ├── Arrays.fs                                   – the algorithms over arrays that the default and Tuple modules share
-│   │   └── ParallelArrays.fs                           – the parallel algorithms that the default and Tuple modules share
+│   │   ├── ParallelArrays.fs                           – the parallel algorithms that the default and Tuple modules share
+│   │   └── Dictionaries.fs                             – the algorithms over the bindings of dictionaries that the map modules share
 │   ├── FlatList/                                       – ImmutableArray API surface and builders
 │   │   ├── FlatListTypes.fs                            – the FlatList abbreviation
 │   │   ├── FlatList.fs / FlatList.fsi                  – includes the nested Parallel module
