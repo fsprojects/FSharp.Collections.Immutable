@@ -1,14 +1,26 @@
 namespace FSharp.Collections.Immutable.Tests
 
 open System
-open FSharp.Collections.Immutable
 open Microsoft.VisualStudio.TestTools.UnitTesting
+open FSharp.Quotations
+open FSharp.Collections.Immutable
 
 /// The `flatList { }` computation expression.
 [<TestClass; FlatListTestCategory; ComputationExpressionTestCategory>]
 type FlatListComputationExpressionTests () =
 
     static let defaultArray = Unchecked.defaultof<FlatList<int>>
+
+    /// The types of the first parameter of the For members that an expression calls, in the order of the loops: the
+    /// compiler chooses the overload of For by the type of the source of the loop, so they tell which overload it chose.
+    static let rec loopSources (expression : Expr) : Type list =
+        match expression with
+        | Patterns.Call (_, info, arguments) when info.Name = "For" ->
+            info.GetParameters().[0].ParameterType
+            :: List.collect loopSources arguments
+        | ExprShape.ShapeVar _ -> []
+        | ExprShape.ShapeLambda (_, body) -> loopSources body
+        | ExprShape.ShapeCombination (_, arguments) -> List.collect loopSources arguments
 
 
     [<TestMethod>]
@@ -102,7 +114,204 @@ type FlatListComputationExpressionTests () =
         CollectionAssert.AreEqual ([| 10; 20; 30 |], FlatList.toArray array, "flatList must run the body of for for each item")
 
     [<TestMethod>]
-    member _.``for rejects a default flat list, which it takes as a sequence`` () =
+    member _.``for adds the elements of a flat list in order`` () =
+        let array = flatList {
+            for item in FlatList.ofArray [| 1; 2; 3 |] do
+                yield item * 10
+        }
+
+        CollectionAssert.AreEqual (
+            [| 10; 20; 30 |],
+            FlatList.toArray array,
+            "flatList must run the body of for for each item of a flat list"
+        )
+
+    [<TestMethod>]
+    member _.``for adds the elements of an array in order`` () =
+        let array = flatList {
+            for item in [| 1; 2; 3 |] do
+                yield item * 10
+        }
+
+        CollectionAssert.AreEqual (
+            [| 10; 20; 30 |],
+            FlatList.toArray array,
+            "flatList must run the body of for for each item of an array"
+        )
+
+    [<TestMethod>]
+    member _.``for adds the elements of a list and of a lazy sequence in order`` () =
+        let fromList = flatList {
+            for item in [ 1; 2; 3 ] do
+                yield item * 10
+        }
+
+        let fromSequence = flatList {
+            for item in Seq.map id [| 1; 2; 3 |] do
+                yield item * 10
+        }
+
+        CollectionAssert.AreEqual (
+            [| 10; 20; 30 |],
+            FlatList.toArray fromList,
+            "flatList must run the body of for for each item of a list"
+        )
+
+        CollectionAssert.AreEqual (
+            [| 10; 20; 30 |],
+            FlatList.toArray fromSequence,
+            "flatList must run the body of for for each item of a lazy sequence"
+        )
+
+    [<TestMethod>]
+    member _.``for adds the elements of the flat lists of a flat list in order`` () =
+        let rows = FlatList.ofArray [| FlatList.ofArray [| 1; 2 |]; FlatList.empty; FlatList.ofArray [| 3 |] |]
+
+        let array = flatList {
+            for row in rows do
+                for item in row do
+                    yield item * 10
+        }
+
+        CollectionAssert.AreEqual (
+            [| 10; 20; 30 |],
+            FlatList.toArray array,
+            "flatList must run the inner loop for each item of the outer loop, also when a flat list is empty"
+        )
+
+    [<TestMethod>]
+    member _.``for gives the type of the items to its body for every kind of source`` () =
+        // The body uses a member of the loop variable. The compiler can resolve it only when the overload that it chose
+        // gives the loop variable its type, so the test does not compile when an overload loses the type of the items
+        let names = [| "a"; "bb" |]
+
+        let fromFlatList = flatList {
+            for name in FlatList.ofArray names do
+                yield name.Length
+        }
+
+        let fromArray = flatList {
+            for name in names do
+                yield name.Length
+        }
+
+        let fromList = flatList {
+            for name in List.ofArray names do
+                yield name.Length
+        }
+
+        let fromSequence = flatList {
+            for name in Seq.map id names do
+                yield name.Length
+        }
+
+        CollectionAssert.AreEqual (
+            [| 1; 2 |],
+            FlatList.toArray fromFlatList,
+            "flatList must give the type of the items of a flat list to the body of for"
+        )
+
+        CollectionAssert.AreEqual (
+            [| 1; 2 |],
+            FlatList.toArray fromArray,
+            "flatList must give the type of the items of an array to the body of for"
+        )
+
+        CollectionAssert.AreEqual (
+            [| 1; 2 |],
+            FlatList.toArray fromList,
+            "flatList must give the type of the items of a list to the body of for"
+        )
+
+        CollectionAssert.AreEqual (
+            [| 1; 2 |],
+            FlatList.toArray fromSequence,
+            "flatList must give the type of the items of a lazy sequence to the body of for"
+        )
+
+    [<TestMethod>]
+    member _.``for chooses the overload of the type of its source`` () =
+        let flatListSource = FlatList.ofArray [| 1; 2; 3 |]
+        let arraySource = [| 1; 2; 3 |]
+        let listSource = [ 1; 2; 3 ]
+        let sequenceSource = Seq.map id arraySource
+        let rows = FlatList.ofArray [| flatListSource |]
+
+        Assert.AreEqual<Type list>(
+            [ typeof<FlatList<int>> ],
+            loopSources
+                <@
+                    flatList {
+                        for item in flatListSource do
+                            yield item
+                    }
+                @>,
+            "for must take a flat list as a flat list, which does not box it"
+        )
+
+        Assert.AreEqual<Type list>(
+            [ typeof<int array> ],
+            loopSources
+                <@
+                    flatList {
+                        for item in arraySource do
+                            yield item
+                    }
+                @>,
+            "for must take an array as an array"
+        )
+
+        Assert.AreEqual<Type list>(
+            [ typeof<seq<int>> ],
+            loopSources
+                <@
+                    flatList {
+                        for item in listSource do
+                            yield item
+                    }
+                @>,
+            "for must take a list as a sequence"
+        )
+
+        Assert.AreEqual<Type list>(
+            [ typeof<seq<int>> ],
+            loopSources
+                <@
+                    flatList {
+                        for item in sequenceSource do
+                            yield item
+                    }
+                @>,
+            "for must take a lazy sequence as a sequence"
+        )
+
+        Assert.AreEqual<Type list>(
+            [ typeof<seq<int>> ],
+            loopSources
+                <@
+                    flatList {
+                        for item in (flatListSource :> seq<int>) do
+                            yield item
+                    }
+                @>,
+            "for must take a flat list that the code converted to a sequence as a sequence"
+        )
+
+        Assert.AreEqual<Type list>(
+            [ typeof<FlatList<FlatList<int>>>; typeof<FlatList<int>> ],
+            loopSources
+                <@
+                    flatList {
+                        for row in rows do
+                            for item in row do
+                                yield item
+                    }
+                @>,
+            "for must take the flat lists of a flat list as flat lists, the outer loop first"
+        )
+
+    [<TestMethod>]
+    member _.``for rejects a default flat list`` () =
         let ex =
             Assert.ThrowsExactly<ArgumentNullException>(
                 Action (fun () ->
@@ -116,6 +325,38 @@ type FlatListComputationExpressionTests () =
             )
 
         Assert.AreEqual<string | null>("source", ex.ParamName, "flatList must name the parameter of the default flat list")
+
+    [<TestMethod>]
+    member _.``for rejects a default flat list given as a sequence`` () =
+        let ex =
+            Assert.ThrowsExactly<ArgumentNullException>(
+                Action (fun () ->
+                    flatList {
+                        for item in (defaultArray :> seq<int>) do
+                            yield item
+                    }
+                    |> ignore
+                ),
+                "flatList must reject a default flat list that for takes as a sequence"
+            )
+
+        Assert.AreEqual<string | null>("source", ex.ParamName, "flatList must name the parameter of the default flat list")
+
+    [<TestMethod>]
+    member _.``for rejects a null array`` () =
+        let ex =
+            Assert.ThrowsExactly<ArgumentNullException>(
+                Action (fun () ->
+                    flatList {
+                        for item in Unchecked.defaultof<int array> do
+                            yield item
+                    }
+                    |> ignore
+                ),
+                "flatList must reject a null array in for"
+            )
+
+        Assert.AreEqual<string | null>("source", ex.ParamName, "flatList must name the parameter of the null array")
 
     [<TestMethod>]
     member _.``for rejects a null sequence`` () =

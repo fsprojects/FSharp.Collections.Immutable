@@ -2044,10 +2044,19 @@ val toArray : array : FlatList<'T> -> 'T array
 [<CompiledName "ToList">]
 val toList : array : FlatList<'T> -> 'T list
 
-/// <summary>Returns the flat list as a sequence.</summary>
+/// <summary>
+/// Returns the flat list as a sequence.
+/// </summary>
 /// <param name="array">The input flat list.</param>
 /// <returns>The sequence of the elements.</returns>
-/// <remarks>O(1).</remarks>
+/// <remarks>
+/// O(1). A flat list is a struct, so the conversion boxes it: each call allocates one object of 24 bytes on a 64-bit
+/// runtime, whatever the length of the flat list. The sequence implements
+/// <see cref="T:System.Collections.Generic.IReadOnlyList`1"/>, <see cref="T:System.Collections.Generic.ICollection`1"/>
+/// and <see cref="T:System.Collections.Generic.IList`1"/>, so that the functions of
+/// <see cref="T:Microsoft.FSharp.Collections.SeqModule"/> and of <see cref="T:System.Linq.Enumerable"/> that look for
+/// these interfaces take the length, the last element or a copy of the elements without an enumerator.
+/// </remarks>
 [<CompiledName "ToSeq">]
 val toSeq : array : FlatList<'T> -> seq<'T>
 
