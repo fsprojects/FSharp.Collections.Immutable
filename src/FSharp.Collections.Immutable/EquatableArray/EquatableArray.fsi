@@ -123,7 +123,8 @@ type EquatableArray<[<EqualityConditionalOn; ComparisonConditionalOn>] 'T> =
 
     /// <summary>
     /// Compares the array with <paramref name="other"/>: a shorter array comes first, and arrays of the same length
-    /// compare by their first different element in the order of F# generic comparison.
+    /// compare by their first different element in the order of F# generic comparison. Two arrays over the same
+    /// underlying array compare as zero, without a read of an element.
     /// </summary>
     /// <param name="other">The array to compare with.</param>
     /// <returns>A negative number, zero or a positive number.</returns>

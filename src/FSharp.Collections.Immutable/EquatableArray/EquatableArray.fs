@@ -157,8 +157,13 @@ type EquatableArray<[<EqualityConditionalOn; ComparisonConditionalOn>] 'T> =
         let left = this.Items
         let right = other.Items
 
+        // The same underlying array is equal to itself without a scan, as in Equals, because the comparison of an element
+        // with itself gives 0, NaN included. Without this, comparing a tree with itself in which every node holds the same
+        // child twice would read 2^levels leaves.
+        if left.Equals right then
+            0
         // Length first, as F# compares arrays: arrays of different lengths are ordered without reading an element
-        if left.Length <> right.Length then
+        elif left.Length <> right.Length then
             left.Length.CompareTo right.Length
         else
             let comparer = ElementComparer<'T>.Instance
