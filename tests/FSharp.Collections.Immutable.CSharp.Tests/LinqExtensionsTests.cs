@@ -226,17 +226,146 @@ public sealed class LinqExtensionsTests
     }
 
     [TestMethod]
-    public void A_null_delegate_throws_ArgumentNullException()
+    public void ToArray_gives_an_array_of_the_element_type()
     {
-        EquatableArray<int> array = [1, 2, 3];
+        // ImmutableArray<object>.CastUp keeps the string array behind the array. A clone of it, which is what
+        // ImmutableArrayExtensions.ToArray makes, would be a string array, where Enumerable.ToArray gives an object array
+        // and a write of another object succeeds. The comparison of the results as text above cannot see the difference.
+        EquatableArray<object> array = ImmutableArray<object>.CastUp(ImmutableArray.Create("a"));
+        IEnumerable<object> boxed = array;
 
-        Assert.ThrowsExactly<ArgumentNullException>(() => array.Select((Func<int, int>)null!), "Select must reject a null selector");
-        Assert.ThrowsExactly<ArgumentNullException>(() => array.Where((Func<int, bool>)null!), "Where must reject a null predicate");
-        Assert.ThrowsExactly<ArgumentNullException>(() => array.All((Func<int, bool>)null!), "All must reject a null predicate");
-        Assert.ThrowsExactly<ArgumentNullException>(() => array.Any((Func<int, bool>)null!), "Any must reject a null predicate");
-        Assert.ThrowsExactly<ArgumentNullException>(() => array.First((Func<int, bool>)null!), "First must reject a null predicate");
-        Assert.ThrowsExactly<ArgumentNullException>(() => array.Aggregate((Func<int, int, int>)null!), "Aggregate must reject a null function");
-        Assert.ThrowsExactly<ArgumentNullException>(() => array.ToDictionary((Func<int, int>)null!), "ToDictionary must reject a null key selector");
+        var copy = array.ToArray();
+
+        Assert.AreEqual(boxed.ToArray().GetType(), copy.GetType(), "ToArray must give the array type that Enumerable.ToArray gives");
+        copy[0] = new object();
+        Assert.AreEqual("a", array[0], "a write to the copy must not change the array");
+    }
+
+    private static EquatableArray<int> Empty => [];
+
+    private static EquatableArray<int> Pair => [1, 2];
+
+    private static EquatableArray<int> Repeated => [1, 1];
+
+    private static EquatableArray<int> Several => [3, 1, 4, 1, 5];
+
+    /// <summary>
+    /// The exceptions that the documentation of <see cref="EquatableArrayLinqExtensions"/> names, each with a call that
+    /// throws it. The comparisons with <see cref="Enumerable"/> above pass for any exception, as long as both throw the
+    /// same one, so these rows are what holds the documentation to the behavior. Each <c>exception</c> element of the
+    /// signature file needs a row.
+    /// </summary>
+    private static readonly (string Operation, Type Expected, Action Call)[] Documented =
+    [
+        ("Aggregate (func) of an empty array", typeof(InvalidOperationException),
+            () => Empty.Aggregate((left, right) => left + right)),
+        ("Aggregate (func) with a null func", typeof(ArgumentNullException),
+            () => Several.Aggregate((Func<int, int, int>)null!)),
+        ("Aggregate (seed, func) with a null func", typeof(ArgumentNullException),
+            () => Several.Aggregate(0, (Func<int, int, int>)null!)),
+        ("Aggregate (seed, func, result selector) with a null func", typeof(ArgumentNullException),
+            () => Several.Aggregate(0, (Func<int, int, int>)null!, sum => sum)),
+        ("Aggregate (seed, func, result selector) with a null result selector", typeof(ArgumentNullException),
+            () => Several.Aggregate(0, (sum, item) => sum + item, (Func<int, int>)null!)),
+        ("All with a null predicate", typeof(ArgumentNullException),
+            () => Several.All((Func<int, bool>)null!)),
+        ("Any (predicate) with a null predicate", typeof(ArgumentNullException),
+            () => Several.Any((Func<int, bool>)null!)),
+        ("ElementAt below zero", typeof(IndexOutOfRangeException),
+            () => Several.ElementAt(-1)),
+        ("ElementAt beyond the length", typeof(IndexOutOfRangeException),
+            () => Several.ElementAt(99)),
+        ("First of an empty array", typeof(InvalidOperationException),
+            () => Empty.First()),
+        ("First (predicate) matching nothing", typeof(InvalidOperationException),
+            () => Several.First(item => item > 99)),
+        ("First (predicate) with a null predicate", typeof(ArgumentNullException),
+            () => Several.First((Func<int, bool>)null!)),
+        ("FirstOrDefault (predicate) with a null predicate", typeof(ArgumentNullException),
+            () => Several.FirstOrDefault((Func<int, bool>)null!)),
+        ("Last of an empty array", typeof(InvalidOperationException),
+            () => Empty.Last()),
+        ("Last (predicate) matching nothing", typeof(InvalidOperationException),
+            () => Several.Last(item => item > 99)),
+        ("Last (predicate) with a null predicate", typeof(ArgumentNullException),
+            () => Several.Last((Func<int, bool>)null!)),
+        ("LastOrDefault (predicate) with a null predicate", typeof(ArgumentNullException),
+            () => Several.LastOrDefault((Func<int, bool>)null!)),
+        ("Select with a null selector", typeof(ArgumentNullException),
+            () => Several.Select((Func<int, int>)null!)),
+        ("SelectMany with a null collection selector", typeof(ArgumentNullException),
+            () => Several.SelectMany((Func<int, IEnumerable<int>>)null!, (item, inner) => item + inner)),
+        ("SelectMany with a null result selector", typeof(ArgumentNullException),
+            () => Several.SelectMany(item => new[] { item }, (Func<int, int, int>)null!)),
+        ("Single of an empty array", typeof(InvalidOperationException),
+            () => Empty.Single()),
+        ("Single of two elements", typeof(InvalidOperationException),
+            () => Pair.Single()),
+        ("Single (predicate) matching nothing", typeof(InvalidOperationException),
+            () => Several.Single(item => item > 99)),
+        ("Single (predicate) matching two elements", typeof(InvalidOperationException),
+            () => Several.Single(item => item == 1)),
+        ("Single (predicate) with a null predicate", typeof(ArgumentNullException),
+            () => Several.Single((Func<int, bool>)null!)),
+        ("SingleOrDefault of two elements", typeof(InvalidOperationException),
+            () => Pair.SingleOrDefault()),
+        ("SingleOrDefault (predicate) matching two elements", typeof(InvalidOperationException),
+            () => Several.SingleOrDefault(item => item == 1)),
+        ("SingleOrDefault (predicate) with a null predicate", typeof(ArgumentNullException),
+            () => Several.SingleOrDefault((Func<int, bool>)null!)),
+        ("ToDictionary (key selector) with a null key selector", typeof(ArgumentNullException),
+            () => Several.ToDictionary((Func<int, int>)null!)),
+        ("ToDictionary (key selector) with a key that is null", typeof(ArgumentNullException),
+            () => Several.ToDictionary(item => (string)null!)),
+        ("ToDictionary (key selector) with equal keys", typeof(ArgumentException),
+            () => Repeated.ToDictionary(item => item)),
+        ("ToDictionary (key selector, element selector) with a null key selector", typeof(ArgumentNullException),
+            () => Several.ToDictionary((Func<int, int>)null!, item => item)),
+        ("ToDictionary (key selector, element selector) with a null element selector", typeof(ArgumentNullException),
+            () => Several.ToDictionary(item => item, (Func<int, int>)null!)),
+        ("ToDictionary (key selector, element selector) with a key that is null", typeof(ArgumentNullException),
+            () => Several.ToDictionary(item => (string)null!, item => item)),
+        ("ToDictionary (key selector, element selector) with equal keys", typeof(ArgumentException),
+            () => Repeated.ToDictionary(item => item, item => item)),
+        ("ToDictionary (key selector, comparer) with a null key selector", typeof(ArgumentNullException),
+            () => Several.ToDictionary((Func<int, int>)null!, EqualityComparer<int>.Default)),
+        ("ToDictionary (key selector, comparer) with a key that is null", typeof(ArgumentNullException),
+            () => Several.ToDictionary(item => (string)null!, EqualityComparer<string>.Default)),
+        ("ToDictionary (key selector, comparer) with equal keys", typeof(ArgumentException),
+            () => Repeated.ToDictionary(item => item, EqualityComparer<int>.Default)),
+        ("ToDictionary (key selector, element selector, comparer) with a null key selector", typeof(ArgumentNullException),
+            () => Several.ToDictionary((Func<int, int>)null!, item => item, EqualityComparer<int>.Default)),
+        ("ToDictionary (key selector, element selector, comparer) with a null element selector", typeof(ArgumentNullException),
+            () => Several.ToDictionary(item => item, (Func<int, int>)null!, EqualityComparer<int>.Default)),
+        ("ToDictionary (key selector, element selector, comparer) with a key that is null", typeof(ArgumentNullException),
+            () => Several.ToDictionary(item => (string)null!, item => item, EqualityComparer<string>.Default)),
+        ("ToDictionary (key selector, element selector, comparer) with equal keys", typeof(ArgumentException),
+            () => Repeated.ToDictionary(item => item, item => item, EqualityComparer<int>.Default)),
+        ("Where with a null predicate", typeof(ArgumentNullException),
+            () => Several.Where((Func<int, bool>)null!)),
+    ];
+
+    public static IEnumerable<(string Operation, Type Expected)> DocumentedExceptions =>
+        Documented.Select(row => (row.Operation, row.Expected));
+
+    [TestMethod]
+    [DynamicData(nameof(DocumentedExceptions))]
+    public void The_documented_exception_is_thrown(string operation, Type expected)
+    {
+        var call = Documented.Single(row => row.Operation == operation).Call;
+
+        Exception? thrown = null;
+        try
+        {
+            call();
+        }
+        catch (Exception exception)
+        {
+            thrown = exception;
+        }
+
+        Assert.IsNotNull(thrown, $"{operation} must throw");
+        Assert.AreEqual(expected, thrown.GetType(), $"{operation} must throw the exception that the documentation names");
     }
 
 #if !DEBUG
@@ -258,9 +387,10 @@ public sealed class LinqExtensionsTests
     }
 
     [TestMethod]
-    public void The_operators_allocate_nothing_where_Enumerable_boxes_the_array()
+    public void The_operators_that_return_one_value_allocate_nothing_where_Enumerable_boxes_the_array()
     {
         EquatableArray<int> array = [3, 1, 4, 1, 5];
+        EquatableArray<int> one = [7];
 
         // The control: calling Enumerable on the array boxes it, and the counter sees that
         Assert.IsGreaterThan(0L, AllocatedBytes(() => _ = Enumerable.First<int>(array)), "Enumerable.First must box the array");
@@ -276,6 +406,18 @@ public sealed class LinqExtensionsTests
         Assert.AreEqual(0L, AllocatedBytes(() => _ = array.LastOrDefault(item => item < 4)), "LastOrDefault (predicate) must not allocate");
         Assert.AreEqual(0L, AllocatedBytes(() => _ = array.Single(item => item == 4)), "Single (predicate) must not allocate");
         Assert.AreEqual(0L, AllocatedBytes(() => _ = array.Aggregate(10, (sum, item) => sum + item)), "Aggregate (seed, func) must not allocate");
+        Assert.AreEqual(0L, AllocatedBytes(() => _ = array.Aggregate((sum, item) => sum + item)), "Aggregate (func) must not allocate");
+        Assert.AreEqual(
+            0L,
+            AllocatedBytes(() => _ = array.Aggregate(10, (sum, item) => sum + item, sum => sum * 2)),
+            "Aggregate (seed, func, result selector) must not allocate");
+        Assert.AreEqual(0L, AllocatedBytes(() => _ = array.ElementAtOrDefault(2)), "ElementAtOrDefault must not allocate");
+        Assert.AreEqual(0L, AllocatedBytes(() => _ = array.FirstOrDefault(item => item > 3)), "FirstOrDefault (predicate) must not allocate");
+        Assert.AreEqual(0L, AllocatedBytes(() => _ = array.Last(item => item < 4)), "Last (predicate) must not allocate");
+        Assert.AreEqual(0L, AllocatedBytes(() => _ = array.LastOrDefault()), "LastOrDefault () must not allocate");
+        Assert.AreEqual(0L, AllocatedBytes(() => _ = one.Single()), "Single () must not allocate");
+        Assert.AreEqual(0L, AllocatedBytes(() => _ = one.SingleOrDefault()), "SingleOrDefault () must not allocate");
+        Assert.AreEqual(0L, AllocatedBytes(() => _ = array.SingleOrDefault(item => item == 4)), "SingleOrDefault (predicate) must not allocate");
     }
 #endif
 }

@@ -11,7 +11,14 @@ open System.Runtime.CompilerServices
 /// An <see cref="T:FSharp.Collections.Immutable.EquatableArray`1"/> is a struct. The operators of
 /// <see cref="T:System.Linq.Enumerable"/> take an <see cref="T:System.Collections.Generic.IEnumerable`1"/>, so each call
 /// boxes the array: one allocation of 24 bytes. The methods of this class take the array itself, so C# binds a call
-/// such as <c>array.First ()</c> to them, and the call allocates nothing.
+/// such as <c>array.First ()</c> to them, and the call does not box the array.
+/// </para>
+/// <para>
+/// Not boxing the array is not the same as not allocating. An operator that returns one element or one value, such as
+/// <c>array.First ()</c> or <c>array.Any (predicate)</c>, allocates nothing when the delegate that it takes allocates
+/// nothing. An operator that returns a lazy sequence, such as <c>array.Where (predicate)</c>, may allocate the
+/// iterator of the sequence, and <c>array.ToArray ()</c> and <c>array.ToDictionary (keySelector)</c> allocate the
+/// collection that they return.
 /// </para>
 /// <para>
 /// The operators are those that <see cref="T:System.Linq.ImmutableArrayExtensions"/> gives an
@@ -101,11 +108,17 @@ type EquatableArrayLinqExtensions =
     [<Extension>]
     static member Any : array : EquatableArray<'T> * predicate : Func<'T, bool> -> bool
 
-    /// <summary>Returns the element at an index.</summary>
+    /// <summary>
+    /// Returns the element at an index.
+    /// </summary>
+    /// <remarks>
+    /// An index out of range throws <see cref="T:System.IndexOutOfRangeException"/> from the array, not
+    /// <see cref="T:System.ArgumentOutOfRangeException"/>, as <see cref="T:System.Linq.Enumerable"/> does for a list.
+    /// </remarks>
     /// <param name="array">The array.</param>
     /// <param name="index">The zero-based index.</param>
     /// <returns>The element at the index.</returns>
-    /// <exception cref="T:System.ArgumentOutOfRangeException">
+    /// <exception cref="T:System.IndexOutOfRangeException">
     /// <paramref name="index"/> is less than zero, or it is not less than the length.
     /// </exception>
     [<Extension>]
@@ -245,7 +258,7 @@ type EquatableArrayLinqExtensions =
 
     /// <summary>Copies the elements into a new array.</summary>
     /// <param name="array">The array.</param>
-    /// <returns>A new array with the elements, in order.</returns>
+    /// <returns>A new array of the element type, with the elements in order.</returns>
     [<Extension>]
     static member ToArray : array : EquatableArray<'T> -> 'T array
 

@@ -150,7 +150,12 @@ type EquatableArrayLinqExtensions =
         NullableResults.SingleOrDefault (array.Items, predicate)
 
     [<Extension>]
-    static member ToArray (array : EquatableArray<'T>) : 'T array = ImmutableArrayExtensions.ToArray array.Items
+    static member ToArray (array : EquatableArray<'T>) : 'T array =
+        // Not ImmutableArrayExtensions.ToArray: it clones the underlying array, which keeps its run-time type. An array of
+        // a base type over an array of a derived type (ImmutableArray<obj>.CastUp of a string array) would give a string
+        // array, where Enumerable.ToArray gives an array of the base type, and a write of another object would throw. A
+        // copy through a span has the element type, and an empty array gives Array.Empty.
+        array.Items.AsSpan().ToArray()
 
     [<Extension>]
     static member ToDictionary
