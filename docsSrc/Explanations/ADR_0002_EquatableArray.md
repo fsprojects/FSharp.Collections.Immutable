@@ -292,6 +292,12 @@ comparison boxes both values. .NET sorting uses `IComparable<'T>` and avoids the
 allocates 501 kB with `Array.sort` and nothing with `Array.Sort`. `'T list` is not cheaper: `compare` on an `int list`
 of 32 allocates 1536 B.
 
+**A value against itself.** Two values over the same underlying array compare as 0 without reading an element, as
+`Equals` answers `true` for them without a scan. This is sound because the comparison of an element with itself gives 0
+for each of the comparers above *(verified, `NaN` included)*. It keeps `compare tree tree` constant for a tree in which
+every node holds the same child twice: a scan reads 2^levels leaves, and a tree of 40 levels would not finish. Two
+separately built copies of such a tree still compare element by element, as F# structural comparison does for any value.
+
 ## 4. Interop
 
 **`ImmutableArray` and `FlatList`.** The constructor and `Items`, or `EquatableArray.ofImmutableArray` and
@@ -313,15 +319,28 @@ and a `record struct` that holds the type all compare by elements; `default` is 
 `EquatableArrayLinqExtensions` has the same operators for `EquatableArray`: `Aggregate`, `All`, `Any`, `ElementAt`,
 `ElementAtOrDefault`, `First`, `FirstOrDefault`, `Last`, `LastOrDefault`, `Select`, `SelectMany`, `Single`,
 `SingleOrDefault`, `ToArray`, `ToDictionary` and `Where`, 28 methods in all. Each calls the method of that class on
-`Items`. C# binds them, because the receiver matches their first parameter without a conversion, where `Enumerable`
-needs a boxing conversion. A maintainer asked in the review of pull request #28 whether such methods exist.
+`Items`, except `ToArray` (below). C# binds them, because the receiver matches their first parameter without a
+conversion, where `Enumerable` needs a boxing conversion. A maintainer asked in the review of pull request #28 whether
+such methods exist.
 
 They give the results, and throw the exceptions, of `Enumerable` *(verified)*. A comparison of the two classes on empty,
 one-element and several-element arrays, with and without a match, with null delegates and with duplicate keys found
 one difference in 97 cases: `ImmutableArrayExtensions.Aggregate` gives the default value for an empty array, where
 `Enumerable.Aggregate` throws `InvalidOperationException`. The extension throws too, so that adding it does not change
-what existing code gets. The other operators of `Enumerable`, such as `Count`, `Contains` and `SequenceEqual`, still
-box; `Length` replaces `Count`, and `Equals` replaces `SequenceEqual` for two arrays.
+what existing code gets. The comparison reads values, not types, so it missed a second difference that the review of
+pull request #28 found: `ImmutableArrayExtensions.ToArray` clones the underlying array and keeps its run-time type, so
+an `EquatableArray<obj>` over `ImmutableArray<obj>.CastUp` of a string array gave a `string[]`, where
+`Enumerable.ToArray` gives an `obj[]`, and a write of another object threw `ArrayTypeMismatchException` *(verified)*.
+`ToArray` of the extension copies through a span and gives the `Enumerable` result. The other operators of `Enumerable`,
+such as `Count`, `Contains` and `SequenceEqual`, still box; `Length` replaces `Count`, and `Equals` replaces
+`SequenceEqual` for two arrays.
+
+The exceptions that the documentation of each method names are held to it by the rows of a table in the tests, one for
+each condition. `ElementAt` shows what the table is for: it was documented with `ArgumentOutOfRangeException`, but an
+index out of range throws `IndexOutOfRangeException` from the array, as `Enumerable.ElementAt` does for a list
+*(verified)*. The calls that return one element or one value allocate nothing, which the tests measure for each of the
+20 operators; `Where`, `Select` and `SelectMany` return a lazy sequence and may allocate its iterator, and `ToArray` and
+`ToDictionary` allocate what they return.
 
 **F# collection expressions.** The draft of [RFC FS-1342](https://github.com/fsharp/fslang-design/pull/838) gives
 target-typed `[ ... ]` to types with `CollectionBuilderAttribute` and requires the builder type to be non-generic with
@@ -500,9 +519,10 @@ categories from `TestCategories.fs`, attributes sorted by type name.
   fails the test and does not hang the run.
 * **LINQ** (C# project): an expression tree for each of the 28 methods records the method that the compiler bound, so a
   call that falls back to `Enumerable` fails the test. On none, one and several elements, the results and the exceptions
-  equal those of `Enumerable`, except for `Aggregate` on an empty array (§4); `ToArray` copies; a null delegate throws
-  `ArgumentNullException`. In Release, calls that return a single value allocate 0 B, and a control call of
-  `Enumerable.First` allocates.
+  equal those of `Enumerable`, except for `Aggregate` on an empty array (§4); `ToArray` copies, into an array of the
+  element type; a table has one row for each condition under which the documentation names an exception, so that a
+  documented type that differs from the behavior fails the test. In Release, each of the 20 calls that return one
+  element or one value allocates 0 B, and a control call of `Enumerable.First` allocates.
 * **JSON**: the table of §4 under plain System.Text.Json and under FSharp.SystemTextJson, which becomes a test-only
   package reference in `Directory.Packages.props`.
 * **Mirrored functions** (step 2 of §6): through the shared contract suites of ADR 0001 (D8), so that no `FlatList` test
