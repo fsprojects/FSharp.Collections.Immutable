@@ -32,13 +32,14 @@ public sealed class ConversionTests
     public void Foreach_and_the_indexer_read_the_elements()
     {
         EquatableArray<int> array = [1, 2, 3];
-        var sum = 0;
+        var items = new List<int>();
         foreach (var item in array)
         {
-            sum += item;
+            items.Add(item);
         }
 
-        Assert.AreEqual(6, sum, "foreach must read every element");
+        // The items themselves, in order: a sum cannot see a loop that skips one element and repeats another
+        CollectionAssert.AreEqual(new[] { 1, 2, 3 }, items, "foreach must read every element, in order");
         Assert.AreEqual(2, array[1], "the indexer must read the element");
     }
 

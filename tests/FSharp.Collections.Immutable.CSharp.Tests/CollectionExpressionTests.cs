@@ -38,5 +38,9 @@ public sealed class CollectionExpressionTests
         EquatableArray<EquatableArray<int>> same = [[1], [2, 3]];
         Assert.HasCount(2, nested, "the outer array must hold two arrays");
         Assert.AreEqual(same, nested, "separately built nested arrays must be equal");
+        // The expected values are plain arrays, not made by the collection builder under test: a builder that drops an
+        // element gives the same wrong value on both sides of the equality above, which would pass
+        CollectionAssert.AreEqual(new[] { 1 }, nested[0].ToArray(), "the first inner array must hold 1");
+        CollectionAssert.AreEqual(new[] { 2, 3 }, nested[1].ToArray(), "the second inner array must hold 2 and 3");
     }
 }
