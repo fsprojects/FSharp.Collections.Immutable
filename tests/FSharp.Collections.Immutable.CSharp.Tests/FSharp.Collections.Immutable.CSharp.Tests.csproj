@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <AssemblyName>$(AssemblyBaseName).CSharp.Tests</AssemblyName>
+    <!-- The root Directory.Build.props sets LangVersion 10.0 for F#. The C# tests take the latest version of the compiler -->
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <OutputType>Exe</OutputType>
+    <EnableMSTestRunner>true</EnableMSTestRunner>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <!-- The allocation tests count bytes: without tiered compilation every method is fully optimized from its first call -->
+    <TieredCompilation>false</TieredCompilation>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MSTest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\FSharp.Collections.Immutable\FSharp.Collections.Immutable.fsproj" />
+    <!-- The test category attributes live in the F# test project; the C# tests use the same ones -->
+    <ProjectReference Include="..\FSharp.Collections.Immutable.Tests\FSharp.Collections.Immutable.Tests.fsproj" />
+  </ItemGroup>
+
+</Project>
