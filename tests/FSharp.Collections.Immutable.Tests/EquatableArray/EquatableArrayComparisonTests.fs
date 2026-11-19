@@ -122,3 +122,10 @@ type EquatableArrayComparisonTests () =
             "the comparison of the ImmutableArray elements must throw as compare on them does"
         )
         |> ignore
+
+    [<TestMethod; Timeout 60000; DataRow 40; DataRow 1000>]
+    member _.``a tree that holds the same child twice compares equal to itself without reading its leaves`` (levels : int) =
+        // Every node holds the same child twice, so a comparison that read the elements would visit 2^levels leaves. Two
+        // values over the same underlying array compare as zero at once, as they are equal at once.
+        let tree = DisplayTrees.Shared levels
+        Assert.AreEqual (0, compare tree tree, "a tree must compare equal to itself")

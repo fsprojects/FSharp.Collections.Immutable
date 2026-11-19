@@ -25,7 +25,10 @@ type EquatableArrayDefaultValueTests () =
         Assert.AreEqual (0, defaultValue.Length, "the default value must have length 0")
         Assert.IsTrue (defaultValue.IsEmpty, "the default value must be empty")
         Assert.IsFalse (defaultValue.Items.IsDefault, "Items must never be a default ImmutableArray")
-        Assert.IsEmpty (defaultValue, "the default value must enumerate no elements")
+        // The explicit IEnumerable<int> implementation, walked here itself: a collection assertion may read a Count
+        // instead of enumerating, and the next test uses the public struct enumerator
+        use enumerator = (defaultValue :> seq<int>).GetEnumerator()
+        Assert.IsFalse (enumerator.MoveNext (), "the default value must enumerate no elements")
 
     [<TestMethod>]
     member _.``a for loop over the default value runs zero times`` () =
@@ -64,11 +67,11 @@ type EquatableArrayDefaultValueTests () =
     [<TestMethod>]
     member _.``conversions of the default value give an empty ImmutableArray`` () =
         let converted : ImmutableArray<int> = EquatableArray<int>.op_Implicit defaultValue
+        let viaModule = EquatableArray.toImmutableArray defaultValue
         Assert.IsFalse (converted.IsDefault, "the implicit conversion must not give a default ImmutableArray")
-        Assert.IsFalse (
-            (EquatableArray.toImmutableArray defaultValue).IsDefault,
-            "toImmutableArray must not give a default ImmutableArray"
-        )
+        Assert.IsTrue (converted.IsEmpty, "the implicit conversion must give an empty ImmutableArray")
+        Assert.IsFalse (viaModule.IsDefault, "toImmutableArray must not give a default ImmutableArray")
+        Assert.IsTrue (viaModule.IsEmpty, "toImmutableArray must give an empty ImmutableArray")
         Assert.IsEmpty (defaultValue.AsSpan (), "the span of the default value must be empty")
 
     [<TestMethod>]

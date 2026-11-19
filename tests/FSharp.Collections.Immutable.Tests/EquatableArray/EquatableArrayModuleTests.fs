@@ -74,7 +74,10 @@ type EquatableArrayModuleTests () =
         let array = EquatableArray.ofSeq source
         source[0] <- 9
         Assert.AreEqual (ea [| 1; 2; 3 |], array, "a later change of the source array must not change the result")
-        Assert.AreEqual (ea [| 1; 2 |], EquatableArray.ofSeq (List<int> [| 1; 2 |]), "ofSeq must copy a List")
+        let list = List<int> [| 1; 2 |]
+        let fromList = EquatableArray.ofSeq list
+        list[0] <- 9
+        Assert.AreEqual (ea [| 1; 2 |], fromList, "a later change of the source List must not change the result")
         Assert.AreEqual (ea [| 0; 1; 2 |], EquatableArray.ofSeq (Seq.init 3 id), "ofSeq must read a lazy sequence")
 
     [<TestMethod>]

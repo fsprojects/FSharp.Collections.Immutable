@@ -146,7 +146,9 @@ type EquatableArrayInteropTests () =
     [<TestMethod>]
     member _.``IReadOnlyList gives the count, the elements and their order`` () =
         let list = ea [| 10; 20; 30 |] :> IReadOnlyList<int>
-        Assert.HasCount (3, list, "the count must be the length")
+        // IReadOnlyCollection<int>.Count itself: Assert.HasCount counts through Enumerable.Count, which reads the Count
+        // of ICollection<int>, an interface that the array implements too
+        Assert.AreEqual (3, list.Count, "the count must be the length")
         Assert.AreEqual (20, list[1], "the indexer must give the element")
         CollectionAssert.AreEqual ([| 10; 20; 30 |], Seq.toArray list, "the enumeration must keep the order")
 
@@ -187,6 +189,11 @@ type EquatableArrayInteropTests () =
     member _.``AsSpan and AsMemory show the elements without a copy`` () =
         let array = ea [| 1; 2; 3 |]
         CollectionAssert.AreEqual ([| 1; 2; 3 |], array.AsSpan().ToArray(), "the span must show the elements")
+        // Overlapping the underlying array shows that the span reads it, and does not show a copy of it
+        Assert.IsTrue (
+            MemoryExtensions.Overlaps (array.AsSpan (), ReadOnlySpan<int>(nonNull (underlying array.Items))),
+            "the span must show the underlying array"
+        )
         let mutable segment = ArraySegment<int>()
         Assert.IsTrue (MemoryMarshal.TryGetArray (array.AsMemory (), &segment), "the memory must be backed by an array")
         Assert.AreSame<int array | null>(underlying array.Items, segment.Array, "the memory must not copy the elements")
